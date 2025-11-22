@@ -14,7 +14,8 @@
     "close": "Close",
     "back": "Back",
     "next": "Next",
-    "previous": "Previous"
+    "previous": "Previous",
+    "error": "Error"
   },
   "menu": {
     "title": "Menu",
@@ -87,7 +88,31 @@
     "settings": "Restaurant Settings",
     "users": "User Management",
     "open_table": "Open Table",
-    "close_table": "Close Table"
+    "close_table": "Close Table",
+    "add_table": "Add Table",
+    "edit_table": "Edit Table",
+    "add_table_new": "Add New Table",
+    "edit_table_desc": "Edit table information",
+    "add_table_desc": "Fill in the information to add a new table",
+    "table_number": "Table Number",
+    "table_number_placeholder": "Enter table number (e.g. 1, 2, 3...)",
+    "table_number_helper": "Please enter only positive integers",
+    "saving": "Saving...",
+    "table_occupied": "Occupied",
+    "table_available": "Available",
+    "filter_all": "All",
+    "filter_available": "Available",
+    "filter_occupied": "Occupied",
+    "filter_by_status": "Filter by Status",
+    "delete_confirm_title": "Confirm Delete",
+    "delete_confirm_text": "Do you want to delete table {{tableNumber}}?",
+    "delete_success": "Deleted successfully",
+    "delete_error": "Unable to delete table",
+    "save_success": "Saved successfully",
+    "save_error": "Unable to save data",
+    "fetch_error": "Unable to load tables",
+    "invalid_table_number": "Invalid Data",
+    "invalid_table_number_text": "Please enter a valid table number"
   },
   "auth": {
     "login": "Login",

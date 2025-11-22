@@ -6,10 +6,11 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useTranslations } from '@/lib/i18n'
-import { LanguageSwitcher } from '@/components/language-switcher'
+import { useStaffLocale } from '@/lib/i18n-staff'
 import Swal from 'sweetalert2'
 
 export default function LoginPage() {
+  useStaffLocale() // Force Thai locale for staff
   const router = useRouter()
   const t = useTranslations()
   const [username, setUsername] = useState('')
@@ -68,10 +69,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4 sm:p-6 relative">
-      <div className="absolute top-4 right-4 z-10">
-        <LanguageSwitcher />
-      </div>
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 sm:p-6">
       <Card className="w-full max-w-md mx-auto">
         <CardHeader>
           <CardTitle className="text-2xl text-center">

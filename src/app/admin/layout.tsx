@@ -5,12 +5,14 @@ import { useRouter } from 'next/navigation'
 import { Sidebar } from '@/components/admin/sidebar'
 import { Topbar } from '@/components/admin/topbar'
 import { getUser } from '@/lib/auth-helpers'
+import { useStaffLocale } from '@/lib/i18n-staff'
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  useStaffLocale() // Force Thai locale for admin
   const router = useRouter()
 
   useEffect(() => {

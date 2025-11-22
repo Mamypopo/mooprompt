@@ -25,6 +25,11 @@ export async function GET(request: NextRequest) {
           orderBy: {
             startTime: 'desc',
           },
+          select: {
+            id: true,
+            peopleCount: true,
+            startTime: true,
+          },
         },
       },
       orderBy: {

@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { useTranslations } from '@/lib/i18n'
+import { useStaffLocale } from '@/lib/i18n-staff'
 import Swal from 'sweetalert2'
 
 interface Table {
@@ -37,6 +38,7 @@ interface Table {
 }
 
 export default function TablesPage() {
+  useStaffLocale() // Force Thai locale for admin
   const t = useTranslations()
   const [tables, setTables] = useState<Table[]>([])
   const [loading, setLoading] = useState(true)
@@ -68,8 +70,8 @@ export default function TablesPage() {
       console.error('Error fetching tables:', error)
       Swal.fire({
         icon: 'error',
-        title: 'เกิดข้อผิดพลาด',
-        text: 'ไม่สามารถโหลดข้อมูลโต๊ะได้',
+        title: t('common.error') || 'เกิดข้อผิดพลาด',
+        text: t('admin.fetch_error'),
       })
     } finally {
       setLoading(false)
@@ -118,8 +120,8 @@ export default function TablesPage() {
     if (isNaN(tableNumber) || tableNumber < 1) {
       Swal.fire({
         icon: 'error',
-        title: 'ข้อมูลไม่ถูกต้อง',
-        text: 'กรุณากรอกหมายเลขโต๊ะที่ถูกต้อง',
+        title: t('admin.invalid_table_number'),
+        text: t('admin.invalid_table_number_text'),
       })
       setIsSubmitting(false)
       return
@@ -144,7 +146,7 @@ export default function TablesPage() {
 
       await Swal.fire({
         icon: 'success',
-        title: editingTable ? 'แก้ไขสำเร็จ' : 'เพิ่มโต๊ะสำเร็จ',
+        title: t('admin.save_success'),
         timer: 1500,
         showConfirmButton: false,
       })
@@ -154,8 +156,8 @@ export default function TablesPage() {
     } catch (error: any) {
       Swal.fire({
         icon: 'error',
-        title: 'เกิดข้อผิดพลาด',
-        text: error.message || 'ไม่สามารถบันทึกข้อมูลได้',
+        title: t('common.error') || 'เกิดข้อผิดพลาด',
+        text: error.message || t('admin.save_error'),
       })
     } finally {
       setIsSubmitting(false)
@@ -164,12 +166,12 @@ export default function TablesPage() {
 
   const handleDelete = useCallback(async (tableId: number, tableNumber: number) => {
     const result = await Swal.fire({
-      title: 'ยืนยันการลบ',
-      text: `คุณต้องการลบโต๊ะที่ ${tableNumber} หรือไม่?`,
+      title: t('admin.delete_confirm_title'),
+      text: t('admin.delete_confirm_text', { tableNumber: tableNumber.toString() }),
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'ลบ',
-      cancelButtonText: 'ยกเลิก',
+      confirmButtonText: t('common.delete'),
+      cancelButtonText: t('common.cancel'),
       confirmButtonColor: '#FF7A7A',
     })
 
@@ -187,7 +189,7 @@ export default function TablesPage() {
 
       await Swal.fire({
         icon: 'success',
-        title: 'ลบสำเร็จ',
+        title: t('admin.delete_success'),
         timer: 1500,
         showConfirmButton: false,
       })
@@ -196,11 +198,11 @@ export default function TablesPage() {
     } catch (error: any) {
       Swal.fire({
         icon: 'error',
-        title: 'เกิดข้อผิดพลาด',
-        text: error.message || 'ไม่สามารถลบโต๊ะได้',
+        title: t('common.error') || 'เกิดข้อผิดพลาด',
+        text: error.message || t('admin.delete_error'),
       })
     }
-  }, [fetchTables])
+  }, [fetchTables, t])
 
   const filteredTables = useMemo(() => {
     if (!searchTerm.trim()) {
@@ -211,13 +213,24 @@ export default function TablesPage() {
     )
   }, [tables, searchTerm])
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    )
-  }
+  // Skeleton component for table cards
+  const TableSkeleton = () => (
+    <Card className="border-l-4 border-l-muted animate-pulse">
+      <CardHeader className="p-4 sm:p-6">
+        <div className="space-y-3">
+          <div className="h-6 bg-muted rounded w-24"></div>
+          <div className="h-4 bg-muted rounded w-16"></div>
+          <div className="h-3 bg-muted rounded w-12"></div>
+        </div>
+      </CardHeader>
+      <CardContent className="p-4 sm:p-6 pt-0">
+        <div className="flex gap-2">
+          <div className="flex-1 h-9 bg-muted rounded"></div>
+          <div className="flex-1 h-9 bg-muted rounded"></div>
+        </div>
+      </CardContent>
+    </Card>
+  )
 
   return (
     <div>
@@ -227,7 +240,7 @@ export default function TablesPage() {
           <DialogTrigger asChild>
             <Button onClick={() => handleOpenDialog()} className="w-full sm:w-auto">
               <Plus className="w-4 h-4 mr-2" />
-              เพิ่มโต๊ะ
+              {t('admin.add_table')}
             </Button>
           </DialogTrigger>
           <DialogContent
@@ -243,29 +256,37 @@ export default function TablesPage() {
             <form onSubmit={handleSubmit}>
               <DialogHeader>
                 <DialogTitle>
-                  {editingTable ? 'แก้ไขโต๊ะ' : 'เพิ่มโต๊ะใหม่'}
+                  {editingTable ? t('admin.edit_table') : t('admin.add_table_new')}
                 </DialogTitle>
                 <DialogDescription>
                   {editingTable
-                    ? 'แก้ไขข้อมูลโต๊ะ'
-                    : 'กรอกข้อมูลเพื่อเพิ่มโต๊ะใหม่'}
+                    ? t('admin.edit_table_desc')
+                    : t('admin.add_table_desc')}
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="tableNumber">หมายเลขโต๊ะ</Label>
+                  <Label htmlFor="tableNumber">{t('admin.table_number')}</Label>
                   <Input
                     id="tableNumber"
-                    type="number"
-                    min="1"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     value={formData.tableNumber}
-                    onChange={(e) =>
-                      setFormData({ ...formData, tableNumber: e.target.value })
-                    }
+                    onChange={(e) => {
+                      const value = e.target.value
+                      // Only allow digits
+                      if (value === '' || /^\d+$/.test(value)) {
+                        setFormData({ ...formData, tableNumber: value })
+                      }
+                    }}
                     required
-                    placeholder="กรอกหมายเลขโต๊ะ"
+                    placeholder={t('admin.table_number_placeholder')}
                     autoFocus
                   />
+                  <p className="text-xs text-muted-foreground">
+                    {t('admin.table_number_helper')}
+                  </p>
                 </div>
               </div>
               <DialogFooter>
@@ -278,7 +299,7 @@ export default function TablesPage() {
                   {t('common.cancel')}
                 </Button>
                 <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? 'กำลังบันทึก...' : t('common.save')}
+                  {isSubmitting ? t('admin.saving') : t('common.save')}
                 </Button>
               </DialogFooter>
             </form>
@@ -301,17 +322,23 @@ export default function TablesPage() {
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-full sm:w-[180px]">
             <Filter className="w-4 h-4 mr-2" />
-            <SelectValue placeholder="กรองตามสถานะ" />
+            <SelectValue placeholder={t('admin.filter_by_status')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">ทั้งหมด</SelectItem>
-            <SelectItem value="AVAILABLE">ว่าง</SelectItem>
-            <SelectItem value="OCCUPIED">ถูกใช้งาน</SelectItem>
+            <SelectItem value="all">{t('admin.filter_all')}</SelectItem>
+            <SelectItem value="AVAILABLE">{t('admin.filter_available')}</SelectItem>
+            <SelectItem value="OCCUPIED">{t('admin.filter_occupied')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
-      {filteredTables.length === 0 ? (
+      {loading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <TableSkeleton key={i} />
+          ))}
+        </div>
+      ) : filteredTables.length === 0 ? (
         <Card>
           <CardContent className="text-center py-12">
             <p className="text-muted-foreground">{t('common.no_data')}</p>
@@ -332,7 +359,7 @@ export default function TablesPage() {
                 <div className="flex justify-between items-start">
                   <div>
                     <CardTitle className="text-lg sm:text-xl">
-                      โต๊ะที่ {table.tableNumber}
+                      {t('table.table_number')} {table.tableNumber}
                     </CardTitle>
                     <p
                       className={`text-sm mt-1 ${
@@ -341,7 +368,7 @@ export default function TablesPage() {
                           : 'text-success font-semibold'
                       }`}
                     >
-                      {table.status === 'OCCUPIED' ? 'ถูกใช้งาน' : 'ว่าง'}
+                      {table.status === 'OCCUPIED' ? t('admin.table_occupied') : t('admin.table_available')}
                     </p>
                     {table.sessions && table.sessions.length > 0 && (
                       <p className="text-xs text-muted-foreground mt-1">
@@ -360,7 +387,7 @@ export default function TablesPage() {
                     className="flex-1"
                   >
                     <Edit className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                    <span className="text-xs sm:text-sm">แก้ไข</span>
+                    <span className="text-xs sm:text-sm">{t('common.edit')}</span>
                   </Button>
                   <Button
                     variant="outline"
@@ -370,7 +397,7 @@ export default function TablesPage() {
                     disabled={table.status === 'OCCUPIED'}
                   >
                     <Trash2 className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                    <span className="text-xs sm:text-sm">ลบ</span>
+                    <span className="text-xs sm:text-sm">{t('common.delete')}</span>
                   </Button>
                 </div>
               </CardContent>

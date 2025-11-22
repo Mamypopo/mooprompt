@@ -6,9 +6,9 @@ import { ChefHat, Clock, CheckCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useTranslations } from '@/lib/i18n'
+import { useStaffLocale } from '@/lib/i18n-staff'
 import { getUser, logout } from '@/lib/auth-helpers'
 import { getSocket } from '@/lib/socket-client'
-import { LanguageSwitcher } from '@/components/language-switcher'
 import Swal from 'sweetalert2'
 
 interface OrderItem {
@@ -33,6 +33,7 @@ interface Order {
 }
 
 export default function KitchenPage() {
+  useStaffLocale() // Force Thai locale for staff
   const router = useRouter()
   const t = useTranslations()
   const [orders, setOrders] = useState<Order[]>([])
@@ -136,7 +137,6 @@ export default function KitchenPage() {
             <h1 className="text-xl sm:text-2xl font-bold">{t('kitchen.title')}</h1>
           </div>
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <LanguageSwitcher />
             <Button onClick={logout} variant="outline" className="flex-1 sm:flex-initial text-sm">
               {t('auth.logout')}
             </Button>

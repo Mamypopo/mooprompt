@@ -14,7 +14,8 @@
     "close": "ปิด",
     "back": "กลับ",
     "next": "ถัดไป",
-    "previous": "ก่อนหน้า"
+    "previous": "ก่อนหน้า",
+    "error": "เกิดข้อผิดพลาด"
   },
   "menu": {
     "title": "เมนู",
@@ -87,7 +88,31 @@
     "settings": "ตั้งค่าร้าน",
     "users": "จัดการผู้ใช้",
     "open_table": "เปิดโต๊ะ",
-    "close_table": "ปิดโต๊ะ"
+    "close_table": "ปิดโต๊ะ",
+    "add_table": "เพิ่มโต๊ะ",
+    "edit_table": "แก้ไขโต๊ะ",
+    "add_table_new": "เพิ่มโต๊ะใหม่",
+    "edit_table_desc": "แก้ไขข้อมูลโต๊ะ",
+    "add_table_desc": "กรอกข้อมูลเพื่อเพิ่มโต๊ะใหม่",
+    "table_number": "หมายเลขโต๊ะ",
+    "table_number_placeholder": "กรอกหมายเลขโต๊ะ (เช่น 1, 2, 3...)",
+    "table_number_helper": "กรุณากรอกเฉพาะตัวเลขที่เป็นจำนวนเต็มบวก",
+    "saving": "กำลังบันทึก...",
+    "table_occupied": "ถูกใช้งาน",
+    "table_available": "ว่าง",
+    "filter_all": "ทั้งหมด",
+    "filter_available": "ว่าง",
+    "filter_occupied": "ถูกใช้งาน",
+    "filter_by_status": "กรองตามสถานะ",
+    "delete_confirm_title": "ยืนยันการลบ",
+    "delete_confirm_text": "คุณต้องการลบโต๊ะที่ {{tableNumber}} หรือไม่?",
+    "delete_success": "ลบสำเร็จ",
+    "delete_error": "ไม่สามารถลบโต๊ะได้",
+    "save_success": "บันทึกสำเร็จ",
+    "save_error": "ไม่สามารถบันทึกข้อมูลได้",
+    "fetch_error": "ไม่สามารถโหลดข้อมูลโต๊ะได้",
+    "invalid_table_number": "ข้อมูลไม่ถูกต้อง",
+    "invalid_table_number_text": "กรุณากรอกหมายเลขโต๊ะที่ถูกต้อง"
   },
   "auth": {
     "login": "เข้าสู่ระบบ",
