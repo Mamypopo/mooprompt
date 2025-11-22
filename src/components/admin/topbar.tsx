@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { Globe, LogOut, Moon, Sun, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -17,9 +18,15 @@ import { MobileSidebar } from './mobile-sidebar'
 
 export function Topbar() {
   const { theme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
   const t = useTranslations()
   const locale = useLocaleStore((state) => state.locale)
   const setLocale = useLocaleStore((state) => state.setLocale)
+
+  // Prevent hydration mismatch by only rendering theme-dependent content after mount
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const handleLocaleChange = (newLocale: Locale) => {
     setLocale(newLocale)
@@ -37,8 +44,9 @@ export function Topbar() {
           size="icon"
           className="h-9 w-9 sm:h-10 sm:w-10"
           onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          aria-label="Toggle theme"
         >
-          {theme === 'dark' ? (
+          {mounted && theme === 'dark' ? (
             <Sun className="w-4 h-4 sm:w-5 sm:h-5" />
           ) : (
             <Moon className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -56,14 +64,14 @@ export function Topbar() {
               className="flex items-center justify-between"
             >
               <span>ไทย</span>
-              {locale === 'th' && <Check className="w-4 h-4" />}
+              {mounted && locale === 'th' && <Check className="w-4 h-4" />}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => handleLocaleChange('en')}
               className="flex items-center justify-between"
             >
               <span>English</span>
-              {locale === 'en' && <Check className="w-4 h-4" />}
+              {mounted && locale === 'en' && <Check className="w-4 h-4" />}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

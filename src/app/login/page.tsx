@@ -47,6 +47,8 @@ export default function LoginPage() {
       // Redirect based on role
       if (data.user.role === 'ADMIN' || data.user.role === 'MANAGER') {
         router.push('/admin/menu')
+      } else if (data.user.role === 'CASHIER') {
+        router.push('/admin/close-table') // Cashier ไปหน้าที่ปิดโต๊ะ
       } else if (data.user.role === 'KITCHEN') {
         router.push('/kitchen')
       } else if (data.user.role === 'RUNNER') {
