@@ -94,7 +94,9 @@ export default function OpenTablePage() {
 
   const generateQRCode = async (sessionId: number) => {
     try {
-      const url = `${window.location.origin}/session/${sessionId}`
+      // Use NEXT_PUBLIC_BASE_URL from env if available, otherwise use window.location
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || window.location.origin
+      const url = `${baseUrl}/session/${sessionId}`
       const qrDataUrl = await QRCode.toDataURL(url, {
         width: 300,
         margin: 2,

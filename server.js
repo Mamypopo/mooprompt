@@ -46,9 +46,31 @@ app.prepare().then(() => {
       process.exit(1)
     })
     .listen(port, hostname, () => {
+      const os = require('os')
+      const networkInterfaces = os.networkInterfaces()
+      let localIP = 'localhost'
+      
+      // Find local IP address
+      for (const interfaceName in networkInterfaces) {
+        const interfaces = networkInterfaces[interfaceName]
+        for (const iface of interfaces) {
+          if (iface.family === 'IPv4' && !iface.internal) {
+            localIP = iface.address
+            break
+          }
+        }
+        if (localIP !== 'localhost') break
+      }
+      
       console.log(`> Ready on http://localhost:${port}`)
       console.log(`> Network: http://0.0.0.0:${port}`)
-      console.log(`> Access from external devices using your local IP address`)
+      console.log(`> Local IP: http://${localIP}:${port}`)
+      console.log(`> Access from external devices using: http://${localIP}:${port}`)
+      if (process.env.NEXT_PUBLIC_BASE_URL) {
+        console.log(`> Using BASE_URL from env: ${process.env.NEXT_PUBLIC_BASE_URL}`)
+      } else {
+        console.log(`> ⚠️  Consider setting NEXT_PUBLIC_BASE_URL=http://${localIP}:${port} in .env for mobile access`)
+      }
     })
 })
 

@@ -48,9 +48,13 @@ export async function GET(request: NextRequest) {
     }
 
     // Generate QR Code
-    const protocol = request.headers.get('x-forwarded-proto') || 'http'
-    const host = request.headers.get('host') || 'localhost:3001'
-    const baseUrl = `${protocol}://${host}`
+    // Use NEXT_PUBLIC_BASE_URL from env if available, otherwise use request host
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
+                    (() => {
+                      const protocol = request.headers.get('x-forwarded-proto') || 'http'
+                      const host = request.headers.get('host') || 'localhost:3001'
+                      return `${protocol}://${host}`
+                    })()
     const qrUrl = `${baseUrl}/session/${sessionId}`
     const qrCodeBuffer = await QRCode.toBuffer(qrUrl, {
       width: 200,

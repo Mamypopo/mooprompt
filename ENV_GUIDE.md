@@ -64,6 +64,27 @@ PORT=3001
 
 ---
 
+### 4. NEXT_PUBLIC_BASE_URL (แนะนำสำหรับ Mobile Access)
+Base URL สำหรับสร้าง QR Code และ API calls
+
+**Default:** ใช้ `request.headers.get('host')` (อาจเป็น localhost)
+
+**ตัวอย่าง:**
+```env
+# สำหรับเข้าถึงจากมือถือ (ใช้ IP address)
+NEXT_PUBLIC_BASE_URL="http://192.168.1.75:3001"
+
+# สำหรับ Production (ใช้ domain)
+NEXT_PUBLIC_BASE_URL="https://yourdomain.com"
+```
+
+**หมายเหตุ:** 
+- ใช้ `NEXT_PUBLIC_` prefix เพื่อให้ client-side เข้าถึงได้
+- ถ้าไม่ระบุ จะใช้ host จาก request header (อาจเป็น localhost)
+- สำหรับ mobile access ควรระบุ IP address
+
+---
+
 ## 📝 ตัวอย่างไฟล์ .env
 
 ### สำหรับ Development
@@ -71,6 +92,8 @@ PORT=3001
 DATABASE_URL="postgresql://postgres:password@localhost:5432/mooprompt?schema=public"
 NODE_ENV="development"
 PORT=3001
+# สำหรับ mobile access (เปลี่ยน IP เป็น IP address ของคุณ)
+NEXT_PUBLIC_BASE_URL="http://192.168.1.75:3001"
 ```
 
 ### สำหรับ Production
