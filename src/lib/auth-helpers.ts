@@ -1,5 +1,7 @@
 'use client'
 
+import Swal from 'sweetalert2'
+
 export function getUser() {
   if (typeof window === 'undefined') return null
   const userStr = localStorage.getItem('user')
@@ -16,11 +18,35 @@ export function getToken() {
   return localStorage.getItem('token')
 }
 
-export function logout() {
+export async function logout() {
   if (typeof window === 'undefined') return
+
+  const result = await Swal.fire({
+    title: 'ยืนยันการออกจากระบบ',
+    text: 'คุณต้องการออกจากระบบหรือไม่?',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'ออกจากระบบ',
+    cancelButtonText: 'ยกเลิก',
+    confirmButtonColor: '#FF6A8B',
+  })
+
+  if (!result.isConfirmed) return
+
   localStorage.removeItem('user')
   localStorage.removeItem('token')
-  window.location.href = '/login'
+  
+  Swal.fire({
+    icon: 'success',
+    title: 'ออกจากระบบสำเร็จ',
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 2000,
+    timerProgressBar: true,
+  }).then(() => {
+    window.location.href = '/login'
+  })
 }
 
 export function hasRole(userRole: string, requiredRoles: string[]): boolean {
