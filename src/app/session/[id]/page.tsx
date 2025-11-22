@@ -17,15 +17,61 @@ export default function SessionPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // In a real app, fetch session data
-    // For now, just set a mock session
-    setSession({
-      id: sessionId,
-      tableNumber: sessionId,
-      peopleCount: 2,
-    })
-    setLoading(false)
-  }, [sessionId])
+    const fetchSession = async () => {
+      try {
+        const sessionIdNum = parseInt(sessionId, 10)
+        if (isNaN(sessionIdNum)) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Session ไม่ถูกต้อง',
+            text: 'กรุณาสแกน QR Code ใหม่',
+          }).then(() => {
+            router.push('/')
+          })
+          return
+        }
+
+        const response = await fetch(`/api/session/${sessionIdNum}`)
+        const data = await response.json()
+
+        if (!response.ok) {
+          if (response.status === 404) {
+            Swal.fire({
+              icon: 'error',
+              title: 'ไม่พบ Session',
+              text: 'กรุณาสแกน QR Code ใหม่',
+            }).then(() => {
+              router.push('/')
+            })
+          } else if (response.status === 400) {
+            Swal.fire({
+              icon: 'warning',
+              title: data.error || 'Session ไม่สามารถใช้งานได้',
+              text: 'Session นี้ถูกปิดหรือหมดอายุแล้ว',
+            }).then(() => {
+              router.push('/')
+            })
+          }
+          return
+        }
+
+        setSession(data.session)
+      } catch (error) {
+        console.error('Error fetching session:', error)
+        Swal.fire({
+          icon: 'error',
+          title: 'เกิดข้อผิดพลาด',
+          text: 'ไม่สามารถโหลดข้อมูลได้',
+        }).then(() => {
+          router.push('/')
+        })
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchSession()
+  }, [sessionId, router])
 
   if (loading) {
     return (
@@ -43,10 +89,17 @@ export default function SessionPage() {
       <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
         <div className="flex justify-between items-start mb-4 sm:mb-6 gap-2">
           <div className="flex-1 min-w-0">
-            <h1 className="text-xl sm:text-2xl font-bold">โต๊ะที่ {session?.tableNumber}</h1>
+            <h1 className="text-xl sm:text-2xl font-bold">
+              {t('table.table_number')} {session?.table?.tableNumber}
+            </h1>
             <p className="text-sm sm:text-base text-muted-foreground">
-              จำนวนคน: {session?.peopleCount} คน
+              {t('table.people_count')}: {session?.peopleCount} คน
             </p>
+            {session?.package && (
+              <p className="text-sm text-muted-foreground">
+                แพ็กเกจ: {session.package.name}
+              </p>
+            )}
           </div>
           <LanguageSwitcher />
         </div>
