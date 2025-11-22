@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { QrCode, Users, Package as PackageIcon } from 'lucide-react'
+import { QrCode, Users, Package as PackageIcon, Printer } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -187,6 +187,42 @@ export default function OpenTablePage() {
     }
   }
 
+  const handlePrintQR = async () => {
+    if (!createdSession) return
+
+    try {
+      // Generate and download PDF
+      const response = await fetch(`/api/qr/pdf?sessionId=${createdSession.id}`)
+      if (!response.ok) {
+        throw new Error('Failed to generate PDF')
+      }
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `qr-table-${createdSession.table.tableNumber}-${createdSession.id}.pdf`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+
+      Swal.fire({
+        icon: 'success',
+        title: 'ดาวน์โหลด PDF สำเร็จ',
+        timer: 1500,
+        showConfirmButton: false,
+      })
+    } catch (error) {
+      console.error('Error generating PDF:', error)
+      Swal.fire({
+        icon: 'error',
+        title: 'เกิดข้อผิดพลาด',
+        text: 'ไม่สามารถสร้าง PDF ได้',
+      })
+    }
+  }
+
   const handleCloseQR = () => {
     setQrCodeUrl('')
     setCreatedSession(null)
@@ -347,13 +383,23 @@ export default function OpenTablePage() {
                 <p className="text-xs text-muted-foreground">
                   ลูกค้าสามารถสแกน QR Code นี้เพื่อเข้าสู่ระบบสั่งอาหาร
                 </p>
-                <Button
-                  variant="outline"
-                  onClick={handleCloseQR}
-                  className="w-full"
-                >
-                  ปิด
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    variant="default"
+                    onClick={handlePrintQR}
+                    className="flex-1"
+                  >
+                    <Printer className="w-4 h-4 mr-2" />
+                    พิมพ์
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={handleCloseQR}
+                    className="flex-1"
+                  >
+                    ปิด
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>

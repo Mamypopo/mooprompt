@@ -4,7 +4,7 @@ const next = require('next')
 const { Server } = require('socket.io')
 
 const dev = process.env.NODE_ENV !== 'production'
-const hostname = 'localhost'
+const hostname = '0.0.0.0' // Allow external access
 const port = parseInt(process.env.PORT || '3001', 10)
 
 const app = next({ dev, hostname, port })
@@ -45,8 +45,10 @@ app.prepare().then(() => {
       console.error(err)
       process.exit(1)
     })
-    .listen(port, () => {
-      console.log(`> Ready on http://${hostname}:${port}`)
+    .listen(port, hostname, () => {
+      console.log(`> Ready on http://localhost:${port}`)
+      console.log(`> Network: http://0.0.0.0:${port}`)
+      console.log(`> Access from external devices using your local IP address`)
     })
 })
 
