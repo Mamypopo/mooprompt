@@ -191,26 +191,15 @@ export default function OpenTablePage() {
     if (!createdSession) return
 
     try {
-      // Generate and download PDF
-      const response = await fetch(`/api/qr/pdf?sessionId=${createdSession.id}`)
-      if (!response.ok) {
-        throw new Error('Failed to generate PDF')
-      }
-
-      const blob = await response.blob()
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `qr-table-${createdSession.table.tableNumber}-${createdSession.id}.pdf`
-      document.body.appendChild(a)
-      a.click()
-      window.URL.revokeObjectURL(url)
-      document.body.removeChild(a)
-
+      // Generate and open PDF in new window for printing
+      const pdfUrl = `/api/qr/pdf?sessionId=${createdSession.id}`
+      window.open(pdfUrl, '_blank')
+      
       Swal.fire({
         icon: 'success',
-        title: 'ดาวน์โหลด PDF สำเร็จ',
-        timer: 1500,
+        title: 'เปิด PDF แล้ว',
+        text: 'สามารถพิมพ์ได้จากหน้าต่างใหม่',
+        timer: 2000,
         showConfirmButton: false,
       })
     } catch (error) {

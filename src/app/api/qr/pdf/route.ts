@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-import PDFDocument from 'pdfkit'
 import QRCode from 'qrcode'
 import { prisma } from '@/lib/prisma'
+import path from 'path'
+import fs from 'fs'
 
 export async function GET(request: NextRequest) {
   try {
+    // Dynamic import PDFKit to avoid bundling issues
+    const PDFDocument = (await import('pdfkit')).default
+
     const searchParams = request.nextUrl.searchParams
     const sessionId = searchParams.get('sessionId')
 
@@ -58,8 +62,9 @@ export async function GET(request: NextRequest) {
     })
 
     // Create PDF for Thermal Printer (80mm width)
+    // Use a large height initially, PDFKit will auto-adjust
     const doc = new PDFDocument({
-      size: [226.77, 'auto'], // 80mm in points (80mm = 226.77pt)
+      size: [226.77, 1000], // 80mm width, large height (will be trimmed)
       margins: {
         top: 20,
         bottom: 20,
@@ -68,32 +73,48 @@ export async function GET(request: NextRequest) {
       },
     })
 
+    // Register Thai fonts (Prompt)
+    const fontRegularPath = path.join(process.cwd(), 'public', 'fonts', 'Prompt-Regular.ttf')
+    const fontBoldPath = path.join(process.cwd(), 'public', 'fonts', 'Prompt-Bold.ttf')
+    
+    if (fs.existsSync(fontRegularPath)) {
+      doc.registerFont('Prompt', fontRegularPath)
+    }
+    if (fs.existsSync(fontBoldPath)) {
+      doc.registerFont('Prompt-Bold', fontBoldPath)
+    }
+
     // Set up Promise to collect PDF data
     const pdfBuffer = await new Promise<Buffer>((resolve, reject) => {
       const buffers: Buffer[] = []
-      doc.on('data', (chunk) => buffers.push(chunk))
+      doc.on('data', (chunk: Buffer) => buffers.push(chunk))
       doc.on('end', () => resolve(Buffer.concat(buffers)))
-      doc.on('error', (err) => reject(err))
+      doc.on('error', (err: Error) => reject(err))
 
     // Header - Restaurant Info
-    doc.fontSize(14).font('Helvetica-Bold').text(restaurantInfo.name, {
+    // Use Prompt font for Thai language support
+    const usePromptFont = fs.existsSync(fontRegularPath)
+    const titleFont = usePromptFont ? 'Prompt-Bold' : 'Helvetica-Bold'
+    const bodyFont = usePromptFont ? 'Prompt' : 'Helvetica'
+
+    doc.fontSize(14).font(titleFont).text(restaurantInfo.name, {
       align: 'center',
     })
 
     if (restaurantInfo.address) {
-      doc.fontSize(8).font('Helvetica').text(restaurantInfo.address, {
+      doc.fontSize(8).font(bodyFont).text(restaurantInfo.address, {
         align: 'center',
       })
     }
 
     if (restaurantInfo.phone) {
-      doc.fontSize(8).font('Helvetica').text(`โทร: ${restaurantInfo.phone}`, {
+      doc.fontSize(8).font(bodyFont).text(`โทร: ${restaurantInfo.phone}`, {
         align: 'center',
       })
     }
 
     if (restaurantInfo.openTime || restaurantInfo.closeTime) {
-      doc.fontSize(8).font('Helvetica').text(
+      doc.fontSize(8).font(bodyFont).text(
         `เปิดบริการ: ${restaurantInfo.openTime || '-'} - ${restaurantInfo.closeTime || '-'}`,
         {
           align: 'center',
@@ -107,7 +128,7 @@ export async function GET(request: NextRequest) {
     doc.moveDown(0.5)
 
     // Table Number
-    doc.fontSize(12).font('Helvetica-Bold').text(`โต๊ะที่ ${session.table.tableNumber}`, {
+    doc.fontSize(12).font(titleFont).text(`โต๊ะที่ ${session.table.tableNumber}`, {
       align: 'center',
     })
 
@@ -119,11 +140,11 @@ export async function GET(request: NextRequest) {
     })
 
     doc.moveDown(0.5)
-    doc.fontSize(8).font('Helvetica').text('สแกน QR Code เพื่อเข้าสู่ระบบสั่งอาหาร', {
+    doc.fontSize(8).font(bodyFont).text('สแกน QR Code เพื่อเข้าสู่ระบบสั่งอาหาร', {
       align: 'center',
     })
 
-    doc.fontSize(6).font('Helvetica').text(qrUrl, {
+    doc.fontSize(6).font(bodyFont).text(qrUrl, {
       align: 'center',
       width: 196.77,
     })
@@ -134,7 +155,7 @@ export async function GET(request: NextRequest) {
     doc.moveDown(0.5)
 
     // Session Details
-    doc.fontSize(8).font('Helvetica')
+    doc.fontSize(8).font(bodyFont)
     const details = [
       { label: 'จำนวนคน:', value: `${session.peopleCount} คน` },
     ]
@@ -181,18 +202,18 @@ export async function GET(request: NextRequest) {
       doc.moveTo(15, doc.y).lineTo(211.77, doc.y).stroke()
       doc.moveDown(0.5)
 
-      doc.fontSize(8).font('Helvetica-Bold').text('WiFi', {
+      doc.fontSize(8).font(titleFont).text('WiFi', {
         align: 'center',
       })
 
       if (restaurantInfo.wifiName) {
-        doc.fontSize(8).font('Helvetica').text(`ชื่อ: ${restaurantInfo.wifiName}`, {
+        doc.fontSize(8).font(bodyFont).text(`ชื่อ: ${restaurantInfo.wifiName}`, {
           align: 'center',
         })
       }
 
       if (restaurantInfo.wifiPassword) {
-        doc.fontSize(8).font('Helvetica').text(
+        doc.fontSize(8).font(bodyFont).text(
           `รหัสผ่าน: ${restaurantInfo.wifiPassword}`,
           {
             align: 'center',
@@ -206,11 +227,11 @@ export async function GET(request: NextRequest) {
     doc.moveTo(15, doc.y).lineTo(211.77, doc.y).stroke()
     doc.moveDown(0.5)
 
-    doc.fontSize(8).font('Helvetica').text('ขอบคุณที่ใช้บริการ', {
+    doc.fontSize(8).font(bodyFont).text('ขอบคุณที่ใช้บริการ', {
       align: 'center',
     })
 
-    doc.fontSize(6).font('Helvetica').text(`Session: ${session.id}`, {
+    doc.fontSize(6).font(bodyFont).text(`Session: ${session.id}`, {
       align: 'center',
     })
 
@@ -219,10 +240,12 @@ export async function GET(request: NextRequest) {
     })
 
     // Return PDF as response
-    return new NextResponse(pdfBuffer, {
+    // Convert Buffer to Uint8Array for NextResponse
+    // Use 'inline' to open in browser instead of downloading
+    return new NextResponse(new Uint8Array(pdfBuffer), {
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="qr-table-${session.table.tableNumber}-${sessionId}.pdf"`,
+        'Content-Disposition': `inline; filename="qr-table-${session.table.tableNumber}-${sessionId}.pdf"`,
       },
     })
   } catch (error) {
