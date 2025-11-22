@@ -1,0 +1,93 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+import { logAction } from '@/lib/logger'
+import { z } from 'zod'
+
+const openSessionSchema = z.object({
+  tableId: z.number().int().positive(),
+  peopleCount: z.number().int().positive(),
+  packageId: z.number().int().positive().optional(),
+})
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json()
+    const data = openSessionSchema.parse(body)
+
+    // Check if table is available
+    const table = await prisma.table.findUnique({
+      where: { id: data.tableId },
+    })
+
+    if (!table) {
+      return NextResponse.json(
+        { error: 'Table not found' },
+        { status: 404 }
+      )
+    }
+
+    if (table.status !== 'AVAILABLE') {
+      return NextResponse.json(
+        { error: 'Table is already occupied' },
+        { status: 400 }
+      )
+    }
+
+    // Calculate expire time if package has duration
+    let expireTime: Date | null = null
+    if (data.packageId) {
+      const packageData = await prisma.package.findUnique({
+        where: { id: data.packageId },
+      })
+      if (packageData?.durationMinutes) {
+        expireTime = new Date()
+        expireTime.setMinutes(
+          expireTime.getMinutes() + packageData.durationMinutes
+        )
+      }
+    }
+
+    // Create session
+    const session = await prisma.tableSession.create({
+      data: {
+        tableId: data.tableId,
+        peopleCount: data.peopleCount,
+        packageId: data.packageId,
+        startTime: new Date(),
+        expireTime,
+        status: 'ACTIVE',
+      },
+      include: {
+        table: true,
+        package: true,
+      },
+    })
+
+    // Update table status
+    await prisma.table.update({
+      where: { id: data.tableId },
+      data: { status: 'OCCUPIED' },
+    })
+
+    await logAction(null, 'OPEN_TABLE', {
+      sessionId: session.id,
+      tableId: data.tableId,
+      peopleCount: data.peopleCount,
+    })
+
+    return NextResponse.json({ session }, { status: 201 })
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: 'Invalid input', details: error.errors },
+        { status: 400 }
+      )
+    }
+
+    console.error('Error opening session:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}

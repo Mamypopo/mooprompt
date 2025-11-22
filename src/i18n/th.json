@@ -1,0 +1,100 @@
+{
+  "common": {
+    "save": "บันทึก",
+    "cancel": "ยกเลิก",
+    "delete": "ลบ",
+    "edit": "แก้ไข",
+    "add": "เพิ่ม",
+    "search": "ค้นหา",
+    "filter": "กรอง",
+    "sort": "เรียงลำดับ",
+    "loading": "กำลังโหลด...",
+    "no_data": "ไม่มีข้อมูล",
+    "confirm": "ยืนยัน",
+    "close": "ปิด",
+    "back": "กลับ",
+    "next": "ถัดไป",
+    "previous": "ก่อนหน้า"
+  },
+  "menu": {
+    "title": "เมนู",
+    "add_to_cart": "เพิ่มลงตะกร้า",
+    "cart": "ตะกร้า",
+    "quantity": "จำนวน",
+    "note": "หมายเหตุ",
+    "price": "ราคา",
+    "available": "พร้อมให้บริการ",
+    "unavailable": "ไม่พร้อมให้บริการ"
+  },
+  "cart": {
+    "title": "ตะกร้าสินค้า",
+    "empty": "ตะกร้าว่างเปล่า",
+    "total": "รวม",
+    "checkout": "สั่งอาหาร",
+    "remove": "ลบออก",
+    "update": "อัพเดท"
+  },
+  "order": {
+    "title": "ออเดอร์",
+    "status": {
+      "waiting": "รอทำ",
+      "cooking": "กำลังทำ",
+      "done": "พร้อมเสิร์ฟ",
+      "served": "เสิร์ฟแล้ว"
+    },
+    "create": "สร้างออเดอร์",
+    "view": "ดูออเดอร์"
+  },
+  "table": {
+    "title": "โต๊ะ",
+    "scan_qr": "สแกน QR Code",
+    "table_number": "โต๊ะที่",
+    "people_count": "จำนวนคน",
+    "session": "เซสชัน",
+    "open": "เปิดโต๊ะ",
+    "close": "ปิดโต๊ะ"
+  },
+  "kitchen": {
+    "title": "ครัว",
+    "orders": "ออเดอร์",
+    "mark_cooking": "กำลังทำ",
+    "mark_done": "พร้อมเสิร์ฟ"
+  },
+  "runner": {
+    "title": "พนักงานเสิร์ฟ",
+    "orders": "ออเดอร์พร้อมเสิร์ฟ",
+    "mark_served": "เสิร์ฟแล้ว"
+  },
+  "billing": {
+    "title": "บิล",
+    "subtotal": "ยอดรวม",
+    "discount": "ส่วนลด",
+    "total": "ยอดสุทธิ",
+    "payment_method": "วิธีการชำระเงิน",
+    "cash": "เงินสด",
+    "qr": "QR Code",
+    "credit": "บัตรเครดิต",
+    "print_receipt": "พิมพ์ใบเสร็จ"
+  },
+  "admin": {
+    "title": "จัดการระบบ",
+    "menu": "จัดการเมนู",
+    "categories": "จัดการหมวดหมู่",
+    "tables": "จัดการโต๊ะ",
+    "packages": "จัดการแพ็กเกจ",
+    "extra_charges": "จัดการค่าบริการเพิ่มเติม",
+    "promotions": "จัดการโปรโมชั่น",
+    "settings": "ตั้งค่าร้าน",
+    "users": "จัดการผู้ใช้",
+    "open_table": "เปิดโต๊ะ",
+    "close_table": "ปิดโต๊ะ"
+  },
+  "auth": {
+    "login": "เข้าสู่ระบบ",
+    "logout": "ออกจากระบบ",
+    "username": "ชื่อผู้ใช้",
+    "password": "รหัสผ่าน",
+    "invalid_credentials": "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง"
+  }
+}
+

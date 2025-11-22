@@ -1,0 +1,100 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "loading": "Loading...",
+    "no_data": "No data",
+    "confirm": "Confirm",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous"
+  },
+  "menu": {
+    "title": "Menu",
+    "add_to_cart": "Add to Cart",
+    "cart": "Cart",
+    "quantity": "Quantity",
+    "note": "Note",
+    "price": "Price",
+    "available": "Available",
+    "unavailable": "Unavailable"
+  },
+  "cart": {
+    "title": "Shopping Cart",
+    "empty": "Cart is empty",
+    "total": "Total",
+    "checkout": "Checkout",
+    "remove": "Remove",
+    "update": "Update"
+  },
+  "order": {
+    "title": "Order",
+    "status": {
+      "waiting": "Waiting",
+      "cooking": "Cooking",
+      "done": "Done",
+      "served": "Served"
+    },
+    "create": "Create Order",
+    "view": "View Order"
+  },
+  "table": {
+    "title": "Table",
+    "scan_qr": "Scan QR Code",
+    "table_number": "Table",
+    "people_count": "People Count",
+    "session": "Session",
+    "open": "Open Table",
+    "close": "Close Table"
+  },
+  "kitchen": {
+    "title": "Kitchen",
+    "orders": "Orders",
+    "mark_cooking": "Mark Cooking",
+    "mark_done": "Mark Done"
+  },
+  "runner": {
+    "title": "Runner",
+    "orders": "Ready Orders",
+    "mark_served": "Mark Served"
+  },
+  "billing": {
+    "title": "Billing",
+    "subtotal": "Subtotal",
+    "discount": "Discount",
+    "total": "Total",
+    "payment_method": "Payment Method",
+    "cash": "Cash",
+    "qr": "QR Code",
+    "credit": "Credit Card",
+    "print_receipt": "Print Receipt"
+  },
+  "admin": {
+    "title": "Admin",
+    "menu": "Menu Management",
+    "categories": "Category Management",
+    "tables": "Table Management",
+    "packages": "Package Management",
+    "extra_charges": "Extra Charges",
+    "promotions": "Promotions",
+    "settings": "Restaurant Settings",
+    "users": "User Management",
+    "open_table": "Open Table",
+    "close_table": "Close Table"
+  },
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "username": "Username",
+    "password": "Password",
+    "invalid_credentials": "Invalid username or password"
+  }
+}
+
