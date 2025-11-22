@@ -38,11 +38,14 @@ export default function LoginPage() {
       localStorage.setItem('user', JSON.stringify(data.user))
       localStorage.setItem('token', data.token || 'dummy-token')
 
-      await Swal.fire({
+      Swal.fire({
         icon: 'success',
         title: 'เข้าสู่ระบบสำเร็จ',
+        toast: true,
+        position: 'top-end',
         showConfirmButton: false,
-        timer: 1500,
+        timer: 3000,
+        timerProgressBar: true,
       })
 
       // Redirect based on role
@@ -58,10 +61,15 @@ export default function LoginPage() {
         router.push('/admin/menu')
       }
     } catch (error: any) {
-      await Swal.fire({
+      Swal.fire({
         icon: 'error',
         title: 'เข้าสู่ระบบไม่สำเร็จ',
         text: error.message || t('auth.invalid_credentials'),
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
       })
     } finally {
       setLoading(false)

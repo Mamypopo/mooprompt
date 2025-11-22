@@ -59,6 +59,11 @@ export default function MenuPage() {
       Swal.fire({
         icon: 'warning',
         title: 'สินค้าไม่พร้อมให้บริการ',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
       })
       return
     }
@@ -73,8 +78,11 @@ export default function MenuPage() {
     Swal.fire({
       icon: 'success',
       title: 'เพิ่มลงตะกร้าแล้ว',
-      timer: 1500,
+      toast: true,
+      position: 'top-end',
       showConfirmButton: false,
+      timer: 3000,
+      timerProgressBar: true,
     })
   }
 

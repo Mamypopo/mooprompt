@@ -104,6 +104,11 @@ export default function MenuManagementPage() {
         icon: 'error',
         title: 'ไฟล์ไม่ถูกต้อง',
         text: 'กรุณาเลือกไฟล์รูปภาพ',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
       })
       return
     }
@@ -114,6 +119,11 @@ export default function MenuManagementPage() {
         icon: 'error',
         title: 'ไฟล์ใหญ่เกินไป',
         text: 'ขนาดไฟล์ต้องไม่เกิน 5MB',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
       })
       return
     }
@@ -151,6 +161,11 @@ export default function MenuManagementPage() {
         icon: 'error',
         title: 'อัพโหลดรูปภาพล้มเหลว',
         text: 'กรุณาลองใหม่อีกครั้ง',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
       })
       return null
     } finally {
@@ -207,6 +222,11 @@ export default function MenuManagementPage() {
         icon: 'warning',
         title: 'กรุณากรอกข้อมูลให้ครบ',
         text: 'กรุณากรอกชื่อ, ราคา และเลือกหมวดหมู่',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
       })
       return
     }
@@ -217,6 +237,11 @@ export default function MenuManagementPage() {
         icon: 'error',
         title: 'ราคาไม่ถูกต้อง',
         text: 'กรุณากรอกราคาที่เป็นตัวเลขบวก',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
       })
       return
     }
@@ -256,8 +281,11 @@ export default function MenuManagementPage() {
         Swal.fire({
           icon: 'success',
           title: 'แก้ไขสำเร็จ',
-          timer: 1500,
+          toast: true,
+          position: 'top-end',
           showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
         })
       } else {
         // Create
@@ -274,8 +302,11 @@ export default function MenuManagementPage() {
         Swal.fire({
           icon: 'success',
           title: 'เพิ่มเมนูสำเร็จ',
-          timer: 1500,
+          toast: true,
+          position: 'top-end',
           showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
         })
       }
 
@@ -288,6 +319,11 @@ export default function MenuManagementPage() {
         icon: 'error',
         title: 'เกิดข้อผิดพลาด',
         text: 'ไม่สามารถบันทึกข้อมูลได้',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
       })
     }
   }
@@ -299,6 +335,11 @@ export default function MenuManagementPage() {
       Swal.fire({
         icon: 'warning',
         title: 'กรุณากรอกชื่อหมวดหมู่',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
       })
       return
     }
@@ -319,8 +360,11 @@ export default function MenuManagementPage() {
         Swal.fire({
           icon: 'success',
           title: 'แก้ไขสำเร็จ',
-          timer: 1500,
+          toast: true,
+          position: 'top-end',
           showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
         })
       } else {
         // Create
@@ -337,8 +381,11 @@ export default function MenuManagementPage() {
         Swal.fire({
           icon: 'success',
           title: 'เพิ่มหมวดหมู่สำเร็จ',
-          timer: 1500,
+          toast: true,
+          position: 'top-end',
           showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
         })
       }
 
@@ -352,6 +399,11 @@ export default function MenuManagementPage() {
         icon: 'error',
         title: 'เกิดข้อผิดพลาด',
         text: 'ไม่สามารถบันทึกข้อมูลได้',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
       })
     }
   }
@@ -364,33 +416,42 @@ export default function MenuManagementPage() {
       showCancelButton: true,
       confirmButtonText: 'ลบ',
       cancelButtonText: 'ยกเลิก',
+      confirmButtonColor: '#FF7A7A',
     })
 
-    if (result.isConfirmed) {
-      try {
-        const response = await fetch(`/api/menu/items/${itemId}`, {
-          method: 'DELETE',
-        })
+    if (!result.isConfirmed) return
 
-        if (!response.ok) {
-          throw new Error('Delete failed')
-        }
+    try {
+      const response = await fetch(`/api/menu/items/${itemId}`, {
+        method: 'DELETE',
+      })
 
-        Swal.fire({
-          icon: 'success',
-          title: 'ลบสำเร็จ',
-          timer: 1500,
-          showConfirmButton: false,
-        })
-        fetchMenu()
-      } catch (error) {
-        console.error('Error deleting item:', error)
-        Swal.fire({
-          icon: 'error',
-          title: 'เกิดข้อผิดพลาด',
-          text: 'ไม่สามารถลบข้อมูลได้',
-        })
+      if (!response.ok) {
+        throw new Error('Delete failed')
       }
+
+      Swal.fire({
+        icon: 'success',
+        title: 'ลบสำเร็จ',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+      })
+      fetchMenu()
+    } catch (error) {
+      console.error('Error deleting item:', error)
+      Swal.fire({
+        icon: 'error',
+        title: 'เกิดข้อผิดพลาด',
+        text: 'ไม่สามารถลบข้อมูลได้',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+      })
     }
   }
 
@@ -402,35 +463,44 @@ export default function MenuManagementPage() {
       showCancelButton: true,
       confirmButtonText: 'ลบ',
       cancelButtonText: 'ยกเลิก',
+      confirmButtonColor: '#FF7A7A',
     })
 
-    if (result.isConfirmed) {
-      try {
-        const response = await fetch(`/api/menu/categories/${categoryId}`, {
-          method: 'DELETE',
-        })
+    if (!result.isConfirmed) return
 
-        if (!response.ok) {
-          const data = await response.json()
-          throw new Error(data.error || 'Delete failed')
-        }
+    try {
+      const response = await fetch(`/api/menu/categories/${categoryId}`, {
+        method: 'DELETE',
+      })
 
-        Swal.fire({
-          icon: 'success',
-          title: 'ลบสำเร็จ',
-          timer: 1500,
-          showConfirmButton: false,
-        })
-        fetchMenu()
-        fetchCategories()
-      } catch (error: any) {
-        console.error('Error deleting category:', error)
-        Swal.fire({
-          icon: 'error',
-          title: 'เกิดข้อผิดพลาด',
-          text: error.message || 'ไม่สามารถลบข้อมูลได้',
-        })
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Delete failed')
       }
+
+      Swal.fire({
+        icon: 'success',
+        title: 'ลบสำเร็จ',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+      })
+      fetchMenu()
+      fetchCategories()
+    } catch (error: any) {
+      console.error('Error deleting category:', error)
+      Swal.fire({
+        icon: 'error',
+        title: 'เกิดข้อผิดพลาด',
+        text: error.message || 'ไม่สามารถลบข้อมูลได้',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+      })
     }
   }
 
@@ -794,3 +864,4 @@ export default function MenuManagementPage() {
     </div>
   )
 }
+

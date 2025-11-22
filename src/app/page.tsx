@@ -17,22 +17,11 @@ export default function HomePage() {
 
   const handleScanQR = () => {
     // In a real app, this would open camera for QR scanning
-    Swal.fire({
-      title: 'สแกน QR Code',
-      text: 'กรุณาใช้กล้องสแกน QR Code บนโต๊ะ',
-      icon: 'info',
-      showCancelButton: true,
-      confirmButtonText: 'สแกน',
-      cancelButtonText: 'ยกเลิก',
-    }).then((result) => {
-      if (result.isConfirmed) {
-        // Simulate QR scan result
-        const scannedTableId = prompt('กรอก Table ID (สำหรับทดสอบ):')
-        if (scannedTableId) {
-          router.push(`/session/${scannedTableId}`)
-        }
-      }
-    })
+    // In a real app, this would open camera for QR scanning
+    const scannedTableId = prompt('กรอก Table ID (สำหรับทดสอบ):')
+    if (scannedTableId) {
+      router.push(`/session/${scannedTableId}`)
+    }
   }
 
   const handleEnterTable = () => {
@@ -40,6 +29,11 @@ export default function HomePage() {
       Swal.fire({
         icon: 'error',
         title: 'กรุณากรอกหมายเลขโต๊ะ',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
       })
       return
     }

@@ -72,6 +72,11 @@ export default function TablesPage() {
         icon: 'error',
         title: t('common.error') || 'เกิดข้อผิดพลาด',
         text: t('admin.fetch_error'),
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
       })
     } finally {
       setLoading(false)
@@ -122,6 +127,11 @@ export default function TablesPage() {
         icon: 'error',
         title: t('admin.invalid_table_number'),
         text: t('admin.invalid_table_number_text'),
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
       })
       setIsSubmitting(false)
       return
@@ -144,11 +154,14 @@ export default function TablesPage() {
         throw new Error(data.error || `Failed to ${editingTable ? 'update' : 'create'} table`)
       }
 
-      await Swal.fire({
+      Swal.fire({
         icon: 'success',
         title: t('admin.save_success'),
-        timer: 1500,
+        toast: true,
+        position: 'top-end',
         showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
       })
 
       handleCloseDialog()
@@ -158,6 +171,11 @@ export default function TablesPage() {
         icon: 'error',
         title: t('common.error') || 'เกิดข้อผิดพลาด',
         text: error.message || t('admin.save_error'),
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
       })
     } finally {
       setIsSubmitting(false)
@@ -187,19 +205,26 @@ export default function TablesPage() {
         throw new Error(data.error || 'Failed to delete table')
       }
 
-      await Swal.fire({
+      Swal.fire({
         icon: 'success',
         title: t('admin.delete_success'),
-        timer: 1500,
+        toast: true,
+        position: 'top-end',
         showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
       })
-
       fetchTables()
     } catch (error: any) {
       Swal.fire({
         icon: 'error',
         title: t('common.error') || 'เกิดข้อผิดพลาด',
         text: error.message || t('admin.delete_error'),
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
       })
     }
   }, [fetchTables, t])

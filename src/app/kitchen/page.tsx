@@ -105,6 +105,11 @@ export default function KitchenPage() {
       Swal.fire({
         icon: 'error',
         title: 'เกิดข้อผิดพลาด',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
       })
     }
   }

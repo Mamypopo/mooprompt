@@ -25,9 +25,13 @@ export default function SessionPage() {
             icon: 'error',
             title: 'Session ไม่ถูกต้อง',
             text: 'กรุณาสแกน QR Code ใหม่',
-          }).then(() => {
-            router.push('/')
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
           })
+          router.push('/')
           return
         }
 
@@ -40,17 +44,25 @@ export default function SessionPage() {
               icon: 'error',
               title: 'ไม่พบ Session',
               text: 'กรุณาสแกน QR Code ใหม่',
-            }).then(() => {
-              router.push('/')
+              toast: true,
+              position: 'top-end',
+              showConfirmButton: false,
+              timer: 3000,
+              timerProgressBar: true,
             })
+            router.push('/')
           } else if (response.status === 400) {
             Swal.fire({
               icon: 'warning',
               title: data.error || 'Session ไม่สามารถใช้งานได้',
               text: 'Session นี้ถูกปิดหรือหมดอายุแล้ว',
-            }).then(() => {
-              router.push('/')
+              toast: true,
+              position: 'top-end',
+              showConfirmButton: false,
+              timer: 3000,
+              timerProgressBar: true,
             })
+            router.push('/')
           }
           return
         }
@@ -62,9 +74,13 @@ export default function SessionPage() {
           icon: 'error',
           title: 'เกิดข้อผิดพลาด',
           text: 'ไม่สามารถโหลดข้อมูลได้',
-        }).then(() => {
-          router.push('/')
+          toast: true,
+          position: 'top-end',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
         })
+        router.push('/')
       } finally {
         setLoading(false)
       }

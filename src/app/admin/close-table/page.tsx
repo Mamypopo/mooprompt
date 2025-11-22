@@ -65,6 +65,11 @@ export default function CloseTablePage() {
         icon: 'error',
         title: 'เกิดข้อผิดพลาด',
         text: 'ไม่สามารถโหลดข้อมูลได้',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
       })
     } finally {
       setLoading(false)
@@ -85,6 +90,11 @@ export default function CloseTablePage() {
         icon: 'warning',
         title: 'กรุณาเลือกโต๊ะ',
         text: 'กรุณาเลือกโต๊ะที่ต้องการปิด',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
       })
       return
     }
@@ -121,21 +131,16 @@ export default function CloseTablePage() {
       const data = await response.json()
       const billing = data.billing
 
-      await Swal.fire({
+      const paymentMethodText = paymentMethod === 'CASH' ? 'เงินสด' : paymentMethod === 'QR' ? 'QR Code' : 'บัตรเครดิต'
+      Swal.fire({
         icon: 'success',
         title: 'ปิดโต๊ะสำเร็จ',
-        html: `
-          <div class="text-left">
-            <p><strong>ยอดรวม:</strong> ${billing.subtotal.toFixed(2)} บาท</p>
-            <p><strong>ค่าบริการ:</strong> ${billing.extraCharge.toFixed(2)} บาท</p>
-            <p><strong>ส่วนลด:</strong> ${billing.discount.toFixed(2)} บาท</p>
-            <p class="text-lg font-bold mt-2"><strong>ยอดสุทธิ:</strong> ${billing.grandTotal.toFixed(2)} บาท</p>
-            <p class="mt-2"><strong>วิธีชำระ:</strong> ${
-              paymentMethod === 'CASH' ? 'เงินสด' : paymentMethod === 'QR' ? 'QR Code' : 'บัตรเครดิต'
-            }</p>
-          </div>
-        `,
-        confirmButtonText: 'ตกลง',
+        text: `ยอดรวม: ${billing.subtotal.toFixed(2)} บาท | ค่าบริการ: ${billing.extraCharge.toFixed(2)} บาท | ส่วนลด: ${billing.discount.toFixed(2)} บาท | ยอดสุทธิ: ${billing.grandTotal.toFixed(2)} บาท | วิธีชำระ: ${paymentMethodText}`,
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 5000,
+        timerProgressBar: true,
       })
 
       // Reset
@@ -149,6 +154,11 @@ export default function CloseTablePage() {
         icon: 'error',
         title: 'เกิดข้อผิดพลาด',
         text: error.message || 'ไม่สามารถปิดโต๊ะได้',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
       })
     } finally {
       setClosing(false)

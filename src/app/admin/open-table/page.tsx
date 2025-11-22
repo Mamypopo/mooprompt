@@ -82,6 +82,11 @@ export default function OpenTablePage() {
         icon: 'error',
         title: 'เกิดข้อผิดพลาด',
         text: 'ไม่สามารถโหลดข้อมูลได้',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
       })
     } finally {
       setLoading(false)
@@ -120,6 +125,11 @@ export default function OpenTablePage() {
         icon: 'warning',
         title: 'กรุณากรอกข้อมูลให้ครบ',
         text: 'กรุณาเลือกโต๊ะและระบุจำนวนคน',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
       })
       return
     }
@@ -130,6 +140,11 @@ export default function OpenTablePage() {
         icon: 'error',
         title: 'ข้อมูลไม่ถูกต้อง',
         text: 'กรุณากรอกจำนวนคนที่ถูกต้อง',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
       })
       return
     }
@@ -163,12 +178,15 @@ export default function OpenTablePage() {
 
       setCreatedSession(session)
 
-      await Swal.fire({
+      Swal.fire({
         icon: 'success',
         title: 'เปิดโต๊ะสำเร็จ',
         text: `โต๊ะที่ ${session.table.tableNumber} เปิดแล้ว`,
-        timer: 2000,
+        toast: true,
+        position: 'top-end',
         showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
       })
 
       // Reset form
@@ -183,6 +201,11 @@ export default function OpenTablePage() {
         icon: 'error',
         title: 'เกิดข้อผิดพลาด',
         text: error.message || 'ไม่สามารถเปิดโต๊ะได้',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
       })
     } finally {
       setSubmitting(false)
@@ -201,8 +224,11 @@ export default function OpenTablePage() {
         icon: 'success',
         title: 'เปิด PDF แล้ว',
         text: 'สามารถพิมพ์ได้จากหน้าต่างใหม่',
-        timer: 2000,
+        toast: true,
+        position: 'top-end',
         showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
       })
     } catch (error) {
       console.error('Error generating PDF:', error)
@@ -210,6 +236,11 @@ export default function OpenTablePage() {
         icon: 'error',
         title: 'เกิดข้อผิดพลาด',
         text: 'ไม่สามารถสร้าง PDF ได้',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
       })
     }
   }

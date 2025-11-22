@@ -31,6 +31,11 @@ export default function CartPage() {
       Swal.fire({
         icon: 'warning',
         title: 'ตะกร้าว่างเปล่า',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
       })
       return
     }
@@ -54,11 +59,14 @@ export default function CartPage() {
         throw new Error('Failed to create order')
       }
 
-      await Swal.fire({
+      Swal.fire({
         icon: 'success',
         title: 'สั่งอาหารสำเร็จ',
-        timer: 1500,
+        toast: true,
+        position: 'top-end',
         showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
       })
 
       clearCart()
@@ -68,6 +76,11 @@ export default function CartPage() {
         icon: 'error',
         title: 'เกิดข้อผิดพลาด',
         text: 'ไม่สามารถสั่งอาหารได้',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
       })
     }
   }

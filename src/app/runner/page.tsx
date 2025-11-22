@@ -94,11 +94,14 @@ export default function RunnerPage() {
       const socket = getSocket()
       socket.emit('order:served', { itemId })
 
-      await Swal.fire({
+      Swal.fire({
         icon: 'success',
         title: 'เสิร์ฟแล้ว',
-        timer: 1500,
+        toast: true,
+        position: 'top-end',
         showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
       })
 
       fetchOrders()
@@ -106,6 +109,11 @@ export default function RunnerPage() {
       Swal.fire({
         icon: 'error',
         title: 'เกิดข้อผิดพลาด',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
       })
     }
   }
