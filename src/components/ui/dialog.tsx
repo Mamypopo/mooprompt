@@ -30,59 +30,129 @@ DialogOverlay.displayName = DialogPrimitive.Overlay.displayName
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
-  <DialogPortal>
-    <DialogOverlay />
-    <DialogPrimitive.Content
-      ref={ref}
-      className={cn(
-        "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg",
-        className
-      )}
-      onOpenAutoFocus={(e) => {
-        // Prevent auto focus on close button
-        // Let the first input field get focus instead
-        const target = e.currentTarget as HTMLElement
-        if (target) {
-          const firstInput = target.querySelector('input, textarea, select') as HTMLElement
-          if (firstInput) {
-            e.preventDefault()
-            setTimeout(() => firstInput.focus(), 0)
-          } else {
-            // If no input, prevent default to avoid focus on close button
-            e.preventDefault()
+>(({ className, children, ...props }, ref) => {
+  // Watch for aria-hidden changes and blur focused elements to prevent warnings
+  React.useEffect(() => {
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'aria-hidden') {
+          const target = mutation.target as HTMLElement
+          if (target.getAttribute('aria-hidden') === 'true') {
+            // Check if any descendant has focus
+            const focusedElement = document.activeElement
+            if (focusedElement && target.contains(focusedElement)) {
+              // Blur the focused element to prevent aria-hidden warning
+              if (focusedElement instanceof HTMLElement) {
+                focusedElement.blur()
+              }
+            }
           }
         }
-      }}
-      onCloseAutoFocus={(e) => {
-        // Prevent focus from returning to trigger button when dialog closes
-        // This helps avoid aria-hidden warnings
+      })
+    })
+
+    // Observe all elements for aria-hidden changes
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ['aria-hidden'],
+      subtree: true,
+    })
+
+    return () => {
+      observer.disconnect()
+    }
+  }, [])
+
+  const handleOpenAutoFocus = React.useCallback((e: Event) => {
+    // First, blur any active element to prevent aria-hidden warning
+    const activeElement = document.activeElement
+    if (activeElement instanceof HTMLElement && activeElement !== document.body) {
+      activeElement.blur()
+    }
+    
+    // Then, focus on the first input field if available
+    const target = e.currentTarget as HTMLElement
+    if (target) {
+      const firstInput = target.querySelector('input, textarea, select') as HTMLElement
+      if (firstInput) {
         e.preventDefault()
-      }}
-      onEscapeKeyDown={(e) => {
-        // Blur any focused element before closing to prevent aria-hidden warning
-        const activeElement = document.activeElement
-        if (activeElement instanceof HTMLElement && activeElement !== document.body) {
-          activeElement.blur()
-        }
-      }}
-      onPointerDownOutside={(e) => {
-        // Blur any focused element before closing to prevent aria-hidden warning
-        const activeElement = document.activeElement
-        if (activeElement instanceof HTMLElement && activeElement !== document.body) {
-          activeElement.blur()
-        }
-      }}
-      {...props}
-    >
-      {children}
-      <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
-        <X className="h-4 w-4" />
-        <span className="sr-only">Close</span>
-      </DialogPrimitive.Close>
-    </DialogPrimitive.Content>
-  </DialogPortal>
-))
+        // Use requestAnimationFrame to ensure blur completes first
+        requestAnimationFrame(() => {
+          setTimeout(() => firstInput.focus(), 0)
+        })
+      } else {
+        // If no input, prevent default to avoid focus on close button
+        e.preventDefault()
+      }
+    }
+  }, [])
+
+  const handleCloseAutoFocus = React.useCallback((e: Event) => {
+    // Prevent focus from returning to trigger button when dialog closes
+    // This helps avoid aria-hidden warnings
+    e.preventDefault()
+    // Blur any active element to ensure clean state
+    requestAnimationFrame(() => {
+      const activeElement = document.activeElement
+      if (activeElement instanceof HTMLElement && activeElement !== document.body) {
+        activeElement.blur()
+      }
+      // Focus on body to ensure no element retains focus
+      if (document.body instanceof HTMLElement) {
+        document.body.focus()
+      }
+    })
+  }, [])
+
+  const handleEscapeKeyDown = React.useCallback((e: KeyboardEvent) => {
+    // Blur any focused element before closing to prevent aria-hidden warning
+    const activeElement = document.activeElement
+    if (activeElement instanceof HTMLElement && activeElement !== document.body) {
+      activeElement.blur()
+    }
+  }, [])
+
+  const handlePointerDownOutside = React.useCallback((e: any) => {
+    // Blur any focused element before closing to prevent aria-hidden warning
+    const activeElement = document.activeElement
+    if (activeElement instanceof HTMLElement && activeElement !== document.body) {
+      activeElement.blur()
+    }
+  }, [])
+
+  const handleInteractOutside = React.useCallback((e: any) => {
+    // Blur any focused element before closing
+    const activeElement = document.activeElement
+    if (activeElement instanceof HTMLElement && activeElement !== document.body) {
+      activeElement.blur()
+    }
+  }, [])
+
+  return (
+    <DialogPortal>
+      <DialogOverlay />
+      <DialogPrimitive.Content
+        ref={ref}
+        className={cn(
+          "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg",
+          className
+        )}
+        onOpenAutoFocus={handleOpenAutoFocus}
+        onCloseAutoFocus={handleCloseAutoFocus}
+        onEscapeKeyDown={handleEscapeKeyDown}
+        onPointerDownOutside={handlePointerDownOutside}
+        onInteractOutside={handleInteractOutside}
+        {...props}
+      >
+        {children}
+        <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+          <X className="h-4 w-4" />
+          <span className="sr-only">Close</span>
+        </DialogPrimitive.Close>
+      </DialogPrimitive.Content>
+    </DialogPortal>
+  )
+})
 DialogContent.displayName = DialogPrimitive.Content.displayName
 
 const DialogHeader = ({

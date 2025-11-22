@@ -3,6 +3,8 @@ const nextConfig = {
   reactStrictMode: true,
   images: {
     domains: ['localhost'],
+    // Allow images from public/uploads
+    unoptimized: process.env.NODE_ENV === 'development',
   },
   webpack: (config, { isServer }) => {
     if (isServer) {

@@ -1,14 +1,20 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const searchParams = request.nextUrl.searchParams
+    const includeUnavailable = searchParams.get('includeUnavailable') === 'true'
+
+    const where: any = {}
+    if (!includeUnavailable) {
+      where.isAvailable = true
+    }
+
     const categories = await prisma.menuCategory.findMany({
       include: {
         items: {
-          where: {
-            isAvailable: true,
-          },
+          where,
           orderBy: {
             name: 'asc',
           },
