@@ -23,7 +23,7 @@ export async function PATCH(request: NextRequest) {
 
     if (!orderItem) {
       return NextResponse.json(
-        { error: 'Order item not found' },
+        { error: 'ไม่พบรายการออเดอร์' },
         { status: 404 }
       )
     }
@@ -70,14 +70,14 @@ export async function PATCH(request: NextRequest) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid input', details: error.errors },
+        { error: 'ข้อมูลไม่ถูกต้อง', details: error.errors },
         { status: 400 }
       )
     }
 
     console.error('Error updating order item status:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์' },
       { status: 500 }
     )
   }

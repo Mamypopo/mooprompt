@@ -21,14 +21,14 @@ export async function POST(request: NextRequest) {
 
     if (!table) {
       return NextResponse.json(
-        { error: 'Table not found' },
+        { error: 'ไม่พบโต๊ะ' },
         { status: 404 }
       )
     }
 
     if (table.status !== 'AVAILABLE') {
       return NextResponse.json(
-        { error: 'Table is already occupied' },
+        { error: 'โต๊ะนี้ถูกใช้งานอยู่แล้ว' },
         { status: 400 }
       )
     }
@@ -79,14 +79,14 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid input', details: error.errors },
+        { error: 'ข้อมูลไม่ถูกต้อง', details: error.errors },
         { status: 400 }
       )
     }
 
     console.error('Error opening session:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์' },
       { status: 500 }
     )
   }

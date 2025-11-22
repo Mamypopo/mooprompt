@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
 
     if (!sessionId) {
       return NextResponse.json(
-        { error: 'Session ID is required' },
+        { error: 'กรุณาระบุ Session ID' },
         { status: 400 }
       )
     }
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error generating QR code:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์' },
       { status: 500 }
     )
   }

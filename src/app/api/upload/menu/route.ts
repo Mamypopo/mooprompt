@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
 
     if (!file) {
       return NextResponse.json(
-        { error: 'No file provided' },
+        { error: 'ไม่พบไฟล์' },
         { status: 400 }
       )
     }
@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
     if (!allowedTypes.includes(file.type)) {
       return NextResponse.json(
-        { error: 'Invalid file type. Only JPEG, PNG, and WebP are allowed.' },
+        { error: 'ประเภทไฟล์ไม่ถูกต้อง อนุญาตเฉพาะ JPEG, PNG และ WebP' },
         { status: 400 }
       )
     }
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     const maxSize = 5 * 1024 * 1024 // 5MB
     if (file.size > maxSize) {
       return NextResponse.json(
-        { error: 'File size exceeds 5MB limit.' },
+        { error: 'ขนาดไฟล์เกิน 5MB' },
         { status: 400 }
       )
     }
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error uploading file:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์' },
       { status: 500 }
     )
   }

@@ -25,7 +25,7 @@ export async function PATCH(
 
     if (!existingTable) {
       return NextResponse.json(
-        { error: 'Table not found' },
+        { error: 'ไม่พบโต๊ะ' },
         { status: 404 }
       )
     }
@@ -41,7 +41,7 @@ export async function PATCH(
 
       if (duplicateTable) {
         return NextResponse.json(
-          { error: 'Table number already exists' },
+          { error: 'หมายเลขโต๊ะนี้มีอยู่แล้ว' },
           { status: 400 }
         )
       }
@@ -58,7 +58,7 @@ export async function PATCH(
 
       if (!activeSession) {
         return NextResponse.json(
-          { error: 'Cannot set table as OCCUPIED without active session' },
+          { error: 'ไม่สามารถตั้งโต๊ะเป็น OCCUPIED ได้หากไม่มี session ที่ใช้งานอยู่' },
           { status: 400 }
         )
       }
@@ -78,14 +78,14 @@ export async function PATCH(
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid input', details: error.errors },
+        { error: 'ข้อมูลไม่ถูกต้อง', details: error.errors },
         { status: 400 }
       )
     }
 
     console.error('Error updating table:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์' },
       { status: 500 }
     )
   }
@@ -113,7 +113,7 @@ export async function DELETE(
 
     if (!table) {
       return NextResponse.json(
-        { error: 'Table not found' },
+        { error: 'ไม่พบโต๊ะ' },
         { status: 404 }
       )
     }
@@ -121,7 +121,7 @@ export async function DELETE(
     // Check if table has active session
     if (table.sessions.length > 0) {
       return NextResponse.json(
-        { error: 'Cannot delete table with active session' },
+        { error: 'ไม่สามารถลบโต๊ะที่มี session ที่ใช้งานอยู่ได้' },
         { status: 400 }
       )
     }
@@ -129,7 +129,7 @@ export async function DELETE(
     // Check if table is occupied
     if (table.status === 'OCCUPIED') {
       return NextResponse.json(
-        { error: 'Cannot delete occupied table' },
+        { error: 'ไม่สามารถลบโต๊ะที่ถูกใช้งานอยู่ได้' },
         { status: 400 }
       )
     }
@@ -147,7 +147,7 @@ export async function DELETE(
   } catch (error) {
     console.error('Error deleting table:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์' },
       { status: 500 }
     )
   }

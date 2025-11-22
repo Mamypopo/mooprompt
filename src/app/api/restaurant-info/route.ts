@@ -20,7 +20,7 @@ export async function GET() {
   } catch (error) {
     console.error('Error fetching restaurant info:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์' },
       { status: 500 }
     )
   }

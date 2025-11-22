@@ -21,7 +21,7 @@ export async function GET(
 
     if (isNaN(itemId)) {
       return NextResponse.json(
-        { error: 'Invalid item ID' },
+        { error: 'รหัสเมนูไม่ถูกต้อง' },
         { status: 400 }
       )
     }
@@ -40,7 +40,7 @@ export async function GET(
 
     if (!item) {
       return NextResponse.json(
-        { error: 'Menu item not found' },
+        { error: 'ไม่พบเมนู' },
         { status: 404 }
       )
     }
@@ -49,7 +49,7 @@ export async function GET(
   } catch (error) {
     console.error('Error fetching menu item:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์' },
       { status: 500 }
     )
   }
@@ -65,7 +65,7 @@ export async function PATCH(
 
     if (isNaN(itemId)) {
       return NextResponse.json(
-        { error: 'Invalid item ID' },
+        { error: 'รหัสเมนูไม่ถูกต้อง' },
         { status: 400 }
       )
     }
@@ -101,14 +101,14 @@ export async function PATCH(
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid input', details: error.errors },
+        { error: 'ข้อมูลไม่ถูกต้อง', details: error.errors },
         { status: 400 }
       )
     }
 
     console.error('Error updating menu item:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์' },
       { status: 500 }
     )
   }
@@ -124,7 +124,7 @@ export async function DELETE(
 
     if (isNaN(itemId)) {
       return NextResponse.json(
-        { error: 'Invalid item ID' },
+        { error: 'รหัสเมนูไม่ถูกต้อง' },
         { status: 400 }
       )
     }
@@ -135,7 +135,7 @@ export async function DELETE(
 
     if (!item) {
       return NextResponse.json(
-        { error: 'Menu item not found' },
+        { error: 'ไม่พบเมนู' },
         { status: 404 }
       )
     }
@@ -153,7 +153,7 @@ export async function DELETE(
   } catch (error) {
     console.error('Error deleting menu item:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์' },
       { status: 500 }
     )
   }

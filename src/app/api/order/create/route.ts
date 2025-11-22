@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
 
     if (!session || session.status !== 'ACTIVE') {
       return NextResponse.json(
-        { error: 'Session not found or not active' },
+        { error: 'ไม่พบ session หรือ session ไม่ได้เปิดใช้งาน' },
         { status: 400 }
       )
     }
@@ -71,14 +71,14 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid input', details: error.errors },
+        { error: 'ข้อมูลไม่ถูกต้อง', details: error.errors },
         { status: 400 }
       )
     }
 
     console.error('Error creating order:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์' },
       { status: 500 }
     )
   }

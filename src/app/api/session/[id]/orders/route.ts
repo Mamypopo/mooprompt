@@ -28,7 +28,7 @@ export async function GET(
   } catch (error) {
     console.error('Error fetching orders:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์' },
       { status: 500 }
     )
   }

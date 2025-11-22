@@ -10,7 +10,7 @@ export async function GET(
 
     if (isNaN(sessionId)) {
       return NextResponse.json(
-        { error: 'Invalid session ID' },
+        { error: 'รหัส session ไม่ถูกต้อง' },
         { status: 400 }
       )
     }
@@ -38,7 +38,7 @@ export async function GET(
 
     if (!session) {
       return NextResponse.json(
-        { error: 'Session not found' },
+        { error: 'ไม่พบ session' },
         { status: 404 }
       )
     }
@@ -46,7 +46,7 @@ export async function GET(
     // Check if session is active
     if (session.status !== 'ACTIVE') {
       return NextResponse.json(
-        { error: 'Session is not active', session },
+        { error: 'Session ไม่ได้เปิดใช้งาน', session },
         { status: 400 }
       )
     }
@@ -54,7 +54,7 @@ export async function GET(
     // Check if session has expired
     if (session.expireTime && new Date(session.expireTime) < new Date()) {
       return NextResponse.json(
-        { error: 'Session has expired', session },
+        { error: 'Session หมดอายุแล้ว', session },
         { status: 400 }
       )
     }
@@ -63,7 +63,7 @@ export async function GET(
   } catch (error) {
     console.error('Error fetching session:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์' },
       { status: 500 }
     )
   }

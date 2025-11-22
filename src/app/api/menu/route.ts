@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching menu:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์' },
       { status: 500 }
     )
   }

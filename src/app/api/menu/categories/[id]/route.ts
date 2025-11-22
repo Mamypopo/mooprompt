@@ -17,7 +17,7 @@ export async function PATCH(
 
     if (isNaN(categoryId)) {
       return NextResponse.json(
-        { error: 'Invalid category ID' },
+        { error: 'รหัสหมวดหมู่ไม่ถูกต้อง' },
         { status: 400 }
       )
     }
@@ -41,14 +41,14 @@ export async function PATCH(
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid input', details: error.errors },
+        { error: 'ข้อมูลไม่ถูกต้อง', details: error.errors },
         { status: 400 }
       )
     }
 
     console.error('Error updating category:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์' },
       { status: 500 }
     )
   }
@@ -64,7 +64,7 @@ export async function DELETE(
 
     if (isNaN(categoryId)) {
       return NextResponse.json(
-        { error: 'Invalid category ID' },
+        { error: 'รหัสหมวดหมู่ไม่ถูกต้อง' },
         { status: 400 }
       )
     }
@@ -78,14 +78,14 @@ export async function DELETE(
 
     if (!category) {
       return NextResponse.json(
-        { error: 'Category not found' },
+        { error: 'ไม่พบหมวดหมู่' },
         { status: 404 }
       )
     }
 
     if (category.items.length > 0) {
       return NextResponse.json(
-        { error: 'Cannot delete category with items. Please delete or move items first.' },
+        { error: 'ไม่สามารถลบหมวดหมู่ได้ เนื่องจากยังมีเมนูอยู่ในหมวดหมู่นี้ กรุณาลบหรือย้ายเมนูทั้งหมดก่อน' },
         { status: 400 }
       )
     }
@@ -103,7 +103,7 @@ export async function DELETE(
   } catch (error) {
     console.error('Error deleting category:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์' },
       { status: 500 }
     )
   }

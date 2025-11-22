@@ -26,14 +26,14 @@ export async function POST(request: NextRequest) {
 
     if (!session) {
       return NextResponse.json(
-        { error: 'Session not found' },
+        { error: 'ไม่พบ session' },
         { status: 404 }
       )
     }
 
     if (session.status === 'CLOSED') {
       return NextResponse.json(
-        { error: 'Session is already closed' },
+        { error: 'Session ถูกปิดแล้ว' },
         { status: 400 }
       )
     }
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     // Check if there are open orders
     if (session.orders.length > 0) {
       return NextResponse.json(
-        { error: 'Cannot close session with open orders' },
+        { error: 'ไม่สามารถปิด session ที่มีออเดอร์ที่ยังเปิดอยู่ได้' },
         { status: 400 }
       )
     }
@@ -67,14 +67,14 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid input', details: error.errors },
+        { error: 'ข้อมูลไม่ถูกต้อง', details: error.errors },
         { status: 400 }
       )
     }
 
     console.error('Error closing session:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์' },
       { status: 500 }
     )
   }
