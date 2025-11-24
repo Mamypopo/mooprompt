@@ -22,7 +22,7 @@ export function Topbar() {
     <header className="h-14 sm:h-16 border-b bg-card flex items-center justify-between px-4 sm:px-6">
       <div className="flex items-center gap-2">
         <MobileSidebar />
-        <h1 className="text-lg sm:text-xl font-bold truncate">Mooprompt Restaurant</h1>
+        <h1 className="text-lg sm:text-xl font-bold truncate">Mooprompt</h1>
       </div>
       <div className="flex items-center gap-1 sm:gap-2">
         <Button

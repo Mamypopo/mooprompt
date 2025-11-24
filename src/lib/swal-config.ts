@@ -42,12 +42,20 @@ if (typeof window !== 'undefined') {
       
       .swal2-cancel {
         background-color: transparent !important;
+        border: 1px solid hsl(var(--border)) !important;
         border-color: hsl(var(--border)) !important;
         color: hsl(var(--foreground)) !important;
+        font-weight: 500 !important;
       }
       
       .swal2-cancel:hover {
         background-color: hsl(var(--muted)) !important;
+        border-color: hsl(var(--muted-foreground)) !important;
+        color: hsl(var(--foreground)) !important;
+      }
+      
+      .swal2-cancel:focus {
+        box-shadow: 0 0 0 3px hsl(var(--ring) / 0.2) !important;
       }
       
       .swal2-toast {
