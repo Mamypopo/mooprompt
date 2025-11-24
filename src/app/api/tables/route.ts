@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
         },
       },
       orderBy: {
-        tableNumber: 'asc',
+        name: 'asc',
       },
     })
 
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
 
 // POST - สร้างโต๊ะใหม่
 const createTableSchema = z.object({
-  tableNumber: z.number().int().positive(),
+  name: z.string().min(1),
 })
 
 export async function POST(request: NextRequest) {
@@ -57,30 +57,30 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const data = createTableSchema.parse(body)
 
-    // Check if table number already exists
+    // Check if table name already exists
     const existingTable = await prisma.table.findFirst({
       where: {
-        tableNumber: data.tableNumber,
+        name: data.name,
       },
     })
 
     if (existingTable) {
       return NextResponse.json(
-        { error: 'หมายเลขโต๊ะนี้มีอยู่แล้ว' },
+        { error: 'ชื่อโต๊ะนี้มีอยู่แล้ว' },
         { status: 400 }
       )
     }
 
     const table = await prisma.table.create({
       data: {
-        tableNumber: data.tableNumber,
+        name: data.name,
         status: 'AVAILABLE',
       },
     })
 
     await logAction(null, 'CREATE_TABLE', {
       tableId: table.id,
-      tableNumber: data.tableNumber,
+      name: data.name,
     })
 
     return NextResponse.json({ table }, { status: 201 })

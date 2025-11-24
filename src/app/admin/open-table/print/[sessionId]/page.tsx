@@ -7,7 +7,7 @@ import { useStaffLocale } from '@/lib/i18n-staff'
 interface Session {
   id: number
   table: {
-    tableNumber: number
+    name: string
   }
   peopleCount: number
   package?: {
@@ -174,7 +174,7 @@ export default function PrintQRPage() {
         {/* QR Code Section */}
         <div className="text-center mb-4 print:mb-3">
           <h2 className="text-base font-semibold mb-2 print:text-xs print:font-bold print:mb-1">
-            โต๊ะที่ {session.table.tableNumber}
+            {session.table.name}
           </h2>
           
           <div className="bg-white p-2 rounded-lg inline-block mb-2 print:mb-1 print:p-1">

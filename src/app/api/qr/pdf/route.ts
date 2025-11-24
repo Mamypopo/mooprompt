@@ -131,8 +131,8 @@ export async function GET(request: NextRequest) {
     doc.moveTo(15, doc.y).lineTo(211.77, doc.y).stroke()
     doc.moveDown(0.5)
 
-    // Table Number
-    doc.fontSize(12).font(titleFont).text(`โต๊ะที่ ${session.table.tableNumber}`, {
+    // Table Name
+    doc.fontSize(12).font(titleFont).text(`${session.table.name}`, {
       align: 'center',
     })
 
@@ -249,7 +249,7 @@ export async function GET(request: NextRequest) {
     return new NextResponse(new Uint8Array(pdfBuffer), {
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `inline; filename="qr-table-${session.table.tableNumber}-${sessionId}.pdf"`,
+        'Content-Disposition': `inline; filename="qr-table-${session.table.name.replace(/[^a-zA-Z0-9]/g, '-')}-${sessionId}.pdf"`,
       },
     })
   } catch (error) {

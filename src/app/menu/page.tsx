@@ -16,6 +16,8 @@ interface MenuItem {
   price: number
   imageUrl?: string
   isAvailable: boolean
+  isBuffetItem?: boolean
+  isALaCarteItem?: boolean
 }
 
 interface Category {
@@ -30,6 +32,7 @@ export default function MenuPage() {
   const t = useTranslations()
   const sessionId = searchParams.get('session')
   const [categories, setCategories] = useState<Category[]>([])
+  const [sessionType, setSessionType] = useState<'buffet' | 'a_la_carte'>('a_la_carte')
   const [loading, setLoading] = useState(true)
   const { addItem } = useCartStore()
 
@@ -44,9 +47,15 @@ export default function MenuPage() {
 
   const fetchMenu = async () => {
     try {
-      const response = await fetch('/api/menu')
+      const sessionIdNum = sessionId ? parseInt(sessionId, 10) : null
+      const url = sessionIdNum
+        ? `/api/menu?sessionId=${sessionIdNum}`
+        : '/api/menu'
+      
+      const response = await fetch(url)
       const data = await response.json()
       setCategories(data.categories || [])
+      setSessionType(data.sessionType || 'a_la_carte')
     } catch (error) {
       console.error('Error fetching menu:', error)
     } finally {
@@ -68,11 +77,28 @@ export default function MenuPage() {
       return
     }
 
+    // กำหนด itemType ตาม session type และ item properties
+    let itemType: 'BUFFET_INCLUDED' | 'A_LA_CARTE' = 'A_LA_CARTE'
+    
+    if (sessionType === 'buffet') {
+      // ถ้าเป็นบุฟเฟ่ต์ และ item นี้เป็น buffet item → ฟรี
+      if (item.isBuffetItem) {
+        itemType = 'BUFFET_INCLUDED'
+      } else {
+        // ถ้าไม่ใช่ buffet item → จ่ายเพิ่ม
+        itemType = 'A_LA_CARTE'
+      }
+    } else {
+      // ถ้าเป็น à la carte → จ่ายตามราคา
+      itemType = 'A_LA_CARTE'
+    }
+
     addItem({
       menuItemId: item.id,
       name: item.name,
-      price: item.price,
+      price: itemType === 'BUFFET_INCLUDED' ? 0 : item.price, // ฟรีถ้าเป็น BUFFET_INCLUDED
       qty: 1,
+      itemType,
     })
 
     Swal.fire({
@@ -114,47 +140,118 @@ export default function MenuPage() {
           </div>
         </div>
 
-        {categories.map((category) => (
-          <div key={category.id} className="mb-6 sm:mb-8">
-            <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">{category.name}</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-              {category.items.map((item) => (
-                <Card
-                  key={item.id}
-                  className={`overflow-hidden ${
-                    !item.isAvailable ? 'opacity-60' : ''
-                  }`}
-                >
-                  {item.imageUrl && (
-                    <div className="aspect-square bg-muted">
-                      <img
-                        src={item.imageUrl}
-                        alt={item.name}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
+        {categories.map((category) => {
+          // แยก items เป็นบุฟเฟ่ต์และ à la carte (ถ้าเป็น session บุฟเฟ่ต์)
+          const buffetItems = sessionType === 'buffet' 
+            ? category.items.filter(item => item.isBuffetItem)
+            : []
+          const aLaCarteItems = sessionType === 'buffet'
+            ? category.items.filter(item => item.isALaCarteItem && !item.isBuffetItem)
+            : category.items
+
+          // ถ้าไม่มี items ในหมวดนี้ ให้ข้าม
+          if (buffetItems.length === 0 && aLaCarteItems.length === 0) {
+            return null
+          }
+
+          return (
+            <div key={category.id} className="mb-6 sm:mb-8">
+              <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">{category.name}</h2>
+              
+              {/* แสดงเมนูบุฟเฟ่ต์ (ถ้ามี) */}
+              {sessionType === 'buffet' && buffetItems.length > 0 && (
+                <div className="mb-4 sm:mb-6">
+                  <h3 className="text-base sm:text-lg font-medium mb-2 sm:mb-3 text-muted-foreground">
+                    เมนูบุฟเฟ่ต์ (ฟรี)
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                    {buffetItems.map((item) => (
+                      <Card
+                        key={item.id}
+                        className={`overflow-hidden ${
+                          !item.isAvailable ? 'opacity-60' : ''
+                        }`}
+                      >
+                        {item.imageUrl && (
+                          <div className="aspect-square bg-muted">
+                            <img
+                              src={item.imageUrl}
+                              alt={item.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        )}
+                        <CardContent className="p-3 sm:p-4">
+                          <h3 className="font-semibold mb-1 text-sm sm:text-base line-clamp-2">{item.name}</h3>
+                          <p className="text-primary font-bold mb-2 sm:mb-3 text-sm sm:text-base">
+                            ฿0 <span className="text-xs text-muted-foreground">(รวมในบุฟเฟ่ต์)</span>
+                          </p>
+                          <Button
+                            onClick={() => handleAddToCart(item)}
+                            className="w-full text-xs sm:text-sm"
+                            size="sm"
+                            disabled={!item.isAvailable}
+                          >
+                            <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                            <span className="hidden sm:inline">{t('menu.add_to_cart')}</span>
+                            <span className="sm:hidden">เพิ่ม</span>
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* แสดงเมนู à la carte */}
+              {aLaCarteItems.length > 0 && (
+                <div>
+                  {sessionType === 'buffet' && (
+                    <h3 className="text-base sm:text-lg font-medium mb-2 sm:mb-3 text-muted-foreground">
+                      เมนูเพิ่มเติม (จ่ายเพิ่ม)
+                    </h3>
                   )}
-                  <CardContent className="p-3 sm:p-4">
-                    <h3 className="font-semibold mb-1 text-sm sm:text-base line-clamp-2">{item.name}</h3>
-                    <p className="text-primary font-bold mb-2 sm:mb-3 text-sm sm:text-base">
-                      ฿{item.price.toLocaleString()}
-                    </p>
-                    <Button
-                      onClick={() => handleAddToCart(item)}
-                      className="w-full text-xs sm:text-sm"
-                      size="sm"
-                      disabled={!item.isAvailable}
-                    >
-                      <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                      <span className="hidden sm:inline">{t('menu.add_to_cart')}</span>
-                      <span className="sm:hidden">เพิ่ม</span>
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                    {aLaCarteItems.map((item) => (
+                      <Card
+                        key={item.id}
+                        className={`overflow-hidden ${
+                          !item.isAvailable ? 'opacity-60' : ''
+                        }`}
+                      >
+                        {item.imageUrl && (
+                          <div className="aspect-square bg-muted">
+                            <img
+                              src={item.imageUrl}
+                              alt={item.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        )}
+                        <CardContent className="p-3 sm:p-4">
+                          <h3 className="font-semibold mb-1 text-sm sm:text-base line-clamp-2">{item.name}</h3>
+                          <p className="text-primary font-bold mb-2 sm:mb-3 text-sm sm:text-base">
+                            ฿{item.price.toLocaleString()}
+                          </p>
+                          <Button
+                            onClick={() => handleAddToCart(item)}
+                            className="w-full text-xs sm:text-sm"
+                            size="sm"
+                            disabled={!item.isAvailable}
+                          >
+                            <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                            <span className="hidden sm:inline">{t('menu.add_to_cart')}</span>
+                            <span className="sm:hidden">เพิ่ม</span>
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )

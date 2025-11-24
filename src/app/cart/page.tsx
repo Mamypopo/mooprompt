@@ -50,6 +50,7 @@ export default function CartPage() {
             menuItemId: item.menuItemId,
             qty: item.qty,
             note: item.note,
+            itemType: item.itemType || 'A_LA_CARTE', // ส่ง itemType ไปที่ API
           })),
           note: note || undefined,
         }),
@@ -141,7 +142,13 @@ export default function CartPage() {
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-sm sm:text-base truncate">{item.name}</h3>
                     <p className="text-primary font-bold text-sm sm:text-base">
-                      ฿{item.price.toLocaleString()}
+                      {item.itemType === 'BUFFET_INCLUDED' ? (
+                        <>
+                          ฿0 <span className="text-xs text-muted-foreground">(รวมในบุฟเฟ่ต์)</span>
+                        </>
+                      ) : (
+                        <>฿{item.price.toLocaleString()}</>
+                      )}
                     </p>
                   </div>
                   <Button

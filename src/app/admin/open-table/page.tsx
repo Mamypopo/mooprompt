@@ -21,7 +21,7 @@ import QRCode from 'qrcode'
 
 interface Table {
   id: number
-  tableNumber: number
+  name: string
   status: 'AVAILABLE' | 'OCCUPIED'
 }
 
@@ -42,7 +42,7 @@ interface Session {
   status: 'ACTIVE' | 'CLOSED'
   table: {
     id: number
-    tableNumber: number
+    name: string
   }
   package: Package | null
 }
@@ -181,7 +181,7 @@ export default function OpenTablePage() {
       Swal.fire({
         icon: 'success',
         title: 'เปิดโต๊ะสำเร็จ',
-        text: `โต๊ะที่ ${session.table.tableNumber} เปิดแล้ว`,
+        text: `${session.table.name} เปิดแล้ว`,
         toast: true,
         position: 'top-end',
         showConfirmButton: false,
@@ -290,7 +290,7 @@ export default function OpenTablePage() {
                     ) : (
                       tables.map((table) => (
                         <SelectItem key={table.id} value={table.id.toString()}>
-                          โต๊ะที่ {table.tableNumber}
+                          {table.name}
                         </SelectItem>
                       ))
                     )}
@@ -381,7 +381,7 @@ export default function OpenTablePage() {
             <CardContent className="space-y-4">
               <div className="text-center space-y-2">
                 <p className="text-lg font-semibold">
-                  โต๊ะที่ {createdSession.table.tableNumber}
+                  {createdSession.table.name}
                 </p>
                 <p className="text-sm text-muted-foreground">
                   จำนวนคน: {createdSession.peopleCount} คน

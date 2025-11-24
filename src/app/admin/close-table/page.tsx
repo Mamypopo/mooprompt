@@ -25,7 +25,7 @@ interface ActiveSession {
   status: 'ACTIVE' | 'CLOSED'
   table: {
     id: number
-    tableNumber: number
+    name: string
     status: 'AVAILABLE' | 'OCCUPIED'
   }
   package: {
@@ -275,7 +275,7 @@ export default function CloseTablePage() {
                         key={session.id}
                         value={session.id.toString()}
                       >
-                        โต๊ะที่ {session.table.tableNumber} ({session.peopleCount} คน)
+                        {session.table.name} ({session.peopleCount} คน)
                       </SelectItem>
                     ))}
                   </SelectContent>

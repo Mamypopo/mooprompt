@@ -28,7 +28,7 @@ import Swal from 'sweetalert2'
 
 interface Table {
   id: number
-  tableNumber: number
+  name: string
   status: 'AVAILABLE' | 'OCCUPIED'
   sessions?: Array<{
     id: number
@@ -47,7 +47,7 @@ export default function TablesPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingTable, setEditingTable] = useState<Table | null>(null)
   const [formData, setFormData] = useState({
-    tableNumber: '',
+    name: '',
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -91,12 +91,12 @@ export default function TablesPage() {
     if (table) {
       setEditingTable(table)
       setFormData({
-        tableNumber: table.tableNumber.toString(),
+        name: table.name,
       })
     } else {
       setEditingTable(null)
       setFormData({
-        tableNumber: '',
+        name: '',
       })
     }
     setIsDialogOpen(true)
@@ -106,7 +106,7 @@ export default function TablesPage() {
     if (isSubmitting) return // Prevent closing during submission
     setIsDialogOpen(false)
     setEditingTable(null)
-    setFormData({ tableNumber: '' })
+    setFormData({ name: '' })
   }, [isSubmitting])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -121,12 +121,11 @@ export default function TablesPage() {
       document.activeElement.blur()
     }
 
-    const tableNumber = parseInt(formData.tableNumber, 10)
-    if (isNaN(tableNumber) || tableNumber < 1) {
+    if (!formData.name || formData.name.trim() === '') {
       Swal.fire({
         icon: 'error',
-        title: t('admin.invalid_table_number'),
-        text: t('admin.invalid_table_number_text'),
+        title: 'ชื่อโต๊ะไม่ถูกต้อง',
+        text: 'กรุณากรอกชื่อโต๊ะ',
         toast: true,
         position: 'top-end',
         showConfirmButton: false,
@@ -146,7 +145,7 @@ export default function TablesPage() {
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tableNumber }),
+        body: JSON.stringify({ name: formData.name.trim() }),
       })
 
       if (!response.ok) {
@@ -182,10 +181,10 @@ export default function TablesPage() {
     }
   }
 
-  const handleDelete = useCallback(async (tableId: number, tableNumber: number) => {
+  const handleDelete = useCallback(async (tableId: number, tableName: string) => {
     const result = await Swal.fire({
       title: t('admin.delete_confirm_title'),
-      text: t('admin.delete_confirm_text', { tableNumber: tableNumber.toString() }),
+      text: `คุณต้องการลบโต๊ะ "${tableName}" หรือไม่?`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: t('common.delete'),
@@ -234,7 +233,7 @@ export default function TablesPage() {
       return tables
     }
     return tables.filter((table) =>
-      table.tableNumber.toString().includes(searchTerm.trim())
+      table.name.toLowerCase().includes(searchTerm.trim().toLowerCase())
     )
   }, [tables, searchTerm])
 
@@ -272,7 +271,7 @@ export default function TablesPage() {
             onOpenAutoFocus={(e) => {
               // Focus on input field instead of close button
               e.preventDefault()
-              const input = document.getElementById('tableNumber')
+              const input = document.getElementById('tableName')
               if (input) {
                 setTimeout(() => input.focus(), 0)
               }
@@ -291,26 +290,20 @@ export default function TablesPage() {
               </DialogHeader>
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="tableNumber">{t('admin.table_number')}</Label>
+                  <Label htmlFor="tableName">ชื่อโต๊ะ</Label>
                   <Input
-                    id="tableNumber"
+                    id="tableName"
                     type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    value={formData.tableNumber}
+                    value={formData.name}
                     onChange={(e) => {
-                      const value = e.target.value
-                      // Only allow digits
-                      if (value === '' || /^\d+$/.test(value)) {
-                        setFormData({ ...formData, tableNumber: value })
-                      }
+                      setFormData({ ...formData, name: e.target.value })
                     }}
                     required
-                    placeholder={t('admin.table_number_placeholder')}
+                    placeholder="เช่น โต๊ะ 1, VIP 1, ห้องส่วนตัว A"
                     autoFocus
                   />
                   <p className="text-xs text-muted-foreground">
-                    {t('admin.table_number_helper')}
+                    ตั้งชื่อโต๊ะตามต้องการ (เช่น โต๊ะ 1, VIP 1, ห้องส่วนตัว A)
                   </p>
                 </div>
               </div>
@@ -384,7 +377,7 @@ export default function TablesPage() {
                 <div className="flex justify-between items-start">
                   <div>
                     <CardTitle className="text-lg sm:text-xl">
-                      {t('table.table_number')} {table.tableNumber}
+                      {table.name}
                     </CardTitle>
                     <p
                       className={`text-sm mt-1 ${
@@ -417,7 +410,7 @@ export default function TablesPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleDelete(table.id, table.tableNumber)}
+                    onClick={() => handleDelete(table.id, table.name)}
                     className="flex-1 text-destructive hover:text-destructive"
                     disabled={table.status === 'OCCUPIED'}
                   >

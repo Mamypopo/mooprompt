@@ -9,6 +9,8 @@ const createMenuItemSchema = z.object({
   imageUrl: z.string().url().optional().nullable(),
   isAvailable: z.boolean().default(true),
   menuCategoryId: z.number().int().positive(),
+  isBuffetItem: z.boolean().default(true),
+  isALaCarteItem: z.boolean().default(true),
 })
 
 const updateMenuItemSchema = z.object({
@@ -17,6 +19,8 @@ const updateMenuItemSchema = z.object({
   imageUrl: z.string().url().optional().nullable(),
   isAvailable: z.boolean().optional(),
   menuCategoryId: z.number().int().positive().optional(),
+  isBuffetItem: z.boolean().optional(),
+  isALaCarteItem: z.boolean().optional(),
 })
 
 // GET - Get all menu items (for admin, includes unavailable)
@@ -72,6 +76,8 @@ export async function POST(request: NextRequest) {
         imageUrl: data.imageUrl || null,
         isAvailable: data.isAvailable,
         menuCategoryId: data.menuCategoryId,
+        isBuffetItem: data.isBuffetItem,
+        isALaCarteItem: data.isALaCarteItem,
       },
       include: {
         category: {

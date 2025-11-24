@@ -7,6 +7,7 @@ interface CartItem {
   price: number
   qty: number
   note?: string
+  itemType?: 'BUFFET_INCLUDED' | 'A_LA_CARTE' // เพิ่ม itemType
 }
 
 interface CartStore {
@@ -63,7 +64,11 @@ export const useCartStore = create<CartStore>()(
       },
       getTotal: () => {
         return get().items.reduce(
-          (total, item) => total + item.price * item.qty,
+          (total, item) => {
+            // ถ้าเป็น BUFFET_INCLUDED = ฟรี (ไม่คิดเงิน)
+            const itemPrice = item.itemType === 'BUFFET_INCLUDED' ? 0 : item.price
+            return total + itemPrice * item.qty
+          },
           0
         )
       },

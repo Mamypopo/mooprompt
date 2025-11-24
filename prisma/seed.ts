@@ -45,16 +45,22 @@ async function main() {
             name: 'หมูสไลด์',
             price: 150,
             isAvailable: true,
+            isBuffetItem: true,      // ใช้ได้กับบุฟเฟ่ต์
+            isALaCarteItem: true,    // ใช้ได้กับ à la carte
           },
           {
             name: 'หมูสามชั้น',
             price: 180,
             isAvailable: true,
+            isBuffetItem: true,
+            isALaCarteItem: true,
           },
           {
             name: 'หมูสันนอก',
             price: 200,
             isAvailable: true,
+            isBuffetItem: true,
+            isALaCarteItem: true,
           },
         ],
       },
@@ -70,11 +76,15 @@ async function main() {
             name: 'เนื้อสไลด์',
             price: 250,
             isAvailable: true,
+            isBuffetItem: true,
+            isALaCarteItem: true,
           },
           {
             name: 'เนื้อสันใน',
             price: 300,
             isAvailable: true,
+            isBuffetItem: false,     // ใช้ได้เฉพาะ à la carte (จ่ายเพิ่ม)
+            isALaCarteItem: true,
           },
         ],
       },
@@ -90,11 +100,15 @@ async function main() {
             name: 'น้ำอัดลม',
             price: 30,
             isAvailable: true,
+            isBuffetItem: true,
+            isALaCarteItem: true,
           },
           {
             name: 'น้ำเปล่า',
             price: 20,
             isAvailable: true,
+            isBuffetItem: true,
+            isALaCarteItem: true,
           },
         ],
       },
@@ -107,7 +121,7 @@ async function main() {
   for (let i = 1; i <= 10; i++) {
     await prisma.table.create({
       data: {
-        tableNumber: i,
+        name: `โต๊ะ ${i}`,
         status: 'AVAILABLE',
       },
     })

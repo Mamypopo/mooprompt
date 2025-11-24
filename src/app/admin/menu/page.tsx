@@ -32,6 +32,8 @@ interface MenuItem {
   imageUrl?: string | null
   isAvailable: boolean
   menuCategoryId: number
+  isBuffetItem?: boolean
+  isALaCarteItem?: boolean
   category?: {
     id: number
     name: string
@@ -63,6 +65,8 @@ export default function MenuManagementPage() {
   const [itemImageFile, setItemImageFile] = useState<File | null>(null)
   const [itemImagePreview, setItemImagePreview] = useState<string | null>(null)
   const [uploadingImage, setUploadingImage] = useState(false)
+  const [itemIsBuffetItem, setItemIsBuffetItem] = useState(true)
+  const [itemIsALaCarteItem, setItemIsALaCarteItem] = useState(true)
 
   // Form states for category
   const [categoryName, setCategoryName] = useState('')
@@ -182,6 +186,8 @@ export default function MenuManagementPage() {
     setItemImageFile(null)
     setItemImagePreview(null)
     setEditingItem(null)
+    setItemIsBuffetItem(true)
+    setItemIsALaCarteItem(true)
   }
 
   const resetCategoryForm = () => {
@@ -198,6 +204,8 @@ export default function MenuManagementPage() {
       setItemIsAvailable(item.isAvailable)
       setItemImageUrl(item.imageUrl || null)
       setItemImagePreview(item.imageUrl || null)
+      setItemIsBuffetItem(item.isBuffetItem ?? true)
+      setItemIsALaCarteItem(item.isALaCarteItem ?? true)
     } else {
       resetItemForm()
     }
@@ -264,6 +272,8 @@ export default function MenuManagementPage() {
         imageUrl: finalImageUrl,
         isAvailable: itemIsAvailable,
         menuCategoryId: parseInt(itemCategoryId, 10),
+        isBuffetItem: itemIsBuffetItem,
+        isALaCarteItem: itemIsALaCarteItem,
       }
 
       if (editingItem) {
@@ -727,6 +737,39 @@ export default function MenuManagementPage() {
                   <Label htmlFor="itemIsAvailable" className="cursor-pointer">
                     พร้อมให้บริการ
                   </Label>
+                </div>
+
+                <div className="space-y-3 border-t pt-4">
+                  <Label className="text-base font-semibold">ประเภทเมนู</Label>
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="itemIsBuffetItem"
+                        checked={itemIsBuffetItem}
+                        onChange={(e) => setItemIsBuffetItem(e.target.checked)}
+                        className="w-4 h-4 rounded border-gray-300"
+                      />
+                      <Label htmlFor="itemIsBuffetItem" className="cursor-pointer">
+                        เมนูบุฟเฟ่ต์ (ใช้ได้กับบุฟเฟ่ต์)
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="itemIsALaCarteItem"
+                        checked={itemIsALaCarteItem}
+                        onChange={(e) => setItemIsALaCarteItem(e.target.checked)}
+                        className="w-4 h-4 rounded border-gray-300"
+                      />
+                      <Label htmlFor="itemIsALaCarteItem" className="cursor-pointer">
+                        เมนู à la carte (ใช้ได้กับ à la carte)
+                      </Label>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      สามารถเลือกได้ทั้งสองแบบ (เมนูจะแสดงในทั้งสองประเภท)
+                    </p>
+                  </div>
                 </div>
 
                 <div className="flex gap-2 justify-end">

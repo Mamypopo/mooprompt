@@ -5,7 +5,7 @@ import { z } from 'zod'
 
 // PATCH - แก้ไขโต๊ะ
 const updateTableSchema = z.object({
-  tableNumber: z.number().int().positive().optional(),
+  name: z.string().min(1).optional(),
   status: z.enum(['AVAILABLE', 'OCCUPIED']).optional(),
 })
 
@@ -30,18 +30,18 @@ export async function PATCH(
       )
     }
 
-    // Check if table number already exists (if changing)
-    if (data.tableNumber && data.tableNumber !== existingTable.tableNumber) {
+    // Check if table name already exists (if changing)
+    if (data.name && data.name !== existingTable.name) {
       const duplicateTable = await prisma.table.findFirst({
         where: {
-          tableNumber: data.tableNumber,
+          name: data.name,
           id: { not: tableId },
         },
       })
 
       if (duplicateTable) {
         return NextResponse.json(
-          { error: 'หมายเลขโต๊ะนี้มีอยู่แล้ว' },
+          { error: 'ชื่อโต๊ะนี้มีอยู่แล้ว' },
           { status: 400 }
         )
       }
@@ -140,7 +140,7 @@ export async function DELETE(
 
     await logAction(null, 'DELETE_TABLE', {
       tableId,
-      tableNumber: table.tableNumber,
+      name: table.name,
     })
 
     return NextResponse.json({ success: true })

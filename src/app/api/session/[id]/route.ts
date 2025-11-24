@@ -21,7 +21,7 @@ export async function GET(
         table: {
           select: {
             id: true,
-            tableNumber: true,
+            name: true,
             status: true,
           },
         },

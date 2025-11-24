@@ -10,6 +10,7 @@ const createOrderSchema = z.object({
       menuItemId: z.number().int().positive(),
       qty: z.number().int().positive(),
       note: z.string().optional(),
+      itemType: z.enum(['BUFFET_INCLUDED', 'A_LA_CARTE']).optional(), // เพิ่ม itemType
     })
   ),
   note: z.string().optional(),
@@ -44,6 +45,7 @@ export async function POST(request: NextRequest) {
             qty: item.qty,
             note: item.note,
             status: 'WAITING',
+            itemType: item.itemType || 'A_LA_CARTE', // ใช้ itemType ที่ส่งมา หรือ default = A_LA_CARTE
           })),
         },
       },

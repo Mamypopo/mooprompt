@@ -33,11 +33,11 @@ model RestaurantInfo {
 // ========================================
 model Table {
   id           Int              @id @default(autoincrement())
-  tableNumber  Int
+  name         String           @unique  // ชื่อโต๊ะ (เช่น "โต๊ะ 1", "VIP 1", "ห้องส่วนตัว A")
   status       TableStatus      @default(AVAILABLE)
   sessions     TableSession[]
 
-  @@index([tableNumber])
+  @@index([name])
   @@index([status])
 }
 
@@ -89,10 +89,16 @@ model MenuItem {
   menuCategoryId   Int
   category         MenuCategory    @relation(fields: [menuCategoryId], references: [id])
   orderItems       OrderItem[]
+  
+  // เพิ่ม field สำหรับระบุว่า item นี้ใช้ได้กับบุฟเฟ่ต์หรือ à la carte
+  isBuffetItem     Boolean         @default(true)   // ใช้ได้กับบุฟเฟ่ต์
+  isALaCarteItem   Boolean         @default(true)   // ใช้ได้กับ à la carte
 
   @@index([name])
   @@index([isAvailable])
   @@index([menuCategoryId])
+  @@index([isBuffetItem])
+  @@index([isALaCarteItem])
 }
 
 // ========================================
@@ -125,10 +131,18 @@ model OrderItem {
   qty         Int
   note        String?
   status      KitchenStatus  @default(WAITING)
+  
+  itemType    OrderItemType  @default(A_LA_CARTE)
 
   @@index([orderId])
   @@index([menuItemId])
   @@index([status])
+  @@index([itemType])
+}
+
+enum OrderItemType {
+  BUFFET_INCLUDED  // ฟรี (รวมในบุฟเฟ่ต์)
+  A_LA_CARTE       // จ่ายตามราคา
 }
 
 enum KitchenStatus {

@@ -53,12 +53,17 @@ export async function POST(request: NextRequest) {
 
     for (const order of session.orders) {
       for (const item of order.items) {
-        const itemTotal = item.menuItem.price * item.qty
+        // คำนวณราคาตาม itemType
+        // BUFFET_INCLUDED = ฟรี (ไม่คิดเงิน)
+        // A_LA_CARTE = จ่ายตามราคา
+        const unitPrice = item.itemType === 'BUFFET_INCLUDED' ? 0 : item.menuItem.price
+        const itemTotal = unitPrice * item.qty
         subtotal += itemTotal
+        
         billingItems.push({
-          name: item.menuItem.name,
+          name: item.menuItem.name + (item.itemType === 'BUFFET_INCLUDED' ? ' (รวมในบุฟเฟ่ต์)' : ''),
           qty: item.qty,
-          unitPrice: item.menuItem.price,
+          unitPrice,
           totalPrice: itemTotal,
           type: 'MENU',
         })
