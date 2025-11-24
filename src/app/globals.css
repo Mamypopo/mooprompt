@@ -41,7 +41,7 @@
     --card-foreground: 0 0% 98%;
     --popover: 0 0% 13%;
     --popover-foreground: 0 0% 98%;
-    --primary: 345 100% 75%; /* #FF7FA3 - สีชมพูสว่างขึ้นสำหรับ dark mode */
+    --primary: 345 100% 65%; /* #FF4D7A - สีชมพูเข้มสำหรับ dark mode */
     --primary-foreground: 0 0% 100%;
     --secondary: 200 100% 78%; /* #8ED7FF - Keep secondary color */
     --secondary-foreground: 0 0% 11%;
