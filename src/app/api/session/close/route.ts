@@ -58,10 +58,17 @@ export async function POST(request: NextRequest) {
       data: { status: 'AVAILABLE' },
     })
 
-    await logAction(null, 'CLOSE_TABLE', {
+    // Log as CANCEL_SESSION since there are no orders (cancelled before ordering)
+    await logAction(null, 'CANCEL_SESSION', {
       sessionId,
       tableId: session.tableId,
+      reason: 'No orders',
     })
+
+    // Emit socket event
+    if (typeof global !== 'undefined' && (global as any).io) {
+      (global as any).io.emit('session:cancelled', { sessionId, tableId: session.tableId })
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {

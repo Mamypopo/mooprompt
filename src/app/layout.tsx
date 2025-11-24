@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter, Prompt } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
+import { SwalInit } from '@/components/swal-init'
 
 const prompt = Prompt({
   subsets: ['latin', 'thai'],
@@ -33,6 +34,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange={false}
         >
+          <SwalInit />
           {children}
         </ThemeProvider>
       </body>

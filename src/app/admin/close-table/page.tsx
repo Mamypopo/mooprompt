@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { Receipt, Users, Clock, Package as PackageIcon, QrCode } from 'lucide-react'
+import { Receipt, Users, Clock, Package as PackageIcon, QrCode, XCircle, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -14,7 +14,7 @@ import {
 import { useTranslations } from '@/lib/i18n'
 import { useStaffLocale } from '@/lib/i18n-staff'
 import { getSocket } from '@/lib/socket-client'
-import Swal from 'sweetalert2'
+import Swal from '@/lib/swal-config'
 
 interface ActiveSession {
   id: number
@@ -58,6 +58,9 @@ export default function CloseTablePage() {
   const [paymentMethod, setPaymentMethod] = useState<string>('CASH')
   const [selectedExtraCharges, setSelectedExtraCharges] = useState<number[]>([])
   const [closing, setClosing] = useState(false)
+  const [cancelling, setCancelling] = useState<number | null>(null)
+  const [newSessionIds, setNewSessionIds] = useState<Set<number>>(new Set())
+  const [previousSessionIds, setPreviousSessionIds] = useState<Set<number>>(new Set())
 
   const fetchActiveSessions = useCallback(async (showLoading = true) => {
     try {
@@ -76,8 +79,61 @@ export default function CloseTablePage() {
       const sessionsData = await sessionsRes.json()
       const extraChargesData = await extraChargesRes.json()
       
-      setSessions(sessionsData.sessions || [])
+      const newSessions = sessionsData.sessions || []
+      const newSessionIdsSet = new Set<number>(newSessions.map((s: ActiveSession) => s.id))
+      
+      // Detect new sessions (only when not showing loading - i.e., from socket updates)
+      if (!showLoading && previousSessionIds.size > 0) {
+        const addedSessions = newSessions.filter((s: ActiveSession) => !previousSessionIds.has(s.id))
+        const removedSessions = Array.from(previousSessionIds).filter(id => !newSessionIdsSet.has(id))
+        
+        // Show toast for new sessions
+        if (addedSessions.length > 0) {
+          const session = addedSessions[0]
+          Swal.fire({
+            icon: 'info',
+            title: 'มีโต๊ะใหม่',
+            text: `${session.table.name} - ${session.peopleCount} คน`,
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true,
+          })
+          
+          // Highlight new sessions
+          setNewSessionIds(new Set(addedSessions.map((s: ActiveSession) => s.id)))
+          // Remove highlight after 3 seconds
+          setTimeout(() => {
+            setNewSessionIds((prev) => {
+              const next = new Set(prev)
+              addedSessions.forEach((s: ActiveSession) => next.delete(s.id))
+              return next
+            })
+          }, 3000)
+        }
+        
+        // Show toast for closed sessions
+        if (removedSessions.length > 0 && sessions.length > 0) {
+          const removedSession = sessions.find((s: ActiveSession) => removedSessions.includes(s.id))
+          if (removedSession) {
+            Swal.fire({
+              icon: 'success',
+              title: 'ปิดโต๊ะแล้ว',
+              text: `${removedSession.table.name}`,
+              toast: true,
+              position: 'top-end',
+              showConfirmButton: false,
+              timer: 2000,
+              timerProgressBar: true,
+            })
+          }
+        }
+      }
+      
+      setSessions(newSessions)
       setExtraCharges((extraChargesData.extraCharges || []).filter((ec: ExtraCharge) => ec.active))
+      setPreviousSessionIds(newSessionIdsSet)
     } catch (error) {
       console.error('Error fetching data:', error)
       if (showLoading) {
@@ -123,6 +179,7 @@ export default function CloseTablePage() {
     return () => {
       socket.off('billing:closed')
       socket.off('session:opened')
+      socket.off('session:cancelled')
       socket.off('order:new')
     }
   }, [fetchActiveSessions])
@@ -227,6 +284,97 @@ export default function CloseTablePage() {
     return `${hours} ชม. ${minutes} นาที`
   }
 
+  // Helper function to check if session can be cancelled
+  const canCancelSession = (session: ActiveSession): boolean => {
+    // Can cancel if no orders at all
+    return session._count.orders === 0
+  }
+
+  const handleCancelSession = async (session: ActiveSession, e: React.MouseEvent) => {
+    e.stopPropagation()
+
+    if (!canCancelSession(session)) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'ไม่สามารถยกเลิกได้',
+        text: 'Session นี้มีออเดอร์อยู่แล้ว กรุณาปิดบิลแทน',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+      })
+      return
+    }
+
+    const result = await Swal.fire({
+      title: 'ยืนยันการยกเลิก',
+      html: `
+        <div class="text-left">
+          <p class="mb-2">คุณต้องการยกเลิก session นี้หรือไม่?</p>
+          <div class="mt-3 space-y-1 text-sm">
+            <p><strong>โต๊ะ:</strong> ${session.table.name}</p>
+            <p><strong>จำนวนคน:</strong> ${session.peopleCount} คน</p>
+            ${session.package ? `<p><strong>แพ็กเกจ:</strong> ${session.package.name}</p>` : ''}
+            <p><strong>ออเดอร์:</strong> ${session._count.orders} ออเดอร์</p>
+          </div>
+        </div>
+      `,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'ยกเลิก Session',
+      cancelButtonText: 'ไม่ยกเลิก',
+      confirmButtonColor: '#FF8C42',
+      cancelButtonColor: '#6B7280',
+    })
+
+    if (!result.isConfirmed) return
+
+    setCancelling(session.id)
+
+    try {
+      const response = await fetch('/api/session/close', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId: session.id,
+        }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to cancel session')
+      }
+
+      Swal.fire({
+        icon: 'success',
+        title: 'ยกเลิกสำเร็จ',
+        text: `ยกเลิก session สำหรับ ${session.table.name} เรียบร้อยแล้ว`,
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+      })
+
+      // Refresh sessions silently
+      fetchActiveSessions(false)
+    } catch (error: any) {
+      Swal.fire({
+        icon: 'error',
+        title: 'เกิดข้อผิดพลาด',
+        text: error.message || 'ไม่สามารถยกเลิก session ได้',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+      })
+    } finally {
+      setCancelling(null)
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -255,19 +403,31 @@ export default function CloseTablePage() {
             {sessions.map((session) => (
               <Card
                 key={session.id}
-                className={`cursor-pointer transition-all ${
+                className={`cursor-pointer transition-all duration-500 ${
                   selectedSession === session.id.toString()
                     ? 'ring-2 ring-primary'
                     : ''
-                }`}
+                } ${
+                  newSessionIds.has(session.id)
+                    ? 'ring-2 ring-success bg-success/10 shadow-lg scale-[1.02]'
+                    : ''
+                } animate-in fade-in slide-in-from-top-2`}
                 onClick={() => setSelectedSession(session.id.toString())}
               >
                 <CardHeader>
                   <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="text-lg sm:text-xl">
-                        {session.table.name}
-                      </CardTitle>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <CardTitle className="text-lg sm:text-xl">
+                          {session.table.name}
+                        </CardTitle>
+                        {canCancelSession(session) && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-warning/20 dark:bg-warning/10 text-warning-foreground dark:text-warning border border-warning/30 dark:border-warning/20">
+                            <AlertCircle className="w-3 h-3" />
+                            ยังไม่มีออเดอร์
+                          </span>
+                        )}
+                      </div>
                       <div className="flex flex-wrap gap-4 mt-2 text-sm text-muted-foreground">
                         <div className="flex items-center gap-1">
                           <Users className="w-4 h-4" />
@@ -285,25 +445,48 @@ export default function CloseTablePage() {
                         )}
                       </div>
                     </div>
-                    <div className="text-right">
+                    <div className="text-right flex flex-col items-end gap-2">
                       <p className="text-xs text-muted-foreground">
                         เริ่ม: {formatTime(session.startTime)}
                       </p>
-                      <p className="text-sm font-semibold text-primary mt-1">
+                      <p className="text-sm font-semibold text-primary">
                         {session._count.orders} ออเดอร์
                       </p>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="mt-2"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          window.open(`/api/qr/pdf?sessionId=${session.id}`, '_blank')
-                        }}
-                      >
-                        <QrCode className="w-3 h-3 mr-1" />
-                        พิมพ์ QR Code
-                      </Button>
+                      <div className="flex gap-2">
+                        {canCancelSession(session) && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="border-warning/80 dark:border-warning/60 bg-warning/10 dark:bg-warning/10 text-warning-foreground dark:text-warning font-medium hover:bg-warning/20 dark:hover:bg-warning/20 hover:border-warning dark:hover:border-warning/80 shadow-sm"
+                            onClick={(e) => handleCancelSession(session, e)}
+                            disabled={cancelling === session.id}
+                          >
+                            {cancelling === session.id ? (
+                              <>
+                                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-warning-foreground dark:border-warning/80 mr-1"></div>
+                                <span>กำลังยกเลิก...</span>
+                              </>
+                            ) : (
+                              <>
+                                <XCircle className="w-3 h-3 mr-1" />
+                                ยกเลิก
+                              </>
+                            )}
+                          </Button>
+                        )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="border-border/80 hover:border-primary/50 hover:text-primary shadow-sm"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            window.open(`/api/qr/pdf?sessionId=${session.id}`, '_blank')
+                          }}
+                        >
+                          <QrCode className="w-3 h-3 mr-1" />
+                          พิมพ์ QR
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </CardHeader>

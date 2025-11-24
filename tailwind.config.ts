@@ -48,6 +48,10 @@ const config = {
   				DEFAULT: '#FF7A7A',
   				foreground: 'hsl(var(--error-foreground))'
   			},
+  			warning: {
+  				DEFAULT: 'hsl(var(--warning))',
+  				foreground: 'hsl(var(--warning-foreground))'
+  			},
   			destructive: {
   				DEFAULT: 'hsl(var(--destructive))',
   				foreground: 'hsl(var(--destructive-foreground))'
