@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { Receipt, Users, Clock, Package as PackageIcon } from 'lucide-react'
+import { Receipt, Users, Clock, Package as PackageIcon, QrCode } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -265,6 +265,18 @@ export default function CloseTablePage() {
                       <p className="text-sm font-semibold text-primary mt-1">
                         {session._count.orders} ออเดอร์
                       </p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="mt-2"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          window.open(`/api/qr/pdf?sessionId=${session.id}`, '_blank')
+                        }}
+                      >
+                        <QrCode className="w-3 h-3 mr-1" />
+                        พิมพ์ QR Code
+                      </Button>
                     </div>
                   </div>
                 </CardHeader>
@@ -279,7 +291,21 @@ export default function CloseTablePage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-2">
-                <label className="text-sm font-medium">เลือกโต๊ะ *</label>
+                <div className="flex justify-between items-center">
+                  <label className="text-sm font-medium">เลือกโต๊ะ *</label>
+                  {selectedSession && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        window.open(`/api/qr/pdf?sessionId=${selectedSession}`, '_blank')
+                      }}
+                    >
+                      <QrCode className="w-3 h-3 mr-1" />
+                      พิมพ์ QR Code
+                    </Button>
+                  )}
+                </div>
                 <Select
                   value={selectedSession}
                   onValueChange={setSelectedSession}

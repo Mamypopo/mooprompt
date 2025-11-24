@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { QrCode } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
 import { useTranslations } from '@/lib/i18n'
 import { LanguageSwitcher } from '@/components/language-switcher'
 import Swal from 'sweetalert2'
@@ -13,32 +12,27 @@ import Swal from 'sweetalert2'
 export default function HomePage() {
   const router = useRouter()
   const t = useTranslations()
-  const [tableNumber, setTableNumber] = useState('')
 
   const handleScanQR = () => {
     // In a real app, this would open camera for QR scanning
-    // In a real app, this would open camera for QR scanning
-    const scannedTableId = prompt('กรอก Table ID (สำหรับทดสอบ):')
+    const scannedTableId = prompt('กรอก Session ID (สำหรับทดสอบ):')
     if (scannedTableId) {
-      router.push(`/session/${scannedTableId}`)
+      const sessionIdNum = parseInt(scannedTableId, 10)
+      if (!isNaN(sessionIdNum)) {
+        router.push(`/session/${sessionIdNum}`)
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Session ID ไม่ถูกต้อง',
+          text: 'กรุณาติดต่อพนักงานเพื่อขอ QR Code ใหม่',
+          toast: true,
+          position: 'top-end',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+        })
+      }
     }
-  }
-
-  const handleEnterTable = () => {
-    if (!tableNumber) {
-      Swal.fire({
-        icon: 'error',
-        title: 'กรุณากรอกหมายเลขโต๊ะ',
-        toast: true,
-        position: 'top-end',
-        showConfirmButton: false,
-        timer: 3000,
-        timerProgressBar: true,
-      })
-      return
-    }
-
-    router.push(`/session/${tableNumber}`)
   }
 
   return (
@@ -53,7 +47,7 @@ export default function HomePage() {
           </div>
           <CardTitle className="text-2xl">ยินดีต้อนรับ</CardTitle>
           <CardDescription>
-            สแกน QR Code หรือกรอกหมายเลขโต๊ะเพื่อเริ่มต้น
+            สแกน QR Code เพื่อเริ่มต้นสั่งอาหาร
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -66,36 +60,10 @@ export default function HomePage() {
             {t('table.scan_qr')}
           </Button>
 
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">
-                หรือ
-              </span>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Input
-              type="number"
-              placeholder="กรอกหมายเลขโต๊ะ"
-              value={tableNumber}
-              onChange={(e) => setTableNumber(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  handleEnterTable()
-                }
-              }}
-            />
-            <Button
-              onClick={handleEnterTable}
-              className="w-full"
-              variant="outline"
-            >
-              เข้าสู่โต๊ะ
-            </Button>
+          <div className="text-center">
+            <p className="text-xs text-muted-foreground">
+              💡 ถ้าทำ QR Code หาย กรุณาติดต่อพนักงานเพื่อขอ QR Code ใหม่
+            </p>
           </div>
         </CardContent>
       </Card>
