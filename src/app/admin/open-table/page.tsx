@@ -57,9 +57,8 @@ export default function OpenTablePage() {
   const [submitting, setSubmitting] = useState(false)
   const [selectedTable, setSelectedTable] = useState<string>('')
   const [peopleCount, setPeopleCount] = useState<string>('')
-  // Use undefined to keep Select uncontrolled (Radix UI supports this natively)
-  // This avoids the controlled/uncontrolled warning
-  const [selectedPackage, setSelectedPackage] = useState<string | undefined>(undefined)
+  const [sessionType, setSessionType] = useState<'buffet' | 'a_la_carte' | ''>('')
+  const [selectedPackage, setSelectedPackage] = useState<string>('')
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('')
   const [createdSession, setCreatedSession] = useState<Session | null>(null)
 
@@ -120,11 +119,11 @@ export default function OpenTablePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!selectedTable || !peopleCount) {
+    if (!selectedTable || !peopleCount || !sessionType) {
       Swal.fire({
         icon: 'warning',
         title: 'กรุณากรอกข้อมูลให้ครบ',
-        text: 'กรุณาเลือกโต๊ะและระบุจำนวนคน',
+        text: 'กรุณาเลือกโต๊ะ, ระบุจำนวนคน และเลือกประเภท',
         toast: true,
         position: 'top-end',
         showConfirmButton: false,
@@ -149,6 +148,21 @@ export default function OpenTablePage() {
       return
     }
 
+    // ถ้าเลือกบุฟเฟ่ต์ ต้องเลือกแพ็กเกจ
+    if (sessionType === 'buffet' && !selectedPackage) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'กรุณาเลือกแพ็กเกจ',
+        text: 'กรุณาเลือกแพ็กเกจบุฟเฟ่ต์',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+      })
+      return
+    }
+
     setSubmitting(true)
 
     try {
@@ -158,7 +172,7 @@ export default function OpenTablePage() {
         body: JSON.stringify({
           tableId: parseInt(selectedTable, 10),
           peopleCount: peopleCountNum,
-          packageId: selectedPackage ? parseInt(selectedPackage, 10) : undefined,
+          packageId: sessionType === 'buffet' && selectedPackage ? parseInt(selectedPackage, 10) : undefined,
         }),
       })
 
@@ -192,7 +206,8 @@ export default function OpenTablePage() {
       // Reset form
       setSelectedTable('')
       setPeopleCount('')
-      setSelectedPackage(undefined)
+      setSessionType('')
+      setSelectedPackage('')
 
       // Refresh tables
       fetchData()
@@ -318,45 +333,71 @@ export default function OpenTablePage() {
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="package">แพ็กเกจ (ไม่บังคับ)</Label>
-                {packages.length === 0 ? (
-                  <div className="px-3 py-2 text-sm text-muted-foreground border rounded-md bg-muted">
-                    ไม่มีแพ็กเกจ
-                  </div>
-                ) : (
-                  <>
-                    <Select
-                      key={selectedPackage ? 'controlled' : 'uncontrolled'}
-                      {...(selectedPackage ? { value: selectedPackage } : {})}
-                      onValueChange={setSelectedPackage}
-                    >
-                      <SelectTrigger id="package">
-                        <SelectValue placeholder="เลือกแพ็กเกจ (ถ้ามี)" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {packages.map((pkg) => (
-                          <SelectItem key={pkg.id} value={pkg.id.toString()}>
-                            {pkg.name} - {pkg.pricePerPerson.toFixed(2)} บาท/คน
-                            {pkg.durationMinutes &&
-                              ` (${pkg.durationMinutes} นาที)`}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {selectedPackage && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setSelectedPackage(undefined)}
-                        className="w-full justify-start text-xs"
-                      >
-                        ล้างการเลือกแพ็กเกจ
-                      </Button>
-                    )}
-                  </>
-                )}
+                <Label htmlFor="sessionType">ประเภท *</Label>
+                <Select
+                  value={sessionType}
+                  onValueChange={(value) => {
+                    setSessionType(value as 'buffet' | 'a_la_carte')
+                    // Reset package selection when changing type
+                    if (value === 'a_la_carte') {
+                      setSelectedPackage('')
+                    }
+                  }}
+                  required
+                >
+                  <SelectTrigger id="sessionType">
+                    <SelectValue placeholder="เลือกประเภท" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="a_la_carte">
+                      à la carte (สั่งตามเมนู)
+                    </SelectItem>
+                    <SelectItem value="buffet">
+                      บุฟเฟ่ต์
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  เลือกประเภทการสั่งอาหาร
+                </p>
               </div>
+
+              {sessionType === 'buffet' && (
+                <div className="grid gap-2">
+                  <Label htmlFor="package">แพ็กเกจบุฟเฟ่ต์ *</Label>
+                  {packages.length === 0 ? (
+                    <div className="px-3 py-2 text-sm text-muted-foreground border rounded-md bg-muted">
+                      ไม่มีแพ็กเกจบุฟเฟ่ต์
+                    </div>
+                  ) : (
+                    <>
+                      <Select
+                        value={selectedPackage}
+                        onValueChange={setSelectedPackage}
+                        required={sessionType === 'buffet'}
+                      >
+                        <SelectTrigger id="package">
+                          <SelectValue placeholder="เลือกแพ็กเกจบุฟเฟ่ต์" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {packages.map((pkg) => (
+                            <SelectItem key={pkg.id} value={pkg.id.toString()}>
+                              {pkg.name} - {pkg.pricePerPerson.toFixed(2)} บาท/คน
+                              {pkg.durationMinutes &&
+                                ` (${pkg.durationMinutes} นาที)`}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {selectedPackage && (
+                        <p className="text-xs text-muted-foreground">
+                          เวลาจะถูกกำหนดตามแพ็กเกจที่เลือก
+                        </p>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
 
               <Button
                 type="submit"
