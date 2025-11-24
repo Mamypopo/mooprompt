@@ -3,23 +3,24 @@ import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 import { logAction } from '@/lib/logger'
 
-const createPackageSchema = z.object({
+const createExtraChargeSchema = z.object({
   name: z.string().min(1),
-  pricePerPerson: z.number().positive(),
-  durationMinutes: z.number().int().positive().optional().nullable(),
+  price: z.number().positive(),
+  chargeType: z.enum(['PER_PERSON', 'PER_SESSION']),
+  active: z.boolean().default(true),
 })
 
 export async function GET() {
   try {
-    const packages = await prisma.package.findMany({
+    const extraCharges = await prisma.extraCharge.findMany({
       orderBy: {
         name: 'asc',
       },
     })
 
-    return NextResponse.json({ packages })
+    return NextResponse.json({ extraCharges })
   } catch (error) {
-    console.error('Error fetching packages:', error)
+    console.error('Error fetching extra charges:', error)
     return NextResponse.json(
       { error: 'เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์' },
       { status: 500 }
@@ -30,22 +31,23 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const data = createPackageSchema.parse(body)
+    const data = createExtraChargeSchema.parse(body)
 
-    const packageData = await prisma.package.create({
+    const extraCharge = await prisma.extraCharge.create({
       data: {
         name: data.name,
-        pricePerPerson: data.pricePerPerson,
-        durationMinutes: data.durationMinutes || null,
+        price: data.price,
+        chargeType: data.chargeType,
+        active: data.active,
       },
     })
 
-    await logAction(null, 'CREATE_PACKAGE', {
-      packageId: packageData.id,
-      name: packageData.name,
+    await logAction(null, 'CREATE_EXTRA_CHARGE', {
+      extraChargeId: extraCharge.id,
+      name: extraCharge.name,
     })
 
-    return NextResponse.json({ package: packageData }, { status: 201 })
+    return NextResponse.json({ extraCharge }, { status: 201 })
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -54,7 +56,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.error('Error creating package:', error)
+    console.error('Error creating extra charge:', error)
     return NextResponse.json(
       { error: 'เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์' },
       { status: 500 }
