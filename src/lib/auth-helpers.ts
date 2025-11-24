@@ -35,6 +35,8 @@ export async function logout() {
 
   localStorage.removeItem('user')
   localStorage.removeItem('token')
+  // Clear theme preference
+  localStorage.removeItem('theme')
   
   Swal.fire({
     icon: 'success',

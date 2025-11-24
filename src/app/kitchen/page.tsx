@@ -9,6 +9,7 @@ import { useTranslations } from '@/lib/i18n'
 import { useStaffLocale } from '@/lib/i18n-staff'
 import { getUser, logout } from '@/lib/auth-helpers'
 import { getSocket } from '@/lib/socket-client'
+import { ThemeToggle } from '@/components/theme-toggle'
 import Swal from 'sweetalert2'
 
 interface OrderItem {
@@ -206,6 +207,7 @@ export default function KitchenPage() {
               <Settings className="w-4 h-4 mr-2" />
               จัดการเมนู
             </Button>
+            <ThemeToggle />
             <Button onClick={logout} variant="outline" className="flex-1 sm:flex-initial text-sm">
               {t('auth.logout')}
             </Button>

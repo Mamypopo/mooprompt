@@ -9,6 +9,7 @@ import { useTranslations } from '@/lib/i18n'
 import { useStaffLocale } from '@/lib/i18n-staff'
 import { getUser, logout } from '@/lib/auth-helpers'
 import { getSocket } from '@/lib/socket-client'
+import { ThemeToggle } from '@/components/theme-toggle'
 import Swal from 'sweetalert2'
 
 interface OrderItem {
@@ -25,7 +26,7 @@ interface Order {
   createdAt: string
   session: {
     table: {
-      tableNumber: number
+      name: string
     }
   }
   items: OrderItem[]
@@ -138,6 +139,7 @@ export default function RunnerPage() {
             <h1 className="text-xl sm:text-2xl font-bold">{t('runner.title')}</h1>
           </div>
           <div className="flex items-center gap-2 w-full sm:w-auto">
+            <ThemeToggle />
             <Button onClick={logout} variant="outline" className="flex-1 sm:flex-initial text-sm">
               {t('auth.logout')}
             </Button>
@@ -157,7 +159,7 @@ export default function RunnerPage() {
                 <CardHeader>
                   <div className="flex justify-between items-center">
                     <CardTitle>
-                      โต๊ะที่ {order.session.table.tableNumber} - ออเดอร์ #{order.id}
+                      {order.session.table.name} - ออเดอร์ #{order.id}
                     </CardTitle>
                     <span className="text-sm text-muted-foreground">
                       {new Date(order.createdAt).toLocaleTimeString('th-TH')}
