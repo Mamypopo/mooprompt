@@ -71,22 +71,58 @@ export default function MenuManagementPage() {
   // Form states for category
   const [categoryName, setCategoryName] = useState('')
 
+  // Debounce search term
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
+  
   useEffect(() => {
-    fetchMenu()
-    fetchCategories()
-  }, [])
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+    }, 500) // Wait 500ms after user stops typing
 
-  const fetchMenu = async () => {
+    return () => clearTimeout(timer)
+  }, [searchTerm])
+
+  const fetchMenu = useCallback(async () => {
     try {
-      const response = await fetch('/api/menu?includeUnavailable=true')
+      setLoading(true)
+      const params = new URLSearchParams()
+      params.append('includeUnavailable', 'true')
+      if (debouncedSearchTerm) {
+        params.append('search', debouncedSearchTerm)
+      }
+      
+      const response = await fetch(`/api/menu?${params.toString()}`)
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch menu')
+      }
+      
       const data = await response.json()
       setCategories(data.categories || [])
     } catch (error) {
       console.error('Error fetching menu:', error)
+      Swal.fire({
+        icon: 'error',
+        title: 'เกิดข้อผิดพลาด',
+        text: 'ไม่สามารถโหลดข้อมูลเมนูได้',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+      })
     } finally {
       setLoading(false)
     }
-  }
+  }, [debouncedSearchTerm])
+
+  useEffect(() => {
+    fetchMenu()
+  }, [fetchMenu])
+
+  useEffect(() => {
+    fetchCategories()
+  }, [])
 
   const fetchCategories = async () => {
     try {
@@ -537,12 +573,11 @@ export default function MenuManagementPage() {
     }
   }
 
-  const filteredCategories = categories.map((cat) => ({
-    ...cat,
-    items: cat.items.filter((item) =>
-      item.name.toLowerCase().includes(searchTerm.toLowerCase())
-    ),
-  })).filter((cat) => cat.items.length > 0 || searchTerm === '')
+  // Categories are already filtered by server, no need for client-side filtering
+  // But we still need to filter out empty categories when searching
+  const filteredCategories = debouncedSearchTerm
+    ? categories.filter((cat) => cat.items.length > 0)
+    : categories
 
   if (loading) {
     return (
@@ -822,6 +857,7 @@ export default function MenuManagementPage() {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full sm:max-w-sm"
+          autoFocus
         />
       </div>
 

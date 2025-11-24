@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { 
   Menu, 
-  FolderTree, 
   Table as TableIcon, 
   Package, 
   Receipt, 
@@ -28,7 +27,6 @@ import {
 
 const menuItems = [
   { href: '/admin/menu', icon: Menu, label: 'admin.menu' },
-  { href: '/admin/categories', icon: FolderTree, label: 'admin.categories' },
   { href: '/admin/tables', icon: TableIcon, label: 'admin.tables' },
   { href: '/admin/packages', icon: Package, label: 'admin.packages' },
   { href: '/admin/extra-charges', icon: Receipt, label: 'admin.extra_charges' },

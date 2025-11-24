@@ -6,6 +6,7 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams
     const includeUnavailable = searchParams.get('includeUnavailable') === 'true'
     const sessionId = searchParams.get('sessionId')
+    const search = searchParams.get('search') || '' // Search term for menu items
 
     // Fetch session เพื่อดูว่าเป็นบุฟเฟ่ต์หรือ à la carte
     let isBuffet = false
@@ -25,21 +26,48 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Filter menu items ตาม session type
+    // Filter menu items ตาม session type และ search
     const where: any = {}
+    
+    // Always filter by availability
     if (!includeUnavailable) {
       where.isAvailable = true
     }
 
+    // Build session type conditions
+    const sessionConditions: any[] = []
     if (isBuffet) {
       // บุฟเฟ่ต์: แสดง item ที่ isBuffetItem = true หรือ isALaCarteItem = true
-      where.OR = [
+      sessionConditions.push(
         { isBuffetItem: true },
-        { isALaCarteItem: true },
-      ]
+        { isALaCarteItem: true }
+      )
     } else {
       // à la carte: แสดงแค่ item ที่ isALaCarteItem = true
-      where.isALaCarteItem = true
+      sessionConditions.push({ isALaCarteItem: true })
+    }
+
+    // Combine session type with search
+    if (search) {
+      // If searching, combine search with session conditions using AND
+      where.AND = [
+        {
+          OR: sessionConditions,
+        },
+        {
+          name: {
+            contains: search,
+            mode: 'insensitive',
+          },
+        },
+      ]
+    } else {
+      // If not searching, just use session conditions
+      if (sessionConditions.length > 1) {
+        where.OR = sessionConditions
+      } else {
+        Object.assign(where, sessionConditions[0])
+      }
     }
 
     const categories = await prisma.menuCategory.findMany({
