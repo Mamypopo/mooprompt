@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/select'
 import { useTranslations } from '@/lib/i18n'
 import { useStaffLocale } from '@/lib/i18n-staff'
+import { getSocket } from '@/lib/socket-client'
 import Swal from 'sweetalert2'
 
 interface ActiveSession {
@@ -58,9 +59,11 @@ export default function CloseTablePage() {
   const [selectedExtraCharges, setSelectedExtraCharges] = useState<number[]>([])
   const [closing, setClosing] = useState(false)
 
-  const fetchActiveSessions = useCallback(async () => {
+  const fetchActiveSessions = useCallback(async (showLoading = true) => {
     try {
-      setLoading(true)
+      if (showLoading) {
+        setLoading(true)
+      }
       const [sessionsRes, extraChargesRes] = await Promise.all([
         fetch('/api/sessions/active'),
         fetch('/api/extra-charges'),
@@ -77,27 +80,51 @@ export default function CloseTablePage() {
       setExtraCharges((extraChargesData.extraCharges || []).filter((ec: ExtraCharge) => ec.active))
     } catch (error) {
       console.error('Error fetching data:', error)
-      Swal.fire({
-        icon: 'error',
-        title: 'เกิดข้อผิดพลาด',
-        text: 'ไม่สามารถโหลดข้อมูลได้',
-        toast: true,
-        position: 'top-end',
-        showConfirmButton: false,
-        timer: 3000,
-        timerProgressBar: true,
-      })
+      if (showLoading) {
+        Swal.fire({
+          icon: 'error',
+          title: 'เกิดข้อผิดพลาด',
+          text: 'ไม่สามารถโหลดข้อมูลได้',
+          toast: true,
+          position: 'top-end',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+        })
+      }
     } finally {
-      setLoading(false)
+      if (showLoading) {
+        setLoading(false)
+      }
     }
   }, [])
 
   useEffect(() => {
-    fetchActiveSessions()
-    
-    // Refresh every 5 seconds
-    const interval = setInterval(fetchActiveSessions, 5000)
-    return () => clearInterval(interval)
+    fetchActiveSessions(true) // Show loading on initial load
+
+    // Setup socket.io for real-time updates
+    const socket = getSocket()
+
+    socket.on('billing:closed', () => {
+      // When a billing is closed, refresh sessions silently (no loading)
+      fetchActiveSessions(false)
+    })
+
+    socket.on('session:opened', () => {
+      // When a new session is opened, refresh sessions silently (no loading)
+      fetchActiveSessions(false)
+    })
+
+    socket.on('order:new', () => {
+      // When a new order is created, refresh to update order count silently (no loading)
+      fetchActiveSessions(false)
+    })
+
+    return () => {
+      socket.off('billing:closed')
+      socket.off('session:opened')
+      socket.off('order:new')
+    }
   }, [fetchActiveSessions])
 
   const handleCloseTable = async () => {

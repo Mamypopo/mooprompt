@@ -78,6 +78,11 @@ export async function POST(request: NextRequest) {
       peopleCount: data.peopleCount,
     })
 
+    // Emit socket event
+    if (typeof global !== 'undefined' && (global as any).io) {
+      (global as any).io.emit('session:opened', { session })
+    }
+
     return NextResponse.json({ session }, { status: 201 })
   } catch (error) {
     if (error instanceof z.ZodError) {
