@@ -7,12 +7,14 @@ const openSessionSchema = z.object({
   tableId: z.number().int().positive(),
   peopleCount: z.number().int().positive(),
   packageId: z.number().int().positive().optional(),
+  extraChargeIds: z.array(z.number().int().positive()).optional().default([]),
 })
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const data = openSessionSchema.parse(body)
+    const extraChargeIds = data.extraChargeIds || []
 
     // Check if table is available
     const table = await prisma.table.findUnique({
@@ -56,6 +58,7 @@ export async function POST(request: NextRequest) {
         startTime: new Date(),
         expireTime,
         status: 'ACTIVE',
+        extraChargeIds: extraChargeIds.length > 0 ? extraChargeIds : null,
       },
       include: {
         table: true,

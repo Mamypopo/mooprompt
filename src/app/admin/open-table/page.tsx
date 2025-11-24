@@ -59,22 +59,27 @@ export default function OpenTablePage() {
   const [peopleCount, setPeopleCount] = useState<string>('')
   const [sessionType, setSessionType] = useState<'buffet' | 'a_la_carte' | ''>('')
   const [selectedPackage, setSelectedPackage] = useState<string>('')
+  const [extraCharges, setExtraCharges] = useState<Array<{ id: number; name: string; price: number; chargeType: 'PER_PERSON' | 'PER_SESSION' }>>([])
+  const [selectedExtraCharges, setSelectedExtraCharges] = useState<number[]>([])
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('')
   const [createdSession, setCreatedSession] = useState<Session | null>(null)
 
   const fetchData = useCallback(async () => {
     try {
       setLoading(true)
-      const [tablesRes, packagesRes] = await Promise.all([
+      const [tablesRes, packagesRes, extraChargesRes] = await Promise.all([
         fetch('/api/tables?status=AVAILABLE'),
         fetch('/api/packages'),
+        fetch('/api/extra-charges'),
       ])
 
       const tablesData = await tablesRes.json()
       const packagesData = await packagesRes.json()
+      const extraChargesData = await extraChargesRes.json()
 
       setTables(tablesData.tables || [])
       setPackages(packagesData.packages || [])
+      setExtraCharges((extraChargesData.extraCharges || []).filter((ec: any) => ec.active))
     } catch (error) {
       console.error('Error fetching data:', error)
       Swal.fire({
@@ -173,6 +178,7 @@ export default function OpenTablePage() {
           tableId: parseInt(selectedTable, 10),
           peopleCount: peopleCountNum,
           packageId: sessionType === 'buffet' && selectedPackage ? parseInt(selectedPackage, 10) : undefined,
+          extraChargeIds: selectedExtraCharges,
         }),
       })
 
@@ -208,6 +214,7 @@ export default function OpenTablePage() {
       setPeopleCount('')
       setSessionType('')
       setSelectedPackage('')
+      setSelectedExtraCharges([])
 
       // Refresh tables
       fetchData()
@@ -396,6 +403,62 @@ export default function OpenTablePage() {
                       )}
                     </>
                   )}
+                </div>
+              )}
+
+              {extraCharges.length > 0 && (
+                <div className="grid gap-2">
+                  <Label>ค่าบริการเพิ่มเติม (ไม่บังคับ)</Label>
+                  <div className="space-y-2 border rounded-lg p-3 max-h-48 overflow-y-auto">
+                    {extraCharges.map((extraCharge) => {
+                      const isSelected = selectedExtraCharges.includes(extraCharge.id)
+                      const peopleCountNum = parseInt(peopleCount) || 0
+                      const chargeLabel = extraCharge.chargeType === 'PER_PERSON'
+                        ? `ต่อคน`
+                        : `ต่อเซสชัน`
+                      
+                      const totalAmount = extraCharge.chargeType === 'PER_PERSON'
+                        ? extraCharge.price * peopleCountNum
+                        : extraCharge.price
+                      
+                      return (
+                        <div
+                          key={extraCharge.id}
+                          className={`flex items-center gap-2 p-2 rounded hover:bg-gray-50 cursor-pointer ${
+                            isSelected ? 'bg-primary/5 border border-primary' : ''
+                          }`}
+                          onClick={() => {
+                            if (isSelected) {
+                              setSelectedExtraCharges(selectedExtraCharges.filter(id => id !== extraCharge.id))
+                            } else {
+                              setSelectedExtraCharges([...selectedExtraCharges, extraCharge.id])
+                            }
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => {}}
+                            className="w-4 h-4"
+                          />
+                          <div className="flex-1">
+                            <p className="text-sm font-medium">{extraCharge.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {extraCharge.price.toLocaleString()} บาท ({chargeLabel})
+                              {isSelected && peopleCount && (
+                                <span className="ml-2 text-primary font-semibold">
+                                  รวม: {totalAmount.toLocaleString()} บาท
+                                </span>
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    เลือกค่าบริการเพิ่มเติมที่ต้องการ (เช่น กุ้งไม่อั้น, น้ำรีฟิล)
+                  </p>
                 </div>
               )}
 

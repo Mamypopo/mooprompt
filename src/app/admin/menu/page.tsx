@@ -254,6 +254,21 @@ export default function MenuManagementPage() {
       return
     }
 
+    const categoryIdNum = parseInt(itemCategoryId, 10)
+    if (isNaN(categoryIdNum) || categoryIdNum <= 0) {
+      Swal.fire({
+        icon: 'error',
+        title: 'หมวดหมู่ไม่ถูกต้อง',
+        text: 'กรุณาเลือกหมวดหมู่',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+      })
+      return
+    }
+
     try {
       // Upload image first if there's a new file
       let finalImageUrl = itemImageUrl
@@ -266,15 +281,21 @@ export default function MenuManagementPage() {
         }
       }
 
-      const payload = {
-        name: itemName,
-        price,
-        imageUrl: finalImageUrl,
-        isAvailable: itemIsAvailable,
-        menuCategoryId: parseInt(itemCategoryId, 10),
-        isBuffetItem: itemIsBuffetItem,
-        isALaCarteItem: itemIsALaCarteItem,
+      const payload: any = {
+        name: itemName.trim(),
+        price: Number(price),
+        isAvailable: Boolean(itemIsAvailable),
+        menuCategoryId: categoryIdNum,
+        isBuffetItem: Boolean(itemIsBuffetItem),
+        isALaCarteItem: Boolean(itemIsALaCarteItem),
       }
+      
+      // Always include imageUrl (null if no image, or valid URL)
+      // Convert empty string to null
+      payload.imageUrl = finalImageUrl && finalImageUrl.trim() !== '' ? finalImageUrl.trim() : null
+      
+      // Log payload for debugging
+      console.log('Sending payload:', payload)
 
       if (editingItem) {
         // Update
@@ -285,7 +306,8 @@ export default function MenuManagementPage() {
         })
 
         if (!response.ok) {
-          throw new Error('Update failed')
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.error || 'Update failed')
         }
 
         Swal.fire({
@@ -306,7 +328,8 @@ export default function MenuManagementPage() {
         })
 
         if (!response.ok) {
-          throw new Error('Create failed')
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.error || 'Create failed')
         }
 
         Swal.fire({

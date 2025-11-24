@@ -39,28 +39,44 @@ interface ActiveSession {
   }
 }
 
+interface ExtraCharge {
+  id: number
+  name: string
+  price: number
+  chargeType: 'PER_PERSON' | 'PER_SESSION'
+  active: boolean
+}
+
 export default function CloseTablePage() {
   useStaffLocale() // Force Thai locale for admin
   const t = useTranslations()
   const [sessions, setSessions] = useState<ActiveSession[]>([])
+  const [extraCharges, setExtraCharges] = useState<ExtraCharge[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedSession, setSelectedSession] = useState<string>('')
   const [paymentMethod, setPaymentMethod] = useState<string>('CASH')
+  const [selectedExtraCharges, setSelectedExtraCharges] = useState<number[]>([])
   const [closing, setClosing] = useState(false)
 
   const fetchActiveSessions = useCallback(async () => {
     try {
       setLoading(true)
-      const response = await fetch('/api/sessions/active')
+      const [sessionsRes, extraChargesRes] = await Promise.all([
+        fetch('/api/sessions/active'),
+        fetch('/api/extra-charges'),
+      ])
       
-      if (!response.ok) {
+      if (!sessionsRes.ok) {
         throw new Error('Failed to fetch active sessions')
       }
       
-      const data = await response.json()
-      setSessions(data.sessions || [])
+      const sessionsData = await sessionsRes.json()
+      const extraChargesData = await extraChargesRes.json()
+      
+      setSessions(sessionsData.sessions || [])
+      setExtraCharges((extraChargesData.extraCharges || []).filter((ec: ExtraCharge) => ec.active))
     } catch (error) {
-      console.error('Error fetching active sessions:', error)
+      console.error('Error fetching data:', error)
       Swal.fire({
         icon: 'error',
         title: 'เกิดข้อผิดพลาด',
@@ -120,6 +136,7 @@ export default function CloseTablePage() {
         body: JSON.stringify({
           sessionId: parseInt(selectedSession, 10),
           paymentMethod,
+          extraChargeIds: selectedExtraCharges,
         }),
       })
 
@@ -146,6 +163,7 @@ export default function CloseTablePage() {
       // Reset
       setSelectedSession('')
       setPaymentMethod('CASH')
+      setSelectedExtraCharges([])
       
       // Refresh sessions
       fetchActiveSessions()
@@ -221,7 +239,7 @@ export default function CloseTablePage() {
                   <div className="flex justify-between items-start">
                     <div>
                       <CardTitle className="text-lg sm:text-xl">
-                        โต๊ะที่ {session.table.tableNumber}
+                        {session.table.name}
                       </CardTitle>
                       <div className="flex flex-wrap gap-4 mt-2 text-sm text-muted-foreground">
                         <div className="flex items-center gap-1">
@@ -298,6 +316,61 @@ export default function CloseTablePage() {
                   </SelectContent>
                 </Select>
               </div>
+
+              {extraCharges.length > 0 && (
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium">ค่าบริการเพิ่มเติม</label>
+                  <div className="space-y-2 border rounded-lg p-3 max-h-48 overflow-y-auto">
+                    {extraCharges.map((extraCharge) => {
+                      const isSelected = selectedExtraCharges.includes(extraCharge.id)
+                      const selectedSessionData = sessions.find(s => s.id.toString() === selectedSession)
+                      const peopleCount = selectedSessionData?.peopleCount || 0
+                      
+                      const chargeLabel = extraCharge.chargeType === 'PER_PERSON'
+                        ? `ต่อคน`
+                        : `ต่อเซสชัน`
+                      
+                      const totalAmount = extraCharge.chargeType === 'PER_PERSON'
+                        ? extraCharge.price * peopleCount
+                        : extraCharge.price
+                      
+                      return (
+                        <div
+                          key={extraCharge.id}
+                          className={`flex items-center gap-2 p-2 rounded hover:bg-gray-50 cursor-pointer ${
+                            isSelected ? 'bg-primary/5 border border-primary' : ''
+                          }`}
+                          onClick={() => {
+                            if (isSelected) {
+                              setSelectedExtraCharges(selectedExtraCharges.filter(id => id !== extraCharge.id))
+                            } else {
+                              setSelectedExtraCharges([...selectedExtraCharges, extraCharge.id])
+                            }
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => {}}
+                            className="w-4 h-4"
+                          />
+                          <div className="flex-1">
+                            <p className="text-sm font-medium">{extraCharge.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {extraCharge.price.toLocaleString()} บาท ({chargeLabel})
+                              {isSelected && selectedSession && (
+                                <span className="ml-2 text-primary font-semibold">
+                                  รวม: {totalAmount.toLocaleString()} บาท
+                                </span>
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
 
               <Button
                 onClick={handleCloseTable}

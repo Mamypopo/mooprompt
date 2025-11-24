@@ -56,6 +56,7 @@ model TableSession {
   startTime      DateTime
   expireTime     DateTime?
   status         SessionStatus @default(ACTIVE)
+  extraChargeIds Json?         // เก็บ array ของ extraCharge IDs ที่เลือกตอนเปิดโต๊ะ
   orders         Order[]
   billing        BillingSummary?
 

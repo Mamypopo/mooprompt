@@ -12,12 +12,57 @@ const createUserSchema = z.object({
   active: z.boolean().default(true),
 })
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const searchParams = request.nextUrl.searchParams
+    const search = searchParams.get('search') || ''
+    const role = searchParams.get('role')
+    const active = searchParams.get('active')
+    const sortBy = searchParams.get('sortBy') || 'createdAt'
+    const sortOrder = searchParams.get('sortOrder') || 'desc'
+
+    // Build where clause
+    const where: any = {}
+
+    // Search filter (name or username) - case-insensitive for PostgreSQL
+    if (search) {
+      where.OR = [
+        { 
+          name: { 
+            contains: search,
+            mode: 'insensitive',
+          } 
+        },
+        { 
+          username: { 
+            contains: search,
+            mode: 'insensitive',
+          } 
+        },
+      ]
+    }
+
+    // Role filter
+    if (role && role !== 'all') {
+      where.role = role
+    }
+
+    // Active filter
+    if (active && active !== 'all') {
+      where.active = active === 'active'
+    }
+
+    // Build orderBy
+    const orderBy: any = {}
+    if (sortBy === 'name' || sortBy === 'username' || sortBy === 'role' || sortBy === 'createdAt') {
+      orderBy[sortBy] = sortOrder
+    } else {
+      orderBy.createdAt = 'desc'
+    }
+
     const users = await prisma.user.findMany({
-      orderBy: {
-        createdAt: 'desc',
-      },
+      where,
+      orderBy,
       select: {
         id: true,
         name: true,
@@ -29,7 +74,10 @@ export async function GET() {
       },
     })
 
-    return NextResponse.json({ users })
+    // Get total count for pagination (if needed in future)
+    const total = await prisma.user.count({ where })
+
+    return NextResponse.json({ users, total })
   } catch (error) {
     console.error('Error fetching users:', error)
     return NextResponse.json(

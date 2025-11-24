@@ -7,12 +7,13 @@ import { PaymentMethod } from '@prisma/client'
 const closeBillingSchema = z.object({
   sessionId: z.number().int().positive(),
   paymentMethod: z.enum(['CASH', 'QR', 'CREDIT']),
+  extraChargeIds: z.array(z.number().int().positive()).optional(), // ถ้าไม่ส่งมา จะใช้จาก session
 })
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { sessionId, paymentMethod } = closeBillingSchema.parse(body)
+    const { sessionId, paymentMethod, extraChargeIds } = closeBillingSchema.parse(body)
 
     const session = await prisma.tableSession.findUnique({
       where: { id: sessionId },
@@ -41,6 +42,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // ใช้ extraChargeIds จาก request หรือจาก session (ที่เลือกตอนเปิดโต๊ะ)
+    const sessionExtraChargeIds = (session.extraChargeIds as number[] | null) || []
+    const finalExtraChargeIds = extraChargeIds || sessionExtraChargeIds
+
     // Calculate subtotal from orders
     let subtotal = 0
     const billingItems: Array<{
@@ -48,7 +53,7 @@ export async function POST(request: NextRequest) {
       qty: number | null
       unitPrice: number
       totalPrice: number
-      type: 'MENU'
+      type: 'MENU' | 'EXTRA'
     }> = []
 
     for (const order of session.orders) {
@@ -83,27 +88,32 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Calculate extra charges
-    const extraCharges = await prisma.extraCharge.findMany({
-      where: { active: true },
-    })
-
+    // Calculate extra charges (only selected ones)
     let extraChargeTotal = 0
-    for (const charge of extraCharges) {
-      let chargeAmount = 0
-      if (charge.chargeType === 'PER_PERSON') {
-        chargeAmount = charge.price * session.peopleCount
-      } else {
-        chargeAmount = charge.price
-      }
-      extraChargeTotal += chargeAmount
-      billingItems.push({
-        name: charge.name,
-        qty: charge.chargeType === 'PER_PERSON' ? session.peopleCount : 1,
-        unitPrice: charge.price,
-        totalPrice: chargeAmount,
-        type: 'EXTRA',
+    if (finalExtraChargeIds.length > 0) {
+      const extraCharges = await prisma.extraCharge.findMany({
+        where: {
+          id: { in: finalExtraChargeIds },
+          active: true,
+        },
       })
+
+      for (const charge of extraCharges) {
+        let chargeAmount = 0
+        if (charge.chargeType === 'PER_PERSON') {
+          chargeAmount = charge.price * session.peopleCount
+        } else {
+          chargeAmount = charge.price
+        }
+        extraChargeTotal += chargeAmount
+        billingItems.push({
+          name: charge.name,
+          qty: charge.chargeType === 'PER_PERSON' ? session.peopleCount : 1,
+          unitPrice: charge.price,
+          totalPrice: chargeAmount,
+          type: 'EXTRA',
+        })
+      }
     }
 
     // Calculate discount (promotions)

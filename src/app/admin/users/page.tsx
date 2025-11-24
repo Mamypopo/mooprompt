@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { Plus, Edit, Trash2 } from 'lucide-react'
+import { useEffect, useState, useMemo } from 'react'
+import { Plus, Edit, Trash2, Search, Filter, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -43,6 +43,9 @@ const roleLabels: Record<User['role'], string> = {
   STAFF: 'พนักงาน',
 }
 
+type SortField = 'name' | 'username' | 'role' | 'createdAt'
+type SortDirection = 'asc' | 'desc'
+
 export default function UsersPage() {
   useStaffLocale()
   const [users, setUsers] = useState<User[]>([])
@@ -50,6 +53,23 @@ export default function UsersPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingUser, setEditingUser] = useState<User | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Search and filter states
+  const [searchTerm, setSearchTerm] = useState('') // Input value (immediate)
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('') // Debounced value (for API)
+  const [roleFilter, setRoleFilter] = useState<string>('all')
+  const [activeFilter, setActiveFilter] = useState<string>('all')
+  const [sortField, setSortField] = useState<SortField>('createdAt')
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
+  
+  // Debounce search term (500ms delay)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+    }, 500) // Wait 500ms after user stops typing
+
+    return () => clearTimeout(timer)
+  }, [searchTerm])
 
   // Form states
   const [name, setName] = useState('')
@@ -60,12 +80,21 @@ export default function UsersPage() {
 
   useEffect(() => {
     fetchUsers()
-  }, [])
+  }, [debouncedSearchTerm, roleFilter, activeFilter, sortField, sortDirection])
 
   const fetchUsers = async () => {
     try {
       setLoading(true)
-      const response = await fetch('/api/users')
+      
+      // Build query params
+      const params = new URLSearchParams()
+      if (debouncedSearchTerm) params.append('search', debouncedSearchTerm)
+      if (roleFilter !== 'all') params.append('role', roleFilter)
+      if (activeFilter !== 'all') params.append('active', activeFilter)
+      params.append('sortBy', sortField)
+      params.append('sortOrder', sortDirection)
+
+      const response = await fetch(`/api/users?${params.toString()}`)
       const data = await response.json()
       setUsers(data.users || [])
     } catch (error) {
@@ -85,6 +114,29 @@ export default function UsersPage() {
     }
   }
 
+  // Users are already filtered and sorted by server
+  // No need for client-side filtering
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortField(field)
+      setSortDirection('asc')
+    }
+  }
+
+  const SortIcon = ({ field }: { field: SortField }) => {
+    if (sortField !== field) {
+      return <ArrowUpDown className="w-4 h-4 ml-1 opacity-50" />
+    }
+    return sortDirection === 'asc' ? (
+      <ArrowUp className="w-4 h-4 ml-1" />
+    ) : (
+      <ArrowDown className="w-4 h-4 ml-1" />
+    )
+  }
+
   const resetForm = () => {
     setName('')
     setUsername('')
@@ -99,7 +151,7 @@ export default function UsersPage() {
       setEditingUser(user)
       setName(user.name)
       setUsername(user.username)
-      setPassword('') // Don't show password
+      setPassword('')
       setRole(user.role)
       setActive(user.active)
     } else {
@@ -174,7 +226,6 @@ export default function UsersPage() {
         active,
       }
 
-      // Only include password if it's provided (for new users or when updating)
       if (!editingUser || password.trim()) {
         payload.password = password
       }
@@ -276,7 +327,7 @@ export default function UsersPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h1 className="text-xl sm:text-2xl font-bold">จัดการผู้ใช้</h1>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
@@ -285,7 +336,7 @@ export default function UsersPage() {
               เพิ่มผู้ใช้
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>
                 {editingUser ? 'แก้ไขผู้ใช้' : 'เพิ่มผู้ใช้'}
@@ -386,60 +437,173 @@ export default function UsersPage() {
         </Dialog>
       </div>
 
+      {/* Search and Filters */}
+      <div className="flex flex-col sm:flex-row gap-4 mb-4">
+        <div className="flex-1">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+            <Input
+              placeholder="ค้นหาชื่อหรือชื่อผู้ใช้..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <Select value={roleFilter} onValueChange={setRoleFilter}>
+            <SelectTrigger className="w-full sm:w-[160px]">
+              <Filter className="w-4 h-4 mr-2" />
+              <SelectValue placeholder="บทบาท" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">ทุกบทบาท</SelectItem>
+              {Object.entries(roleLabels).map(([value, label]) => (
+                <SelectItem key={value} value={value}>
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={activeFilter} onValueChange={setActiveFilter}>
+            <SelectTrigger className="w-full sm:w-[140px]">
+              <SelectValue placeholder="สถานะ" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">ทุกสถานะ</SelectItem>
+              <SelectItem value="active">เปิดใช้งาน</SelectItem>
+              <SelectItem value="inactive">ปิดใช้งาน</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Table */}
       {users.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
-            <p className="text-muted-foreground">ยังไม่มีผู้ใช้</p>
+            <p className="text-muted-foreground">
+              {searchTerm || roleFilter !== 'all' || activeFilter !== 'all'
+                ? 'ไม่พบข้อมูลที่ค้นหา'
+                : 'ยังไม่มีผู้ใช้'}
+            </p>
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {users.map((user) => (
-            <Card key={user.id} className={!user.active ? 'opacity-60' : ''}>
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle className="text-lg">{user.name}</CardTitle>
-                    <p className="text-sm text-muted-foreground">@{user.username}</p>
-                  </div>
-                  {!user.active && (
-                    <span className="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded">
-                      ปิดใช้งาน
-                    </span>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <div>
-                  <p className="text-sm text-muted-foreground">บทบาท</p>
-                  <p className="text-lg font-semibold">{roleLabels[user.role]}</p>
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  สร้างเมื่อ: {new Date(user.createdAt).toLocaleDateString('th-TH')}
-                </div>
-                <div className="flex gap-2 pt-4">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleOpenDialog(user)}
-                    className="flex-1"
-                  >
-                    <Edit className="w-4 h-4 mr-2" />
-                    แก้ไข
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => handleDelete(user)}
-                    className="flex-1"
-                  >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    ลบ
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+        <Card>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b bg-muted/50">
+                    <th className="text-left p-4 font-medium">
+                      <button
+                        onClick={() => handleSort('name')}
+                        className="flex items-center hover:text-primary transition-colors"
+                      >
+                        ชื่อ
+                        <SortIcon field="name" />
+                      </button>
+                    </th>
+                    <th className="text-left p-4 font-medium">
+                      <button
+                        onClick={() => handleSort('username')}
+                        className="flex items-center hover:text-primary transition-colors"
+                      >
+                        ชื่อผู้ใช้
+                        <SortIcon field="username" />
+                      </button>
+                    </th>
+                    <th className="text-left p-4 font-medium">
+                      <button
+                        onClick={() => handleSort('role')}
+                        className="flex items-center hover:text-primary transition-colors"
+                      >
+                        บทบาท
+                        <SortIcon field="role" />
+                      </button>
+                    </th>
+                    <th className="text-left p-4 font-medium">สถานะ</th>
+                    <th className="text-left p-4 font-medium">
+                      <button
+                        onClick={() => handleSort('createdAt')}
+                        className="flex items-center hover:text-primary transition-colors"
+                      >
+                        สร้างเมื่อ
+                        <SortIcon field="createdAt" />
+                      </button>
+                    </th>
+                    <th className="text-right p-4 font-medium">จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.map((user) => (
+                    <tr
+                      key={user.id}
+                      className="border-b hover:bg-muted/50 transition-colors"
+                    >
+                      <td className="p-4">
+                        <div className="font-medium">{user.name}</div>
+                      </td>
+                      <td className="p-4">
+                        <div className="text-muted-foreground">@{user.username}</div>
+                      </td>
+                      <td className="p-4">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                          {roleLabels[user.role]}
+                        </span>
+                      </td>
+                      <td className="p-4">
+                        {user.active ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            เปิดใช้งาน
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                            ปิดใช้งาน
+                          </span>
+                        )}
+                      </td>
+                      <td className="p-4 text-sm text-muted-foreground">
+                        {new Date(user.createdAt).toLocaleDateString('th-TH', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                        })}
+                      </td>
+                      <td className="p-4">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleOpenDialog(user)}
+                          >
+                            <Edit className="w-4 h-4 mr-1" />
+                            แก้ไข
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleDelete(user)}
+                          >
+                            <Trash2 className="w-4 h-4 mr-1" />
+                            ลบ
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Results count */}
+      {users.length > 0 && (
+        <div className="mt-4 text-sm text-muted-foreground">
+          พบ {users.length} รายการ
         </div>
       )}
     </div>

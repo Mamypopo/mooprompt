@@ -3,10 +3,26 @@ import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 import { logAction } from '@/lib/logger'
 
+// Custom validator for imageUrl (only relative path, no external URLs)
+const imageUrlSchema = z.preprocess(
+  (val) => {
+    // Normalize empty string to null
+    if (val === '' || val === undefined) return null
+    return val
+  },
+  z.union([
+    z.null(),
+    z.string().refine(
+      (val) => val.startsWith('/'),
+      { message: 'imageUrl must be a relative path starting with /' }
+    ),
+  ])
+)
+
 const createMenuItemSchema = z.object({
   name: z.string().min(1),
   price: z.number().positive(),
-  imageUrl: z.string().url().optional().nullable(),
+  imageUrl: imageUrlSchema.optional().nullable(),
   isAvailable: z.boolean().default(true),
   menuCategoryId: z.number().int().positive(),
   isBuffetItem: z.boolean().default(true),
@@ -69,11 +85,14 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const data = createMenuItemSchema.parse(body)
 
+    // Normalize imageUrl: convert empty string to null
+    const normalizedImageUrl = data.imageUrl === '' ? null : data.imageUrl
+
     const item = await prisma.menuItem.create({
       data: {
         name: data.name,
         price: data.price,
-        imageUrl: data.imageUrl || null,
+        imageUrl: normalizedImageUrl,
         isAvailable: data.isAvailable,
         menuCategoryId: data.menuCategoryId,
         isBuffetItem: data.isBuffetItem,
