@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { Plus, Edit, Trash2, Image as ImageIcon, X } from 'lucide-react'
+import { Plus, Edit, Trash2, Image as ImageIcon, X, ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -70,6 +70,10 @@ export default function MenuManagementPage() {
 
   // Form states for category
   const [categoryName, setCategoryName] = useState('')
+
+  // Pagination state: เก็บจำนวนรายการที่แสดงในแต่ละหมวดหมู่
+  const [itemsPerCategory, setItemsPerCategory] = useState<Record<number, number>>({})
+  const ITEMS_PER_PAGE = 12 // แสดง 12 รายการต่อครั้ง (3 columns x 4 rows)
 
   // Debounce search term
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
@@ -573,6 +577,19 @@ export default function MenuManagementPage() {
     }
   }
 
+  // Reset pagination when search changes
+  useEffect(() => {
+    setItemsPerCategory({})
+  }, [debouncedSearchTerm])
+
+  // Function to load more items for a category
+  const loadMoreItems = (categoryId: number, currentCount: number) => {
+    setItemsPerCategory((prev) => ({
+      ...prev,
+      [categoryId]: (currentCount || ITEMS_PER_PAGE) + ITEMS_PER_PAGE,
+    }))
+  }
+
   // Categories are already filtered by server, no need for client-side filtering
   // But we still need to filter out empty categories when searching
   const filteredCategories = debouncedSearchTerm
@@ -902,61 +919,82 @@ export default function MenuManagementPage() {
                     ยังไม่มีเมนูในหมวดหมู่นี้
                   </p>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                    {category.items.map((item) => (
-                      <Card key={item.id} className="overflow-hidden">
-                        {item.imageUrl && (
-                          <div className="relative w-full h-32 sm:h-40">
-                            <Image
-                              src={item.imageUrl}
-                              alt={item.name}
-                              fill
-                              className="object-cover"
-                            />
-                          </div>
-                        )}
-                        <CardContent className="p-3 sm:p-4">
-                          <div className="flex justify-between items-start gap-2">
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-semibold text-sm sm:text-base truncate">
-                                {item.name}
-                              </h3>
-                              <p className="text-primary font-bold text-sm sm:text-base">
-                                ฿{item.price.toLocaleString()}
-                              </p>
-                              <span
-                                className={`text-xs ${
-                                  item.isAvailable
-                                    ? 'text-success'
-                                    : 'text-muted-foreground'
-                                }`}
-                              >
-                                {item.isAvailable ? 'พร้อมให้บริการ' : 'ไม่พร้อมให้บริการ'}
-                              </span>
-                            </div>
-                            <div className="flex gap-1">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8"
-                                onClick={() => handleOpenItemModal(item)}
-                              >
-                                <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8"
-                                onClick={() => handleDeleteItem(item.id)}
-                              >
-                                <Trash2 className="w-3 h-3 sm:w-4 sm:h-4 text-destructive" />
-                              </Button>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
+                  <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                      {category.items
+                        .slice(0, itemsPerCategory[category.id] || ITEMS_PER_PAGE)
+                        .map((item) => (
+                          <Card key={item.id} className="overflow-hidden">
+                            {item.imageUrl && (
+                              <div className="relative w-full h-32 sm:h-40">
+                                <Image
+                                  src={item.imageUrl}
+                                  alt={item.name}
+                                  fill
+                                  className="object-cover"
+                                />
+                              </div>
+                            )}
+                            <CardContent className="p-3 sm:p-4">
+                              <div className="flex justify-between items-start gap-2">
+                                <div className="flex-1 min-w-0">
+                                  <h3 className="font-semibold text-sm sm:text-base truncate">
+                                    {item.name}
+                                  </h3>
+                                  <p className="text-primary font-bold text-sm sm:text-base">
+                                    ฿{item.price.toLocaleString()}
+                                  </p>
+                                  <span
+                                    className={`text-xs ${
+                                      item.isAvailable
+                                        ? 'text-success'
+                                        : 'text-muted-foreground'
+                                    }`}
+                                  >
+                                    {item.isAvailable ? 'พร้อมให้บริการ' : 'ไม่พร้อมให้บริการ'}
+                                  </span>
+                                </div>
+                                <div className="flex gap-1">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    onClick={() => handleOpenItemModal(item)}
+                                  >
+                                    <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    onClick={() => handleDeleteItem(item.id)}
+                                  >
+                                    <Trash2 className="w-3 h-3 sm:w-4 sm:h-4 text-destructive" />
+                                  </Button>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                    </div>
+                    {category.items.length > (itemsPerCategory[category.id] || ITEMS_PER_PAGE) && (
+                      <div className="flex justify-center mt-4">
+                        <Button
+                          variant="outline"
+                          onClick={() =>
+                            loadMoreItems(
+                              category.id,
+                              itemsPerCategory[category.id] || ITEMS_PER_PAGE
+                            )
+                          }
+                          className="w-full sm:w-auto"
+                        >
+                          <ChevronDown className="w-4 h-4 mr-2" />
+                          โหลดเพิ่ม ({category.items.length - (itemsPerCategory[category.id] || ITEMS_PER_PAGE)} รายการ)
+                        </Button>
+                      </div>
+                    )}
+                  </>
                 )}
               </CardContent>
             </Card>

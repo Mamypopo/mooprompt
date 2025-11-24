@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     }
 
     // ใช้ extraChargeIds จาก request หรือจาก session (ที่เลือกตอนเปิดโต๊ะ)
-    const sessionExtraChargeIds = (session.extraChargeIds as number[] | null) || []
+    const sessionExtraChargeIds = ((session as any).extraChargeIds as number[] | null) || []
     const finalExtraChargeIds = extraChargeIds || sessionExtraChargeIds
 
     // Calculate subtotal from orders
