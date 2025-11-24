@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChefHat, Clock, CheckCircle } from 'lucide-react'
+import { ChefHat, Clock, CheckCircle, XCircle, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useTranslations } from '@/lib/i18n'
@@ -14,7 +14,9 @@ import Swal from 'sweetalert2'
 interface OrderItem {
   id: number
   menuItem: {
+    id: number
     name: string
+    isAvailable: boolean
   }
   qty: number
   note?: string
@@ -26,7 +28,7 @@ interface Order {
   createdAt: string
   session: {
     table: {
-      tableNumber: number
+      name: string
     }
   }
   items: OrderItem[]
@@ -122,6 +124,60 @@ export default function KitchenPage() {
     updateItemStatus(itemId, 'DONE')
   }
 
+  const handleMarkUnavailable = async (menuItemId: number, menuItemName: string) => {
+    const result = await Swal.fire({
+      title: 'ยืนยันการอัพเดท',
+      text: `คุณต้องการทำ "${menuItemName}" ให้หมดหรือไม่?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'ยืนยัน',
+      cancelButtonText: 'ยกเลิก',
+      confirmButtonColor: '#ef4444',
+    })
+
+    if (!result.isConfirmed) return
+
+    try {
+      const response = await fetch(`/api/menu/items/${menuItemId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isAvailable: false }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update menu availability')
+      }
+
+      Swal.fire({
+        icon: 'success',
+        title: 'อัพเดทสำเร็จ',
+        text: `"${menuItemName}" ถูกทำเป็นหมดแล้ว`,
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+      })
+
+      // Emit socket event to notify customers
+      const socket = getSocket()
+      socket.emit('menu:unavailable', { menuItemId })
+
+      fetchOrders()
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'เกิดข้อผิดพลาด',
+        text: 'ไม่สามารถอัพเดทสถานะเมนูได้',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+      })
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -142,6 +198,14 @@ export default function KitchenPage() {
             <h1 className="text-xl sm:text-2xl font-bold">{t('kitchen.title')}</h1>
           </div>
           <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Button
+              onClick={() => router.push('/kitchen/menu')}
+              variant="outline"
+              className="flex-1 sm:flex-initial text-sm"
+            >
+              <Settings className="w-4 h-4 mr-2" />
+              จัดการเมนู
+            </Button>
             <Button onClick={logout} variant="outline" className="flex-1 sm:flex-initial text-sm">
               {t('auth.logout')}
             </Button>
@@ -161,7 +225,7 @@ export default function KitchenPage() {
                 <CardHeader className="p-4 sm:p-6">
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                     <CardTitle className="text-base sm:text-lg">
-                      โต๊ะที่ {order.session.table.tableNumber} - ออเดอร์ #{order.id}
+                      {order.session.table.name} - ออเดอร์ #{order.id}
                     </CardTitle>
                     <span className="text-xs sm:text-sm text-muted-foreground">
                       {new Date(order.createdAt).toLocaleTimeString('th-TH')}
@@ -196,25 +260,49 @@ export default function KitchenPage() {
                             </p>
                           )}
                         </div>
-                        <div className="flex gap-2 w-full sm:w-auto">
+                        <div className="flex gap-2 w-full sm:w-auto flex-wrap">
                           {item.status === 'WAITING' && (
-                            <Button
-                              onClick={() => handleMarkCooking(item.id)}
-                              size="sm"
-                              variant="outline"
-                              className="flex-1 sm:flex-initial text-xs sm:text-sm"
-                            >
-                              {t('kitchen.mark_cooking')}
-                            </Button>
+                            <>
+                              <Button
+                                onClick={() => handleMarkCooking(item.id)}
+                                size="sm"
+                                variant="outline"
+                                className="flex-1 sm:flex-initial text-xs sm:text-sm"
+                              >
+                                {t('kitchen.mark_cooking')}
+                              </Button>
+                              <Button
+                                onClick={() => handleMarkUnavailable(item.menuItem.id, item.menuItem.name)}
+                                size="sm"
+                                variant="outline"
+                                className="text-destructive hover:text-destructive border-destructive hover:bg-destructive/10 flex-1 sm:flex-initial text-xs sm:text-sm"
+                                disabled={!item.menuItem.isAvailable}
+                              >
+                                <XCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                                หมด
+                              </Button>
+                            </>
                           )}
                           {item.status === 'COOKING' && (
-                            <Button
-                              onClick={() => handleMarkDone(item.id)}
-                              size="sm"
-                              className="bg-success hover:bg-success/90 flex-1 sm:flex-initial text-xs sm:text-sm"
-                            >
-                              {t('kitchen.mark_done')}
-                            </Button>
+                            <>
+                              <Button
+                                onClick={() => handleMarkDone(item.id)}
+                                size="sm"
+                                className="bg-success hover:bg-success/90 flex-1 sm:flex-initial text-xs sm:text-sm"
+                              >
+                                {t('kitchen.mark_done')}
+                              </Button>
+                              <Button
+                                onClick={() => handleMarkUnavailable(item.menuItem.id, item.menuItem.name)}
+                                size="sm"
+                                variant="outline"
+                                className="text-destructive hover:text-destructive border-destructive hover:bg-destructive/10 flex-1 sm:flex-initial text-xs sm:text-sm"
+                                disabled={!item.menuItem.isAvailable}
+                              >
+                                <XCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                                หมด
+                              </Button>
+                            </>
                           )}
                         </div>
                       </div>
