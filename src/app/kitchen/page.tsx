@@ -42,6 +42,7 @@ export default function KitchenPage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<any>(null)
+  const [previousOrderIds, setPreviousOrderIds] = useState<Set<number>>(new Set())
 
   useEffect(() => {
     const currentUser = getUser()
@@ -51,19 +52,19 @@ export default function KitchenPage() {
     }
     setUser(currentUser)
 
-    fetchOrders()
+    fetchOrders(true) // Show loading on initial load
     const socket = getSocket()
 
     socket.on('order:new', () => {
-      fetchOrders()
+      fetchOrders(false) // Silent update, will show notification
     })
 
     socket.on('order:cooking', () => {
-      fetchOrders()
+      fetchOrders(false) // Silent update
     })
 
     socket.on('order:done', () => {
-      fetchOrders()
+      fetchOrders(false) // Silent update
     })
 
     return () => {
@@ -73,15 +74,88 @@ export default function KitchenPage() {
     }
   }, [router])
 
-  const fetchOrders = async () => {
+  const fetchOrders = async (showLoading = false) => {
     try {
+      if (showLoading) {
+        setLoading(true)
+      }
       const response = await fetch('/api/kitchen/orders')
       const data = await response.json()
-      setOrders(data.orders || [])
+      const newOrders = data.orders || []
+      
+      // Detect new orders (only when not showing loading - i.e., from socket updates)
+      if (!showLoading && previousOrderIds.size > 0) {
+        const newOrderIds = new Set(newOrders.map((o: Order) => o.id))
+        const addedOrders = newOrders.filter((o: Order) => !previousOrderIds.has(o.id))
+        
+        // Show notification for new orders
+        if (addedOrders.length > 0) {
+          const order = addedOrders[0]
+          const itemCount = order.items.reduce((sum, item) => sum + item.qty, 0)
+          
+          Swal.fire({
+            icon: 'info',
+            title: '🆕 มีออเดอร์ใหม่!',
+            html: `
+              <div style="text-align: left; margin-top: 1rem; padding: 0.75rem; background: hsl(var(--muted) / 0.3); border-radius: 8px;">
+                <p style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem; color: hsl(var(--foreground));">
+                  🍽️ โต๊ะ: ${order.session.table.name}
+                </p>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 0.5rem;">
+                  <span style="font-size: 0.9rem; color: hsl(var(--muted-foreground));">
+                    📋 ออเดอร์ #${order.id}
+                  </span>
+                  <span style="font-size: 0.9rem; color: hsl(var(--muted-foreground));">
+                    📦 ${itemCount} รายการ
+                  </span>
+                </div>
+              </div>
+            `,
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 5000,
+            timerProgressBar: true,
+            customClass: {
+              popup: 'swal2-popup-kitchen',
+              title: 'swal2-title-kitchen',
+              htmlContainer: 'swal2-html-container-kitchen',
+            },
+            didOpen: () => {
+              // Play notification sound if browser allows
+              try {
+                // Create a simple beep sound using Web Audio API
+                const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+                const oscillator = audioContext.createOscillator()
+                const gainNode = audioContext.createGain()
+                
+                oscillator.connect(gainNode)
+                gainNode.connect(audioContext.destination)
+                
+                oscillator.frequency.value = 800
+                oscillator.type = 'sine'
+                
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime)
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3)
+                
+                oscillator.start(audioContext.currentTime)
+                oscillator.stop(audioContext.currentTime + 0.3)
+              } catch (e) {
+                // Ignore audio errors
+              }
+            }
+          })
+        }
+      }
+      
+      setOrders(newOrders)
+      setPreviousOrderIds(new Set(newOrders.map((o: Order) => o.id)))
     } catch (error) {
       console.error('Error fetching orders:', error)
     } finally {
-      setLoading(false)
+      if (showLoading) {
+        setLoading(false)
+      }
     }
   }
 
@@ -242,7 +316,7 @@ export default function KitchenPage() {
                         className="flex flex-col sm:flex-row justify-between items-start sm:items-start p-3 bg-muted/50 rounded-lg gap-2"
                       >
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
+                          <div className="flex items-center gap-2 mb-2">
                             {item.status === 'WAITING' && (
                               <Clock className="w-4 h-4 text-yellow-500 flex-shrink-0" />
                             )}
@@ -252,14 +326,24 @@ export default function KitchenPage() {
                             {item.status === 'DONE' && (
                               <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
                             )}
-                            <span className="font-semibold text-sm sm:text-base">
-                              {item.menuItem.name} x {item.qty}
-                            </span>
+                            <div className="flex-1 min-w-0">
+                              <span className="font-semibold text-sm sm:text-base">
+                                {item.menuItem.name}
+                              </span>
+                              <span className="ml-2 inline-flex items-center justify-center px-2 py-0.5 rounded-md bg-primary/10 text-primary font-bold text-xs sm:text-sm">
+                                {item.qty} {item.qty === 1 ? 'รายการ' : 'รายการ'}
+                              </span>
+                            </div>
                           </div>
                           {item.note && (
-                            <p className="text-xs sm:text-sm text-muted-foreground">
-                              หมายเหตุ: {item.note}
-                            </p>
+                            <div className="mt-2 p-2 bg-warning/10 dark:bg-warning/5 border border-warning/20 dark:border-warning/10 rounded-md">
+                              <p className="text-xs sm:text-sm font-medium text-warning-foreground dark:text-warning flex items-start gap-1.5">
+                                <span className="mt-0.5">📝</span>
+                                <span>
+                                  <span className="font-semibold">หมายเหตุ:</span> {item.note}
+                                </span>
+                              </p>
+                            </div>
                           )}
                         </div>
                         <div className="flex gap-2 w-full sm:w-auto flex-wrap">

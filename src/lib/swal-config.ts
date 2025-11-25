@@ -105,6 +105,34 @@ if (typeof window !== 'undefined') {
       .swal2-loader {
         border-color: hsl(var(--primary)) transparent hsl(var(--primary)) transparent !important;
       }
+      
+      /* Kitchen Order Notification Styles */
+      .swal2-popup-kitchen {
+        background: hsl(var(--card)) !important;
+        border: 2px solid hsl(var(--primary)) !important;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+        border-radius: 12px !important;
+        padding: 1.5rem !important;
+      }
+      
+      .swal2-title-kitchen {
+        color: hsl(var(--primary)) !important;
+        font-size: 1.5rem !important;
+        font-weight: 700 !important;
+        margin-bottom: 0.5rem !important;
+      }
+      
+      .swal2-html-container-kitchen {
+        color: hsl(var(--foreground)) !important;
+        font-size: 0.95rem !important;
+        line-height: 1.6 !important;
+      }
+      
+      .swal2-toast.swal2-popup-kitchen {
+        border-left: 4px solid hsl(var(--primary)) !important;
+        border-radius: 8px !important;
+        min-width: 320px !important;
+      }
     `
     document.head.appendChild(style)
   }

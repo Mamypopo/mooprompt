@@ -747,17 +747,17 @@ export default function MenuManagementPage() {
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>
+              <DialogHeader className="space-y-3 pb-4 border-b">
+                <DialogTitle className="text-2xl">
                   {editingItem ? 'แก้ไขเมนู' : 'เพิ่มเมนูใหม่'}
                 </DialogTitle>
-                <DialogDescription>
+                <DialogDescription className="text-base">
                   {editingItem
                     ? 'แก้ไขข้อมูลเมนู'
                     : 'กรอกข้อมูลเพื่อเพิ่มเมนูใหม่'}
                 </DialogDescription>
               </DialogHeader>
-              <form onSubmit={handleSubmitItem} className="space-y-4">
+              <form onSubmit={handleSubmitItem} className="space-y-6 pt-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="itemName">ชื่อเมนู *</Label>
@@ -842,53 +842,53 @@ export default function MenuManagementPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-3 bg-muted/30 dark:bg-muted/20 rounded-lg p-4">
                   <input
                     type="checkbox"
                     id="itemIsAvailable"
                     checked={itemIsAvailable}
                     onChange={(e) => setItemIsAvailable(e.target.checked)}
-                    className="w-4 h-4 rounded border-gray-300"
+                    className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 accent-primary"
                   />
-                  <Label htmlFor="itemIsAvailable" className="cursor-pointer">
+                  <Label htmlFor="itemIsAvailable" className="cursor-pointer font-medium">
                     พร้อมให้บริการ
                   </Label>
                 </div>
 
-                <div className="space-y-3 border-t pt-4">
+                <div className="space-y-3 border-t border-border/50 pt-6">
                   <Label className="text-base font-semibold">ประเภทเมนู</Label>
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
+                  <div className="space-y-3 bg-muted/30 dark:bg-muted/20 rounded-lg p-4">
+                    <div className="flex items-center space-x-3">
                       <input
                         type="checkbox"
                         id="itemIsBuffetItem"
                         checked={itemIsBuffetItem}
                         onChange={(e) => setItemIsBuffetItem(e.target.checked)}
-                        className="w-4 h-4 rounded border-gray-300"
+                        className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 accent-primary"
                       />
-                      <Label htmlFor="itemIsBuffetItem" className="cursor-pointer">
+                      <Label htmlFor="itemIsBuffetItem" className="cursor-pointer text-sm">
                         เมนูบุฟเฟ่ต์ (ใช้ได้กับบุฟเฟ่ต์)
                       </Label>
                     </div>
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-3">
                       <input
                         type="checkbox"
                         id="itemIsALaCarteItem"
                         checked={itemIsALaCarteItem}
                         onChange={(e) => setItemIsALaCarteItem(e.target.checked)}
-                        className="w-4 h-4 rounded border-gray-300"
+                        className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 accent-primary"
                       />
-                      <Label htmlFor="itemIsALaCarteItem" className="cursor-pointer">
+                      <Label htmlFor="itemIsALaCarteItem" className="cursor-pointer text-sm">
                         เมนู à la carte (ใช้ได้กับ à la carte)
                       </Label>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      สามารถเลือกได้ทั้งสองแบบ (เมนูจะแสดงในทั้งสองประเภท)
+                    <p className="text-xs text-muted-foreground mt-2">
+                      💡 สามารถเลือกได้ทั้งสองแบบ (เมนูจะแสดงในทั้งสองประเภท)
                     </p>
                   </div>
                 </div>
 
-                <div className="flex gap-2 justify-end">
+                <div className="flex gap-2 justify-end pt-4 border-t border-border/50">
                   <Button
                     type="button"
                     variant="outline"

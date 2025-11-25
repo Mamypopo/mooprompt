@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { Plus, ShoppingCart } from 'lucide-react'
+import { Plus, Minus, ShoppingCart } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { useTranslations } from '@/lib/i18n'
@@ -34,7 +34,8 @@ export default function MenuPage() {
   const [categories, setCategories] = useState<Category[]>([])
   const [sessionType, setSessionType] = useState<'buffet' | 'a_la_carte'>('a_la_carte')
   const [loading, setLoading] = useState(true)
-  const { addItem } = useCartStore()
+  const { addItem, items } = useCartStore()
+  const [itemQuantities, setItemQuantities] = useState<Record<number, number>>({})
 
   useEffect(() => {
     if (!sessionId) {
@@ -63,6 +64,23 @@ export default function MenuPage() {
     }
   }
 
+  // Get quantity to add (from local state only, default to 1)
+  // ไม่ sync กับ cart เพื่อให้ผู้ใช้เลือกจำนวนใหม่ได้เสมอ
+  const getQuantity = (menuItemId: number) => {
+    return itemQuantities[menuItemId] || 1
+  }
+
+  const updateQuantity = (menuItemId: number, delta: number) => {
+    const currentQty = getQuantity(menuItemId)
+    const newQty = Math.max(1, currentQty + delta)
+    setItemQuantities(prev => ({ ...prev, [menuItemId]: newQty }))
+  }
+
+  const setQuantity = (menuItemId: number, qty: number) => {
+    const newQty = Math.max(1, qty)
+    setItemQuantities(prev => ({ ...prev, [menuItemId]: newQty }))
+  }
+
   const handleAddToCart = (item: MenuItem) => {
     if (!item.isAvailable) {
       Swal.fire({
@@ -76,6 +94,8 @@ export default function MenuPage() {
       })
       return
     }
+
+    const qty = getQuantity(item.id)
 
     // กำหนด itemType ตาม session type และ item properties
     let itemType: 'BUFFET_INCLUDED' | 'A_LA_CARTE' = 'A_LA_CARTE'
@@ -97,13 +117,16 @@ export default function MenuPage() {
       menuItemId: item.id,
       name: item.name,
       price: itemType === 'BUFFET_INCLUDED' ? 0 : item.price, // ฟรีถ้าเป็น BUFFET_INCLUDED
-      qty: 1,
+      qty,
       itemType,
     })
 
+    // Reset quantity to 1 after adding (ไม่ใช้จำนวนจาก cart)
+    setItemQuantities(prev => ({ ...prev, [item.id]: 1 }))
+
     Swal.fire({
       icon: 'success',
-      title: 'เพิ่มลงตะกร้าแล้ว',
+      title: `เพิ่ม ${qty} รายการลงตะกร้าแล้ว`,
       toast: true,
       position: 'top-end',
       showConfirmButton: false,
@@ -217,16 +240,41 @@ export default function MenuPage() {
                           <p className="text-primary font-bold mb-2 sm:mb-3 text-sm sm:text-base">
                             ฿0 <span className="text-xs text-muted-foreground">(รวมในบุฟเฟ่ต์)</span>
                           </p>
-                          <Button
-                            onClick={() => handleAddToCart(item)}
-                            className="w-full text-xs sm:text-sm"
-                            size="sm"
-                            disabled={!item.isAvailable}
-                          >
-                            <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                            <span className="hidden sm:inline">{t('menu.add_to_cart')}</span>
-                            <span className="sm:hidden">เพิ่ม</span>
-                          </Button>
+                          <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1 border rounded-md">
+                              <Button
+                                onClick={() => updateQuantity(item.id, -1)}
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 p-0"
+                                disabled={!item.isAvailable || getQuantity(item.id) <= 1}
+                              >
+                                <Minus className="w-3 h-3" />
+                              </Button>
+                              <span className="w-8 text-center text-sm font-semibold">
+                                {getQuantity(item.id)}
+                              </span>
+                              <Button
+                                onClick={() => updateQuantity(item.id, 1)}
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 p-0"
+                                disabled={!item.isAvailable}
+                              >
+                                <Plus className="w-3 h-3" />
+                              </Button>
+                            </div>
+                            <Button
+                              onClick={() => handleAddToCart(item)}
+                              className="flex-1 text-xs sm:text-sm"
+                              size="sm"
+                              disabled={!item.isAvailable}
+                            >
+                              <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                              <span className="hidden sm:inline">{t('menu.add_to_cart')}</span>
+                              <span className="sm:hidden">เพิ่ม</span>
+                            </Button>
+                          </div>
                         </CardContent>
                       </Card>
                     ))}
@@ -264,16 +312,41 @@ export default function MenuPage() {
                           <p className="text-primary font-bold mb-2 sm:mb-3 text-sm sm:text-base">
                             ฿{item.price.toLocaleString()}
                           </p>
-                          <Button
-                            onClick={() => handleAddToCart(item)}
-                            className="w-full text-xs sm:text-sm"
-                            size="sm"
-                            disabled={!item.isAvailable}
-                          >
-                            <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                            <span className="hidden sm:inline">{t('menu.add_to_cart')}</span>
-                            <span className="sm:hidden">เพิ่ม</span>
-                          </Button>
+                          <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1 border rounded-md">
+                              <Button
+                                onClick={() => updateQuantity(item.id, -1)}
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 p-0"
+                                disabled={!item.isAvailable || getQuantity(item.id) <= 1}
+                              >
+                                <Minus className="w-3 h-3" />
+                              </Button>
+                              <span className="w-8 text-center text-sm font-semibold">
+                                {getQuantity(item.id)}
+                              </span>
+                              <Button
+                                onClick={() => updateQuantity(item.id, 1)}
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 p-0"
+                                disabled={!item.isAvailable}
+                              >
+                                <Plus className="w-3 h-3" />
+                              </Button>
+                            </div>
+                            <Button
+                              onClick={() => handleAddToCart(item)}
+                              className="flex-1 text-xs sm:text-sm"
+                              size="sm"
+                              disabled={!item.isAvailable}
+                            >
+                              <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                              <span className="hidden sm:inline">{t('menu.add_to_cart')}</span>
+                              <span className="sm:hidden">เพิ่ม</span>
+                            </Button>
+                          </div>
                         </CardContent>
                       </Card>
                     ))}
