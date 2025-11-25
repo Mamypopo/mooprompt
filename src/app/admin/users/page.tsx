@@ -317,10 +317,88 @@ export default function UsersPage() {
     }
   }
 
+  // Skeleton component for table rows
+  const TableRowSkeleton = () => (
+    <tr className="border-b animate-pulse">
+      <td className="p-4">
+        <div className="h-4 bg-muted rounded w-24"></div>
+      </td>
+      <td className="p-4">
+        <div className="h-4 bg-muted rounded w-20"></div>
+      </td>
+      <td className="p-4">
+        <div className="h-6 bg-muted rounded w-20"></div>
+      </td>
+      <td className="p-4">
+        <div className="h-6 bg-muted rounded w-16"></div>
+      </td>
+      <td className="p-4">
+        <div className="h-4 bg-muted rounded w-24"></div>
+      </td>
+      <td className="p-4 text-right">
+        <div className="flex justify-end gap-2">
+          <div className="h-8 bg-muted rounded w-16"></div>
+          <div className="h-8 bg-muted rounded w-16"></div>
+        </div>
+      </td>
+    </tr>
+  )
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <div className="h-7 bg-muted rounded w-32 animate-pulse"></div>
+          <div className="h-10 bg-muted rounded w-28 animate-pulse"></div>
+        </div>
+
+        {/* Search and Filters Skeleton */}
+        <div className="flex flex-col sm:flex-row gap-4 mb-4">
+          <div className="flex-1">
+            <div className="h-10 bg-muted rounded animate-pulse"></div>
+          </div>
+          <div className="flex gap-2">
+            <div className="h-10 bg-muted rounded w-full sm:w-[160px] animate-pulse"></div>
+            <div className="h-10 bg-muted rounded w-full sm:w-[140px] animate-pulse"></div>
+          </div>
+        </div>
+
+        {/* Table Skeleton */}
+        <Card>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b bg-muted/50">
+                    <th className="text-left p-4">
+                      <div className="h-4 bg-muted rounded w-12"></div>
+                    </th>
+                    <th className="text-left p-4">
+                      <div className="h-4 bg-muted rounded w-20"></div>
+                    </th>
+                    <th className="text-left p-4">
+                      <div className="h-4 bg-muted rounded w-16"></div>
+                    </th>
+                    <th className="text-left p-4">
+                      <div className="h-4 bg-muted rounded w-16"></div>
+                    </th>
+                    <th className="text-left p-4">
+                      <div className="h-4 bg-muted rounded w-20"></div>
+                    </th>
+                    <th className="text-right p-4">
+                      <div className="h-4 bg-muted rounded w-16 ml-auto"></div>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[...Array(5)].map((_, i) => (
+                    <TableRowSkeleton key={i} />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     )
   }
