@@ -343,15 +343,15 @@ export default function ExtraChargesPage() {
                 </p>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center space-x-3 bg-muted/30 dark:bg-muted/20 rounded-lg p-4">
                 <input
                   type="checkbox"
                   id="active"
                   checked={active}
                   onChange={(e) => setActive(e.target.checked)}
-                  className="w-4 h-4"
+                  className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 accent-primary"
                 />
-                <Label htmlFor="active" className="cursor-pointer">
+                <Label htmlFor="active" className="cursor-pointer font-medium">
                   เปิดใช้งาน
                 </Label>
               </div>

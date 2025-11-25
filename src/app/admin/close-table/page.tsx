@@ -1,9 +1,11 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import { Receipt, Users, Clock, Package as PackageIcon, QrCode, XCircle, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -48,15 +50,30 @@ interface ExtraCharge {
   active: boolean
 }
 
+interface Promotion {
+  id: number
+  name: string
+  type: 'PERCENT' | 'FIXED' | 'PER_PERSON' | 'MIN_PEOPLE' | 'MIN_AMOUNT'
+  value: number
+  condition: any
+  active: boolean
+}
+
 export default function CloseTablePage() {
   useStaffLocale() // Force Thai locale for admin
   const t = useTranslations()
   const [sessions, setSessions] = useState<ActiveSession[]>([])
   const [extraCharges, setExtraCharges] = useState<ExtraCharge[]>([])
+  const [promotions, setPromotions] = useState<Promotion[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedSession, setSelectedSession] = useState<string>('')
   const [paymentMethod, setPaymentMethod] = useState<string>('CASH')
   const [selectedExtraCharges, setSelectedExtraCharges] = useState<number[]>([])
+  const [selectedPromotionId, setSelectedPromotionId] = useState<string>('')
+  const [discountType, setDiscountType] = useState<'PERCENT' | 'FIXED' | ''>('')
+  const [discountValue, setDiscountValue] = useState<string>('')
+  const [vatRate, setVatRate] = useState<string>('')
+  const [receivedAmount, setReceivedAmount] = useState<string>('')
   const [closing, setClosing] = useState(false)
   const [cancelling, setCancelling] = useState<number | null>(null)
   const [newSessionIds, setNewSessionIds] = useState<Set<number>>(new Set())
@@ -67,9 +84,10 @@ export default function CloseTablePage() {
       if (showLoading) {
         setLoading(true)
       }
-      const [sessionsRes, extraChargesRes] = await Promise.all([
+      const [sessionsRes, extraChargesRes, promotionsRes] = await Promise.all([
         fetch('/api/sessions/active'),
         fetch('/api/extra-charges'),
+        fetch('/api/promotions'),
       ])
       
       if (!sessionsRes.ok) {
@@ -78,8 +96,10 @@ export default function CloseTablePage() {
       
       const sessionsData = await sessionsRes.json()
       const extraChargesData = await extraChargesRes.json()
+      const promotionsData = await promotionsRes.json()
       
       const newSessions = sessionsData.sessions || []
+      setPromotions(promotionsData.promotions || [])
       const newSessionIdsSet = new Set<number>(newSessions.map((s: ActiveSession) => s.id))
       
       // Detect new sessions (only when not showing loading - i.e., from socket updates)
@@ -221,6 +241,11 @@ export default function CloseTablePage() {
           sessionId: parseInt(selectedSession, 10),
           paymentMethod,
           extraChargeIds: selectedExtraCharges,
+          promotionId: selectedPromotionId ? parseInt(selectedPromotionId, 10) : null,
+          discountType: discountType || null,
+          discountValue: discountValue ? parseFloat(discountValue) : null,
+          vatRate: vatRate ? parseFloat(vatRate) : null,
+          receivedAmount: receivedAmount ? parseFloat(receivedAmount) : null,
         }),
       })
 
@@ -248,6 +273,11 @@ export default function CloseTablePage() {
       setSelectedSession('')
       setPaymentMethod('CASH')
       setSelectedExtraCharges([])
+      setSelectedPromotionId('')
+      setDiscountType('')
+      setDiscountValue('')
+      setVatRate('')
+      setReceivedAmount('')
       
       // Refresh sessions
       fetchActiveSessions()
@@ -283,6 +313,58 @@ export default function CloseTablePage() {
     const minutes = diff % 60
     return `${hours} ชม. ${minutes} นาที`
   }
+
+  // Calculate billing preview
+  const [billingPreview, setBillingPreview] = useState<{
+    subtotal: number
+    extraCharge: number
+    discount: number
+    vat: number
+    vatRate: number
+    grandTotal: number
+  } | null>(null)
+
+  useEffect(() => {
+    if (!selectedSession) {
+      setBillingPreview(null)
+      return
+    }
+
+    const fetchPreview = async () => {
+      try {
+        const response = await fetch('/api/billing/preview', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sessionId: parseInt(selectedSession, 10),
+            extraChargeIds: selectedExtraCharges,
+            promotionId: selectedPromotionId ? parseInt(selectedPromotionId, 10) : null,
+            discountType: discountType || null,
+            discountValue: discountValue ? parseFloat(discountValue) : null,
+            vatRate: vatRate ? parseFloat(vatRate) : null,
+          }),
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          setBillingPreview(data)
+        }
+      } catch (error) {
+        console.error('Error fetching billing preview:', error)
+      }
+    }
+
+    // Debounce preview fetch
+    const timeoutId = setTimeout(fetchPreview, 300)
+    return () => clearTimeout(timeoutId)
+  }, [selectedSession, selectedExtraCharges, selectedPromotionId, discountType, discountValue, vatRate])
+
+  // Calculate change
+  const change = useMemo(() => {
+    if (!billingPreview || paymentMethod !== 'CASH' || !receivedAmount) return null
+    const received = parseFloat(receivedAmount) || 0
+    return Math.max(0, received - billingPreview.grandTotal)
+  }, [billingPreview, paymentMethod, receivedAmount])
 
   // Helper function to check if session can be cancelled
   const canCancelSession = (session: ActiveSession): boolean => {
@@ -664,9 +746,144 @@ export default function CloseTablePage() {
                 </div>
               )}
 
+              {/* Discount Section */}
+              <div className="grid gap-2">
+                <label className="text-sm font-medium">ส่วนลด</label>
+                <div className="space-y-2">
+                  <Select
+                    value={selectedPromotionId || 'none'}
+                    onValueChange={(value) => {
+                      if (value === 'none') {
+                        setSelectedPromotionId('')
+                      } else {
+                        setSelectedPromotionId(value)
+                      }
+                      setDiscountType('')
+                      setDiscountValue('')
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="เลือกโปรโมชั่น (ถ้ามี)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">ไม่มีโปรโมชั่น</SelectItem>
+                      {promotions.map((promo) => (
+                        <SelectItem key={promo.id} value={promo.id.toString()}>
+                          {promo.name} ({promo.type === 'PERCENT' ? `${promo.value}%` : `${promo.value.toLocaleString()} บาท`})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  {!selectedPromotionId && (
+                    <div className="grid grid-cols-2 gap-2">
+                      <Select
+                        value={discountType || undefined}
+                        onValueChange={(value) => {
+                          setDiscountType(value as 'PERCENT' | 'FIXED')
+                          setDiscountValue('')
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="ประเภท" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="PERCENT">%</SelectItem>
+                          <SelectItem value="FIXED">บาท</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Input
+                        type="number"
+                        placeholder={discountType === 'PERCENT' ? 'เปอร์เซ็นต์' : 'จำนวนเงิน'}
+                        value={discountValue}
+                        onChange={(e) => setDiscountValue(e.target.value)}
+                        disabled={!discountType}
+                        min="0"
+                        step={discountType === 'PERCENT' ? '0.01' : '1'}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* VAT Section */}
+              <div className="grid gap-2">
+                <label className="text-sm font-medium">ภาษีมูลค่าเพิ่ม (VAT)</label>
+                <Input
+                  type="number"
+                  placeholder="เช่น 7 สำหรับ 7%"
+                  value={vatRate}
+                  onChange={(e) => setVatRate(e.target.value)}
+                  min="0"
+                  max="100"
+                  step="0.01"
+                />
+              </div>
+
+              {/* Cash Payment: Received Amount */}
+              {paymentMethod === 'CASH' && (
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium">รับเงิน</label>
+                  <Input
+                    type="number"
+                    placeholder="จำนวนเงินที่รับ"
+                    value={receivedAmount}
+                    onChange={(e) => setReceivedAmount(e.target.value)}
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+              )}
+
+              {/* Billing Summary */}
+              {billingPreview && (
+                <div className="border rounded-lg p-4 space-y-2 bg-muted/30">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">ราคารวม</span>
+                    <span className="font-medium">{billingPreview.subtotal.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท</span>
+                  </div>
+                  {billingPreview.extraCharge > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">ค่าบริการเพิ่มเติม</span>
+                      <span className="font-medium">{billingPreview.extraCharge.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท</span>
+                    </div>
+                  )}
+                  {billingPreview.discount > 0 && (
+                    <div className="flex justify-between text-sm text-success">
+                      <span>ส่วนลด</span>
+                      <span className="font-medium">-{billingPreview.discount.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท</span>
+                    </div>
+                  )}
+                  {billingPreview.vat > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">VAT ({billingPreview.vatRate}%)</span>
+                      <span className="font-medium">{billingPreview.vat.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท</span>
+                    </div>
+                  )}
+                  <div className="border-t pt-2 mt-2">
+                    <div className="flex justify-between text-base font-bold">
+                      <span>ยอดสุทธิ</span>
+                      <span className="text-primary">{billingPreview.grandTotal.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท</span>
+                    </div>
+                  </div>
+                  {paymentMethod === 'CASH' && receivedAmount && change !== null && (
+                    <div className="flex justify-between text-sm mt-2 pt-2 border-t">
+                      <span className="text-muted-foreground">รับเงิน</span>
+                      <span className="font-medium">{parseFloat(receivedAmount).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท</span>
+                    </div>
+                  )}
+                  {paymentMethod === 'CASH' && change !== null && (
+                    <div className="flex justify-between text-base font-semibold text-success">
+                      <span>ทอน</span>
+                      <span>{change.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <Button
                 onClick={handleCloseTable}
-                disabled={!selectedSession || closing}
+                disabled={!selectedSession || closing || (paymentMethod === 'CASH' && (!receivedAmount || change === null || change < 0))}
                 className="w-full"
               >
                 {closing ? 'กำลังปิดโต๊ะ...' : 'ปิดโต๊ะและสร้างบิล'}

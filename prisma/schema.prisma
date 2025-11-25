@@ -200,9 +200,11 @@ model Promotion {
 }
 
 enum PromoType {
-  PERCENT
-  FIXED
-  COMBO
+  PERCENT      // ลด % จากยอดรวม
+  FIXED        // ลดจำนวนเงินจากยอดรวม
+  PER_PERSON   // ลดรายคน (มา X จ่าย Y)
+  MIN_PEOPLE   // ลดเมื่อมีคนขั้นต่ำ
+  MIN_AMOUNT   // ลดเมื่อยอดขั้นต่ำ
 }
 
 // ========================================
@@ -215,13 +217,27 @@ model BillingSummary {
   subtotal        Float
   extraCharge     Float
   discount        Float
+  discountType    DiscountType?   // PERCENT, FIXED, or null (from promotion)
+  discountValue   Float?          // Value used for discount calculation
+  promotionId     Int?             // Reference to promotion if used
+  vat             Float            @default(0)
+  vatRate         Float?          // VAT rate percentage (e.g., 7 for 7%)
   grandTotal      Float
   paymentMethod   PaymentMethod?
+  receivedAmount  Float?           // Amount received (for CASH)
+  change          Float?           // Change amount (for CASH)
   createdAt       DateTime        @default(now())
   items           BillingItem[]
-
+  
   @@index([sessionId])
   @@index([createdAt])
+  @@index([promotionId])
+}
+
+enum DiscountType {
+  PERCENT
+  FIXED
+  PROMOTION
 }
 
 enum PaymentMethod {
