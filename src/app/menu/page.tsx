@@ -276,68 +276,79 @@ export default function MenuPage() {
                           !item.isAvailable ? 'opacity-60' : ''
                         }`}
                       >
-                        {item.imageUrl && (
-                          <div className="aspect-square bg-muted">
-                            <img
-                              src={item.imageUrl}
-                              alt={item.name}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        )}
                         <CardContent className="p-3 sm:p-4">
-                          <div className="flex items-start justify-between gap-2 mb-2">
-                            <h3 className="font-semibold text-sm sm:text-base line-clamp-2 flex-1">{item.name}</h3>
-                            {getCartQuantity(item.id) > 0 && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-semibold flex-shrink-0">
-                                <CheckCircle2 className="w-3 h-3" />
-                                {getCartQuantity(item.id)} ในตะกร้า
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-primary font-bold mb-2 sm:mb-3 text-sm sm:text-base">
-                            {isBuffetItem ? (
-                              <>
-                                ฿0 <span className="text-xs text-muted-foreground">(รวมในบุฟเฟ่ต์)</span>
-                              </>
+                          <div className="flex gap-3 sm:gap-4">
+                            {/* รูปภาพด้านซ้าย */}
+                            {item.imageUrl ? (
+                              <div className="w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 rounded-md overflow-hidden bg-muted">
+                                <img
+                                  src={item.imageUrl}
+                                  alt={item.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
                             ) : (
-                              <>฿{item.price.toLocaleString()}</>
+                              <div className="w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 rounded-md bg-muted" />
                             )}
-                          </p>
-                          <div className="flex items-center gap-2">
-                            <div className="flex items-center gap-1 border rounded-md">
-                              <Button
-                                onClick={() => updateQuantity(item.id, -1)}
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 p-0"
-                                disabled={!item.isAvailable || getQuantity(item.id) <= 1}
-                              >
-                                <Minus className="w-3 h-3" />
-                              </Button>
-                              <span className="w-8 text-center text-sm font-semibold">
-                                {getQuantity(item.id)}
-                              </span>
-                              <Button
-                                onClick={() => updateQuantity(item.id, 1)}
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 p-0"
-                                disabled={!item.isAvailable}
-                              >
-                                <Plus className="w-3 h-3" />
-                              </Button>
+                            
+                            {/* เนื้อหาด้านขวา */}
+                            <div className="flex-1 min-w-0 flex flex-col justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-start justify-between gap-2 mb-1">
+                                  <h3 className="font-semibold text-sm sm:text-base line-clamp-2 flex-1">{item.name}</h3>
+                                  {getCartQuantity(item.id) > 0 && (
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-semibold flex-shrink-0">
+                                      <CheckCircle2 className="w-3 h-3" />
+                                      {getCartQuantity(item.id)} ในตะกร้า
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-sm sm:text-base mb-2 sm:mb-3">
+                                  {isBuffetItem ? (
+                                    <span className="text-muted-foreground">รวมในบุฟเฟ่ต์</span>
+                                  ) : (
+                                    <span className="text-primary font-bold">฿{item.price.toLocaleString()}</span>
+                                  )}
+                                </p>
+                              </div>
+                              
+                              {/* ปุ่มควบคุม */}
+                              <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-1 border rounded-md">
+                                  <Button
+                                    onClick={() => updateQuantity(item.id, -1)}
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 p-0"
+                                    disabled={!item.isAvailable || getQuantity(item.id) <= 1}
+                                  >
+                                    <Minus className="w-3 h-3" />
+                                  </Button>
+                                  <span className="w-8 text-center text-sm font-semibold">
+                                    {getQuantity(item.id)}
+                                  </span>
+                                  <Button
+                                    onClick={() => updateQuantity(item.id, 1)}
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 p-0"
+                                    disabled={!item.isAvailable}
+                                  >
+                                    <Plus className="w-3 h-3" />
+                                  </Button>
+                                </div>
+                                <Button
+                                  onClick={() => handleAddToCart(item)}
+                                  className="flex-1 text-xs sm:text-sm"
+                                  size="sm"
+                                  disabled={!item.isAvailable}
+                                >
+                                  <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                                  <span className="hidden sm:inline">{t('menu.add_to_cart')}</span>
+                                  <span className="sm:hidden">เพิ่ม</span>
+                                </Button>
+                              </div>
                             </div>
-                            <Button
-                              onClick={() => handleAddToCart(item)}
-                              className="flex-1 text-xs sm:text-sm"
-                              size="sm"
-                              disabled={!item.isAvailable}
-                            >
-                              <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                              <span className="hidden sm:inline">{t('menu.add_to_cart')}</span>
-                              <span className="sm:hidden">เพิ่ม</span>
-                            </Button>
                           </div>
                         </CardContent>
                       </Card>
