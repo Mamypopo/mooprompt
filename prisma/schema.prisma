@@ -19,7 +19,6 @@ model RestaurantInfo {
   address       String?
   phone         String?
   logoUrl       String?
-  coverImageUrl String?
   wifiName      String?
   wifiPassword  String?
   openTime      String?
@@ -228,7 +227,6 @@ model BillingSummary {
 enum PaymentMethod {
   CASH
   QR
-  CREDIT
 }
 
 model BillingItem {

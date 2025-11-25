@@ -16,7 +16,6 @@ interface RestaurantInfo {
   address?: string | null
   phone?: string | null
   logoUrl?: string | null
-  coverImageUrl?: string | null
   wifiName?: string | null
   wifiPassword?: string | null
   openTime?: string | null
@@ -43,11 +42,6 @@ export default function SettingsPage() {
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [logoPreview, setLogoPreview] = useState<string | null>(null)
   const [uploadingLogo, setUploadingLogo] = useState(false)
-  
-  const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null)
-  const [coverImageFile, setCoverImageFile] = useState<File | null>(null)
-  const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null)
-  const [uploadingCoverImage, setUploadingCoverImage] = useState(false)
 
   useEffect(() => {
     fetchRestaurantInfo()
@@ -70,8 +64,6 @@ export default function SettingsPage() {
       setCloseTime(restaurantInfo.closeTime || '')
       setLogoUrl(restaurantInfo.logoUrl || null)
       setLogoPreview(restaurantInfo.logoUrl || null)
-      setCoverImageUrl(restaurantInfo.coverImageUrl || null)
-      setCoverImagePreview(restaurantInfo.coverImageUrl || null)
     } catch (error) {
       console.error('Error fetching restaurant info:', error)
       Swal.fire({
@@ -129,46 +121,6 @@ export default function SettingsPage() {
     reader.readAsDataURL(file)
   }
 
-  const handleCoverImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    if (!file.type.startsWith('image/')) {
-      Swal.fire({
-        icon: 'error',
-        title: 'ไฟล์ไม่ถูกต้อง',
-        text: 'กรุณาเลือกไฟล์รูปภาพ',
-        toast: true,
-        position: 'top-end',
-        showConfirmButton: false,
-        timer: 3000,
-        timerProgressBar: true,
-      })
-      return
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      Swal.fire({
-        icon: 'error',
-        title: 'ไฟล์ใหญ่เกินไป',
-        text: 'ขนาดไฟล์ต้องไม่เกิน 5MB',
-        toast: true,
-        position: 'top-end',
-        showConfirmButton: false,
-        timer: 3000,
-        timerProgressBar: true,
-      })
-      return
-    }
-
-    setCoverImageFile(file)
-    const reader = new FileReader()
-    reader.onloadend = () => {
-      setCoverImagePreview(reader.result as string)
-    }
-    reader.readAsDataURL(file)
-  }
-
   const uploadLogo = async (): Promise<string | null> => {
     if (!logoFile) return logoUrl
 
@@ -206,43 +158,6 @@ export default function SettingsPage() {
     }
   }
 
-  const uploadCoverImage = async (): Promise<string | null> => {
-    if (!coverImageFile) return coverImageUrl
-
-    setUploadingCoverImage(true)
-    try {
-      const formData = new FormData()
-      formData.append('file', coverImageFile)
-
-      const response = await fetch('/api/upload/restaurant', {
-        method: 'POST',
-        body: formData,
-      })
-
-      if (!response.ok) {
-        throw new Error('Upload failed')
-      }
-
-      const data = await response.json()
-      return data.url
-    } catch (error) {
-      console.error('Error uploading cover image:', error)
-      Swal.fire({
-        icon: 'error',
-        title: 'อัพโหลดรูปภาพไม่สำเร็จ',
-        text: 'กรุณาลองใหม่อีกครั้ง',
-        toast: true,
-        position: 'top-end',
-        showConfirmButton: false,
-        timer: 3000,
-        timerProgressBar: true,
-      })
-      return null
-    } finally {
-      setUploadingCoverImage(false)
-    }
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -263,7 +178,7 @@ export default function SettingsPage() {
 
     try {
       // Upload images first if there are new files
-      let finalLogoUrl = logoUrl
+      let finalLogoUrl: string | null = logoUrl
       if (logoFile) {
         const uploadedUrl = await uploadLogo()
         if (uploadedUrl) {
@@ -274,16 +189,8 @@ export default function SettingsPage() {
         }
       }
 
-      let finalCoverImageUrl = coverImageUrl
-      if (coverImageFile) {
-        const uploadedUrl = await uploadCoverImage()
-        if (uploadedUrl) {
-          finalCoverImageUrl = uploadedUrl
-        } else {
-          setSaving(false)
-          return
-        }
-      }
+      // Normalize logoUrl: convert empty string to null
+      const normalizedLogoUrl = finalLogoUrl && finalLogoUrl.trim() !== '' ? finalLogoUrl : null
 
       // Update restaurant info
       const response = await fetch('/api/restaurant-info', {
@@ -293,8 +200,7 @@ export default function SettingsPage() {
           name: name.trim(),
           address: address.trim() || null,
           phone: phone.trim() || null,
-          logoUrl: finalLogoUrl,
-          coverImageUrl: finalCoverImageUrl,
+          logoUrl: normalizedLogoUrl,
           wifiName: wifiName.trim() || null,
           wifiPassword: wifiPassword.trim() || null,
           openTime: openTime.trim() || null,
@@ -304,7 +210,10 @@ export default function SettingsPage() {
 
       if (!response.ok) {
         const data = await response.json()
-        throw new Error(data.error || 'Failed to update')
+        const errorMessage = data.details 
+          ? `${data.error}: ${JSON.stringify(data.details)}`
+          : data.error || 'Failed to update'
+        throw new Error(errorMessage)
       }
 
       Swal.fire({
@@ -319,7 +228,6 @@ export default function SettingsPage() {
 
       // Reset file states
       setLogoFile(null)
-      setCoverImageFile(null)
       fetchRestaurantInfo()
     } catch (error: any) {
       console.error('Error saving restaurant info:', error)
@@ -479,6 +387,7 @@ export default function SettingsPage() {
                       alt="Logo Preview"
                       fill
                       className="object-contain"
+                      priority
                     />
                     <Button
                       type="button"
@@ -511,47 +420,6 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="coverImage">รูปภาพปก</Label>
-              <div className="space-y-2">
-                {(coverImagePreview || coverImageUrl) && (
-                  <div className="relative w-full h-48 border rounded-lg overflow-hidden">
-                    <Image
-                      src={coverImagePreview || coverImageUrl || ''}
-                      alt="Cover Preview"
-                      fill
-                      className="object-cover"
-                    />
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="icon"
-                      className="absolute top-2 right-2"
-                      onClick={() => {
-                        setCoverImagePreview(null)
-                        setCoverImageFile(null)
-                        setCoverImageUrl(null)
-                      }}
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </div>
-                )}
-                <div className="flex items-center gap-2">
-                  <Input
-                    id="coverImage"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleCoverImageChange}
-                    className="cursor-pointer"
-                    disabled={uploadingCoverImage}
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  รองรับไฟล์ JPEG, PNG, WebP (ขนาดไม่เกิน 5MB)
-                </p>
-              </div>
-            </div>
           </CardContent>
         </Card>
 
@@ -623,7 +491,7 @@ export default function SettingsPage() {
           >
             ยกเลิก
           </Button>
-          <Button type="submit" disabled={saving || uploadingLogo || uploadingCoverImage}>
+          <Button type="submit" disabled={saving || uploadingLogo}>
             {saving ? 'กำลังบันทึก...' : 'บันทึก'}
           </Button>
         </div>

@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { logAction } from '@/lib/logger'
 import { z } from 'zod'
 import { KitchenStatus } from '@prisma/client'
+import { emitSocketEvent } from '@/lib/socket'
 
 const updateItemStatusSchema = z.object({
   orderItemId: z.number().int().positive(),
@@ -59,12 +60,10 @@ export async function PATCH(request: NextRequest) {
     })
 
     // Emit socket event
-    if (typeof global !== 'undefined' && (global as any).io) {
-      (global as any).io.emit(`order:${status.toLowerCase()}`, {
-        orderItemId,
-        orderItem: updatedItem,
-      })
-    }
+    emitSocketEvent(`order:${status.toLowerCase()}`, {
+      orderItemId,
+      orderItem: updatedItem,
+    })
 
     return NextResponse.json({ orderItem: updatedItem })
   } catch (error) {

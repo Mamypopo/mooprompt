@@ -71,10 +71,15 @@ export default function KitchenPage() {
       fetchOrders(false) // Silent update
     })
 
+    socket.on('order:served', () => {
+      fetchOrders(false) // Silent update - remove served items from kitchen view
+    })
+
     return () => {
       socket.off('order:new')
       socket.off('order:cooking')
       socket.off('order:done')
+      socket.off('order:served')
     }
   }, [router])
 
@@ -151,9 +156,7 @@ export default function KitchenPage() {
         throw new Error('Failed to update status')
       }
 
-      const socket = getSocket()
-      socket.emit(`order:${status.toLowerCase()}`, { itemId })
-
+      // Server already emits socket event, no need to emit from client
       fetchOrders()
     } catch (error) {
       Swal.fire({
@@ -395,10 +398,18 @@ export default function KitchenPage() {
                               <Button
                                 onClick={() => handleMarkCooking(item.id)}
                                 size="sm"
-                                variant="outline"
+                                variant="default"
                                 className="flex-1 sm:flex-initial text-xs sm:text-sm"
                               >
                                 {t('kitchen.mark_cooking')}
+                              </Button>
+                              <Button
+                                onClick={() => handleMarkDone(item.id)}
+                                variant="success"
+                                size="sm"
+                                className="flex-1 sm:flex-initial text-xs sm:text-sm"
+                              >
+                                {t('kitchen.mark_done')}
                               </Button>
                               {item.menuItem.isAvailable && (
                                 <Button

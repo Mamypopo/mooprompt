@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { logAction } from '@/lib/logger'
 import { z } from 'zod'
+import { emitSocketEvent } from '@/lib/socket'
 
 const createOrderSchema = z.object({
   tableSessionId: z.number().int().positive(),
@@ -64,10 +65,8 @@ export async function POST(request: NextRequest) {
       itemCount: data.items.length,
     })
 
-    // Emit socket event (in production, use proper socket server)
-    if (typeof global !== 'undefined' && (global as any).io) {
-      (global as any).io.emit('order:new', { order })
-    }
+    // Emit socket event
+    emitSocketEvent('order:new', { order })
 
     return NextResponse.json({ order }, { status: 201 })
   } catch (error) {

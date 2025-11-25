@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { logAction } from '@/lib/logger'
 import { z } from 'zod'
+import { emitSocketEvent } from '@/lib/socket'
 
 const openSessionSchema = z.object({
   tableId: z.number().int().positive(),
@@ -79,9 +80,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Emit socket event
-    if (typeof global !== 'undefined' && (global as any).io) {
-      (global as any).io.emit('session:opened', { session })
-    }
+    emitSocketEvent('session:opened', { session })
 
     return NextResponse.json({ session }, { status: 201 })
   } catch (error) {

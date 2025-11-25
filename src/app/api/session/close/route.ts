@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { logAction } from '@/lib/logger'
 import { z } from 'zod'
+import { emitSocketEvent } from '@/lib/socket'
 
 const closeSessionSchema = z.object({
   sessionId: z.number().int().positive(),
@@ -66,9 +67,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Emit socket event
-    if (typeof global !== 'undefined' && (global as any).io) {
-      (global as any).io.emit('session:cancelled', { sessionId, tableId: session.tableId })
-    }
+    emitSocketEvent('session:cancelled', { sessionId, tableId: session.tableId })
 
     return NextResponse.json({ success: true })
   } catch (error) {

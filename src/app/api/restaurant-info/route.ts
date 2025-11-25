@@ -3,12 +3,27 @@ import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 import { logAction } from '@/lib/logger'
 
+// Custom validator for logoUrl (only relative path, no external URLs)
+const logoUrlSchema = z.preprocess(
+  (val) => {
+    // Normalize empty string to null
+    if (val === '' || val === undefined) return null
+    return val
+  },
+  z.union([
+    z.null(),
+    z.string().refine(
+      (val) => val.startsWith('/'),
+      { message: 'logoUrl must be a relative path starting with /' }
+    ),
+  ])
+)
+
 const updateRestaurantInfoSchema = z.object({
   name: z.string().min(1).optional(),
   address: z.string().optional().nullable(),
   phone: z.string().optional().nullable(),
-  logoUrl: z.string().url().optional().nullable(),
-  coverImageUrl: z.string().url().optional().nullable(),
+  logoUrl: logoUrlSchema.optional().nullable(),
   wifiName: z.string().optional().nullable(),
   wifiPassword: z.string().optional().nullable(),
   openTime: z.string().optional().nullable(),
@@ -55,7 +70,6 @@ export async function PATCH(request: NextRequest) {
           address: data.address || null,
           phone: data.phone || null,
           logoUrl: data.logoUrl || null,
-          coverImageUrl: data.coverImageUrl || null,
           wifiName: data.wifiName || null,
           wifiPassword: data.wifiPassword || null,
           openTime: data.openTime || null,
@@ -71,7 +85,6 @@ export async function PATCH(request: NextRequest) {
           ...(data.address !== undefined && { address: data.address || null }),
           ...(data.phone !== undefined && { phone: data.phone || null }),
           ...(data.logoUrl !== undefined && { logoUrl: data.logoUrl || null }),
-          ...(data.coverImageUrl !== undefined && { coverImageUrl: data.coverImageUrl || null }),
           ...(data.wifiName !== undefined && { wifiName: data.wifiName || null }),
           ...(data.wifiPassword !== undefined && { wifiPassword: data.wifiPassword || null }),
           ...(data.openTime !== undefined && { openTime: data.openTime || null }),

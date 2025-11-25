@@ -232,7 +232,7 @@ export default function CloseTablePage() {
       const data = await response.json()
       const billing = data.billing
 
-      const paymentMethodText = paymentMethod === 'CASH' ? 'เงินสด' : paymentMethod === 'QR' ? 'QR Code' : 'บัตรเครดิต'
+      const paymentMethodText = paymentMethod === 'CASH' ? 'เงินสด' : 'QR Code'
       Swal.fire({
         icon: 'success',
         title: 'ปิดโต๊ะสำเร็จ',
@@ -605,7 +605,6 @@ export default function CloseTablePage() {
                   <SelectContent>
                     <SelectItem value="CASH">เงินสด</SelectItem>
                     <SelectItem value="QR">QR Code</SelectItem>
-                    <SelectItem value="CREDIT">บัตรเครดิต</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

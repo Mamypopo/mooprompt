@@ -92,8 +92,7 @@ export default function RunnerPage() {
         throw new Error('Failed to update status')
       }
 
-      const socket = getSocket()
-      socket.emit('order:served', { itemId })
+      // Server already emits socket event, no need to emit from client
 
       Swal.fire({
         icon: 'success',
@@ -119,12 +118,55 @@ export default function RunnerPage() {
     }
   }
 
+  // Skeleton component for order items
+  const OrderItemSkeleton = () => (
+    <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg animate-pulse">
+      <div className="flex items-center gap-2">
+        <div className="w-5 h-5 bg-muted rounded-full"></div>
+        <div className="h-5 bg-muted rounded w-32 sm:w-48"></div>
+      </div>
+      <div className="h-9 bg-muted rounded w-24 sm:w-28"></div>
+    </div>
+  )
+
+  // Skeleton component for order cards
+  const OrderCardSkeleton = () => (
+    <Card className="border-l-4 border-l-success animate-pulse">
+      <CardHeader>
+        <div className="flex justify-between items-center">
+          <div className="h-6 bg-muted rounded w-48 sm:w-64"></div>
+          <div className="h-4 bg-muted rounded w-20 sm:w-24"></div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3">
+          {[...Array(2)].map((_, i) => (
+            <OrderItemSkeleton key={i} />
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  )
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">{t('common.loading')}</p>
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-muted rounded animate-pulse"></div>
+              <div className="h-6 sm:h-7 bg-muted rounded w-32 sm:w-40 animate-pulse"></div>
+            </div>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <div className="h-9 w-9 bg-muted rounded-md animate-pulse"></div>
+              <div className="h-9 bg-muted rounded w-20 sm:w-24 animate-pulse flex-1 sm:flex-initial"></div>
+            </div>
+          </div>
+          <div className="space-y-4">
+            {[...Array(3)].map((_, i) => (
+              <OrderCardSkeleton key={i} />
+            ))}
+          </div>
         </div>
       </div>
     )

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 import { logAction } from '@/lib/logger'
+import { emitSocketEvent } from '@/lib/socket'
 
 // Custom validator for imageUrl (only relative path, no external URLs)
 const imageUrlSchema = z.preprocess(
@@ -147,10 +148,10 @@ export async function PATCH(
     })
 
     // Emit socket event when availability changes
-    if (typeof global !== 'undefined' && (global as any).io && data.isAvailable !== undefined) {
-      (global as any).io.emit('menu:unavailable', { 
+    if (data.isAvailable !== undefined) {
+      emitSocketEvent('menu:unavailable', {
         menuItemId: item.id,
-        isAvailable: item.isAvailable 
+        isAvailable: item.isAvailable,
       })
     }
 

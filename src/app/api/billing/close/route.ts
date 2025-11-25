@@ -3,10 +3,11 @@ import { prisma } from '@/lib/prisma'
 import { logAction } from '@/lib/logger'
 import { z } from 'zod'
 import { PaymentMethod } from '@prisma/client'
+import { emitSocketEvent } from '@/lib/socket'
 
 const closeBillingSchema = z.object({
   sessionId: z.number().int().positive(),
-  paymentMethod: z.enum(['CASH', 'QR', 'CREDIT']),
+  paymentMethod: z.enum(['CASH', 'QR']),
   extraChargeIds: z.array(z.number().int().positive()).optional(), // ถ้าไม่ส่งมา จะใช้จาก session
 })
 
@@ -194,9 +195,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Emit socket event
-    if (typeof global !== 'undefined' && (global as any).io) {
-      (global as any).io.emit('billing:closed', { billing })
-    }
+    emitSocketEvent('billing:closed', { billing })
 
     return NextResponse.json({ billing }, { status: 201 })
   } catch (error) {
