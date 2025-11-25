@@ -28,6 +28,29 @@ export async function GET(request: NextRequest) {
       },
     })
 
+    // Fetch extra charges if session has extraChargeIds
+    let extraCharges: any[] = []
+    if (session?.extraChargeIds) {
+      const extraChargeIds = Array.isArray(session.extraChargeIds)
+        ? session.extraChargeIds.filter((id): id is number => typeof id === 'number')
+        : []
+      
+      if (extraChargeIds.length > 0) {
+        extraCharges = await prisma.extraCharge.findMany({
+          where: {
+            id: { in: extraChargeIds },
+            active: true,
+          },
+          select: {
+            id: true,
+            name: true,
+            price: true,
+            chargeType: true,
+          },
+        })
+      }
+    }
+
     if (!session || session.status !== 'ACTIVE') {
       return NextResponse.json(
         { error: 'ไม่พบ session หรือ session ไม่ได้เปิดใช้งาน' },
@@ -126,6 +149,21 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // WiFi Info in header
+    if (restaurantInfo.wifiName || restaurantInfo.wifiPassword) {
+      doc.moveDown(0.3)
+      if (restaurantInfo.wifiName) {
+        doc.fontSize(8).font(bodyFont).text(`WiFi: ${restaurantInfo.wifiName}`, {
+          align: 'center',
+        })
+      }
+      if (restaurantInfo.wifiPassword) {
+        doc.fontSize(8).font(bodyFont).text(`รหัสผ่าน: ${restaurantInfo.wifiPassword}`, {
+          align: 'center',
+        })
+      }
+    }
+
     // Divider
     doc.moveDown(0.5)
     doc.moveTo(15, doc.y).lineTo(211.77, doc.y).stroke()
@@ -136,12 +174,15 @@ export async function GET(request: NextRequest) {
       align: 'center',
     })
 
-    // QR Code
+    // QR Code - Center it properly
     doc.moveDown(0.5)
-    doc.image(qrCodeBuffer, {
-      fit: [120, 120],
-      align: 'center',
+    const qrSize = 120
+    const pageWidth = 226.77 // 80mm in points
+    const qrX = (pageWidth - qrSize) / 2
+    doc.image(qrCodeBuffer, qrX, doc.y, {
+      fit: [qrSize, qrSize],
     })
+    doc.y += qrSize
 
     doc.moveDown(0.5)
     doc.fontSize(8).font(bodyFont).text('สแกน QR Code เพื่อเข้าสู่ระบบสั่งอาหาร', {
@@ -188,53 +229,73 @@ export async function GET(request: NextRequest) {
       }),
     })
 
+    // Add extra charges if any (before other details)
+    if (extraCharges.length > 0) {
+      doc.moveDown(0.2)
+      doc.fontSize(8).font(titleFont).text('ค่าบริการเพิ่มเติม:', 15, doc.y)
+      doc.moveDown(0.2)
+      
+      extraCharges.forEach((charge) => {
+        const chargeAmount = charge.chargeType === 'PER_PERSON' 
+          ? charge.price * session.peopleCount 
+          : charge.price
+        const chargeLabel = `• ${charge.name}${charge.chargeType === 'PER_PERSON' ? ` (${charge.price.toFixed(2)} บาท/คน)` : ''}`
+        
+        doc.fontSize(8).font(bodyFont)
+        doc.text(chargeLabel, 15, doc.y, {
+          width: 140,
+          continued: true,
+        })
+        doc.text(`${chargeAmount.toFixed(2)} บาท`, {
+          width: 56.77,
+          align: 'right',
+        })
+        doc.moveDown(0.3)
+      })
+      doc.moveDown(0.2)
+    }
+
     details.forEach((detail) => {
-      doc.text(detail.label, 15, doc.y, {
-        width: 80,
-        continued: true,
+      // Label on left, value on right (same line)
+      const pageWidth = 226.77
+      const margin = 15
+      const rightMargin = 15
+      
+      // Get current Y position to ensure same line
+      const currentY = doc.y
+      
+      // Write label first (left aligned, fixed width)
+      const labelWidth = 100
+      doc.text(detail.label, margin, currentY, {
+        width: labelWidth,
       })
-      doc.text(detail.value, {
-        width: 121.77,
-        align: 'right',
-      })
+      
+      // Calculate value width and position for right alignment
+      const valueWidth = pageWidth - margin - labelWidth - rightMargin // ~96.77
+      const valueTextWidth = doc.widthOfString(detail.value)
+      const valueX = pageWidth - rightMargin - valueTextWidth
+      
+      // Write value on the same Y position, right aligned
+      doc.text(detail.value, valueX, currentY)
+      
       doc.moveDown(0.3)
     })
 
-    // WiFi Info
-    if (restaurantInfo.wifiName || restaurantInfo.wifiPassword) {
-      doc.moveDown(0.5)
-      doc.moveTo(15, doc.y).lineTo(211.77, doc.y).stroke()
-      doc.moveDown(0.5)
-
-      doc.fontSize(8).font(titleFont).text('WiFi', {
-        align: 'center',
-      })
-
-      if (restaurantInfo.wifiName) {
-        doc.fontSize(8).font(bodyFont).text(`ชื่อ: ${restaurantInfo.wifiName}`, {
-          align: 'center',
-        })
-      }
-
-      if (restaurantInfo.wifiPassword) {
-        doc.fontSize(8).font(bodyFont).text(
-          `รหัสผ่าน: ${restaurantInfo.wifiPassword}`,
-          {
-            align: 'center',
-          }
-        )
-      }
-    }
 
     // Footer
     doc.moveDown(1)
     doc.moveTo(15, doc.y).lineTo(211.77, doc.y).stroke()
     doc.moveDown(0.5)
 
+    // Center footer text properly
+    // Reset X position to left margin before centering
+    doc.x = 15
     doc.fontSize(8).font(bodyFont).text('ขอบคุณที่ใช้บริการ', {
       align: 'center',
     })
 
+    doc.moveDown(0.2)
+    doc.x = 15 // Reset X position again
     doc.fontSize(6).font(bodyFont).text(`Session: ${session.id}`, {
       align: 'center',
     })

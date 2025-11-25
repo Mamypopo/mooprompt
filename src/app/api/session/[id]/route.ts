@@ -36,6 +36,29 @@ export async function GET(
       },
     })
 
+    // Fetch extra charges if session has extraChargeIds
+    let extraCharges: any[] = []
+    if (session?.extraChargeIds) {
+      const extraChargeIds = Array.isArray(session.extraChargeIds)
+        ? session.extraChargeIds.filter((id): id is number => typeof id === 'number')
+        : []
+      
+      if (extraChargeIds.length > 0) {
+        extraCharges = await prisma.extraCharge.findMany({
+          where: {
+            id: { in: extraChargeIds },
+            active: true,
+          },
+          select: {
+            id: true,
+            name: true,
+            price: true,
+            chargeType: true,
+          },
+        })
+      }
+    }
+
     if (!session) {
       return NextResponse.json(
         { error: 'ไม่พบ session' },
@@ -59,7 +82,12 @@ export async function GET(
       )
     }
 
-    return NextResponse.json({ session })
+    return NextResponse.json({ 
+      session: {
+        ...session,
+        extraCharges,
+      }
+    })
   } catch (error) {
     console.error('Error fetching session:', error)
     return NextResponse.json(

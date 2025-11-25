@@ -457,8 +457,10 @@ export default function OpenTablePage() {
                       return (
                         <div
                           key={extraCharge.id}
-                          className={`flex items-center gap-2 p-2 rounded hover:bg-gray-50 cursor-pointer ${
-                            isSelected ? 'bg-primary/5 border border-primary' : ''
+                          className={`flex items-center gap-2 p-2 rounded cursor-pointer transition-colors ${
+                            isSelected 
+                              ? 'bg-primary/10 dark:bg-primary/20 border border-primary dark:border-primary/50' 
+                              : 'hover:bg-muted/50 dark:hover:bg-muted/30'
                           }`}
                           onClick={() => {
                             if (isSelected) {

@@ -734,8 +734,10 @@ export default function CloseTablePage() {
                       return (
                         <div
                           key={extraCharge.id}
-                          className={`flex items-center gap-2 p-2 rounded hover:bg-gray-50 cursor-pointer ${
-                            isSelected ? 'bg-primary/5 border border-primary' : ''
+                          className={`flex items-center gap-2 p-2 rounded cursor-pointer transition-colors ${
+                            isSelected 
+                              ? 'bg-primary/10 dark:bg-primary/20 border border-primary dark:border-primary/50' 
+                              : 'hover:bg-muted/50 dark:hover:bg-muted/30'
                           }`}
                           onClick={() => {
                             if (isSelected) {
@@ -755,12 +757,12 @@ export default function CloseTablePage() {
                             <p className="text-sm font-medium">{extraCharge.name}</p>
                             <p className="text-xs text-muted-foreground">
                               {extraCharge.price.toLocaleString()} บาท ({chargeLabel})
-                              {isSelected && selectedSession && (
-                                <span className="ml-2 text-primary font-semibold">
-                                  รวม: {totalAmount.toLocaleString()} บาท
-                                </span>
-                              )}
                             </p>
+                            {isSelected && selectedSession && (
+                              <p className="text-xs text-primary font-semibold mt-0.5">
+                                รวม: {totalAmount.toLocaleString()} บาท
+                              </p>
+                            )}
                           </div>
                         </div>
                       )
@@ -859,50 +861,70 @@ export default function CloseTablePage() {
               )}
 
               {/* Billing Summary */}
-              {billingPreview && (
-                <div className="border rounded-lg p-4 space-y-2 bg-muted/30">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">ราคารวม</span>
-                    <span className="font-medium">{billingPreview.subtotal.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท</span>
-                  </div>
-                  {billingPreview.extraCharge > 0 && (
+              {billingPreview && selectedSession && (() => {
+                const session = sessions.find(s => s.id.toString() === selectedSession)
+                if (!session) return null
+                
+                return (
+                  <div className="border rounded-lg p-4 space-y-2 bg-muted/30">
+                    {/* Session Info */}
+                    <div className="pb-2 mb-2 border-b">
+                      <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                        <span>จำนวนคน</span>
+                        <span>{session.peopleCount} คน</span>
+                      </div>
+                      {session.package && (
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span>แพ็กเกจ</span>
+                          <span>{session.package.name} ({session.package.pricePerPerson.toFixed(2)} บาท/คน)</span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Billing Breakdown */}
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">ค่าบริการเพิ่มเติม</span>
-                      <span className="font-medium">{billingPreview.extraCharge.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท</span>
+                      <span className="text-muted-foreground">ราคารวม</span>
+                      <span className="font-medium">{billingPreview.subtotal.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท</span>
                     </div>
-                  )}
-                  {billingPreview.discount > 0 && (
-                    <div className="flex justify-between text-sm text-success">
-                      <span>ส่วนลด</span>
-                      <span className="font-medium">-{billingPreview.discount.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท</span>
+                    {billingPreview.extraCharge > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">ค่าบริการเพิ่มเติม</span>
+                        <span className="font-medium">{billingPreview.extraCharge.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท</span>
+                      </div>
+                    )}
+                    {billingPreview.discount > 0 && (
+                      <div className="flex justify-between text-sm text-success">
+                        <span>ส่วนลด</span>
+                        <span className="font-medium">-{billingPreview.discount.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท</span>
+                      </div>
+                    )}
+                    {billingPreview.vat > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">VAT ({billingPreview.vatRate}%)</span>
+                        <span className="font-medium">{billingPreview.vat.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท</span>
+                      </div>
+                    )}
+                    <div className="border-t pt-2 mt-2">
+                      <div className="flex justify-between text-base font-bold">
+                        <span>ยอดสุทธิ</span>
+                        <span className="text-primary">{billingPreview.grandTotal.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท</span>
+                      </div>
                     </div>
-                  )}
-                  {billingPreview.vat > 0 && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">VAT ({billingPreview.vatRate}%)</span>
-                      <span className="font-medium">{billingPreview.vat.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท</span>
-                    </div>
-                  )}
-                  <div className="border-t pt-2 mt-2">
-                    <div className="flex justify-between text-base font-bold">
-                      <span>ยอดสุทธิ</span>
-                      <span className="text-primary">{billingPreview.grandTotal.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท</span>
-                    </div>
+                    {paymentMethod === 'CASH' && receivedAmount && change !== null && (
+                      <div className="flex justify-between text-sm mt-2 pt-2 border-t">
+                        <span className="text-muted-foreground">รับเงิน</span>
+                        <span className="font-medium">{parseFloat(receivedAmount).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท</span>
+                      </div>
+                    )}
+                    {paymentMethod === 'CASH' && change !== null && (
+                      <div className="flex justify-between text-base font-semibold text-success">
+                        <span>ทอน</span>
+                        <span>{change.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท</span>
+                      </div>
+                    )}
                   </div>
-                  {paymentMethod === 'CASH' && receivedAmount && change !== null && (
-                    <div className="flex justify-between text-sm mt-2 pt-2 border-t">
-                      <span className="text-muted-foreground">รับเงิน</span>
-                      <span className="font-medium">{parseFloat(receivedAmount).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท</span>
-                    </div>
-                  )}
-                  {paymentMethod === 'CASH' && change !== null && (
-                    <div className="flex justify-between text-base font-semibold text-success">
-                      <span>ทอน</span>
-                      <span>{change.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท</span>
-                    </div>
-                  )}
-                </div>
-              )}
+                )
+              })()}
 
               <Button
                 onClick={handleCloseTable}
