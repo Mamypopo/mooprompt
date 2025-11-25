@@ -112,11 +112,12 @@ export default function PromotionsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!name.trim() || !value.trim()) {
+    // Validate name (required for all types)
+    if (!name.trim()) {
       Swal.fire({
         icon: 'warning',
         title: 'กรุณากรอกข้อมูลให้ครบ',
-        text: 'กรุณากรอกชื่อและค่าส่วนลด',
+        text: 'กรุณากรอกชื่อโปรโมชั่น',
         toast: true,
         position: 'top-end',
         showConfirmButton: false,
@@ -126,41 +127,9 @@ export default function PromotionsPage() {
       return
     }
 
-    const valueNum = parseFloat(value)
-    if (isNaN(valueNum) || valueNum <= 0) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'ค่าส่วนลดไม่ถูกต้อง',
-        text: 'กรุณากรอกค่าส่วนลดที่มากกว่า 0',
-        toast: true,
-        position: 'top-end',
-        showConfirmButton: false,
-        timer: 3000,
-        timerProgressBar: true,
-      })
-      return
-    }
-
-    if (type === 'PERCENT' && valueNum > 100) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'เปอร์เซ็นต์ไม่ถูกต้อง',
-        text: 'เปอร์เซ็นต์ส่วนลดต้องไม่เกิน 100%',
-        toast: true,
-        position: 'top-end',
-        showConfirmButton: false,
-        timer: 3000,
-        timerProgressBar: true,
-      })
-      return
-    }
-
-    // For MIN_PEOPLE and MIN_AMOUNT, value can be either amount or percentage
-    // We'll store it as-is and let the calculation logic determine if it's % or amount
-    // (if value <= 100, treat as percentage; otherwise as amount)
-
-    // Validate condition based on type
+    // Validate based on promotion type
     if (type === 'PER_PERSON') {
+      // PER_PERSON: Only needs condition, not value
       if (!condition.buy || !condition.pay || condition.buy <= 0 || condition.pay <= 0 || condition.pay >= condition.buy) {
         Swal.fire({
           icon: 'warning',
@@ -175,6 +144,7 @@ export default function PromotionsPage() {
         return
       }
     } else if (type === 'MIN_PEOPLE') {
+      // MIN_PEOPLE: Needs condition and value
       if (!condition.minPeople || condition.minPeople <= 0) {
         Swal.fire({
           icon: 'warning',
@@ -188,12 +158,86 @@ export default function PromotionsPage() {
         })
         return
       }
+      if (!value.trim()) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'กรุณากรอกข้อมูลให้ครบ',
+          text: 'กรุณากรอกค่าส่วนลด',
+          toast: true,
+          position: 'top-end',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+        })
+        return
+      }
     } else if (type === 'MIN_AMOUNT') {
+      // MIN_AMOUNT: Needs condition and value
       if (!condition.minAmount || condition.minAmount <= 0) {
         Swal.fire({
           icon: 'warning',
           title: 'ข้อมูลไม่ถูกต้อง',
           text: 'กรุณากรอกยอดขั้นต่ำ',
+          toast: true,
+          position: 'top-end',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+        })
+        return
+      }
+      if (!value.trim()) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'กรุณากรอกข้อมูลให้ครบ',
+          text: 'กรุณากรอกค่าส่วนลด',
+          toast: true,
+          position: 'top-end',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+        })
+        return
+      }
+    } else {
+      // PERCENT and FIXED: Only needs value
+      if (!value.trim()) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'กรุณากรอกข้อมูลให้ครบ',
+          text: 'กรุณากรอกค่าส่วนลด',
+          toast: true,
+          position: 'top-end',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+        })
+        return
+      }
+    }
+
+    // Validate value (only for types that need it)
+    if (type !== 'PER_PERSON') {
+      const valueNum = parseFloat(value)
+      if (isNaN(valueNum) || valueNum <= 0) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'ค่าส่วนลดไม่ถูกต้อง',
+          text: 'กรุณากรอกค่าส่วนลดที่มากกว่า 0',
+          toast: true,
+          position: 'top-end',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+        })
+        return
+      }
+
+      if (type === 'PERCENT' && valueNum > 100) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'เปอร์เซ็นต์ไม่ถูกต้อง',
+          text: 'เปอร์เซ็นต์ส่วนลดต้องไม่เกิน 100%',
           toast: true,
           position: 'top-end',
           showConfirmButton: false,
@@ -222,13 +266,17 @@ export default function PromotionsPage() {
         finalCondition = { minAmount: condition.minAmount }
       }
 
+      // For PER_PERSON, value is not used, so send 0
+      // For other types, parse value
+      const finalValue = type === 'PER_PERSON' ? 0 : parseFloat(value)
+
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: name.trim(),
           type,
-          value: valueNum,
+          value: finalValue,
           condition: finalCondition,
           active,
         }),

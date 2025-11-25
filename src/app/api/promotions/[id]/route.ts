@@ -6,9 +6,26 @@ import { z } from 'zod'
 const updatePromotionSchema = z.object({
   name: z.string().min(1).optional(),
   type: z.enum(['PERCENT', 'FIXED', 'PER_PERSON', 'MIN_PEOPLE', 'MIN_AMOUNT']).optional(),
-  value: z.number().positive().optional(),
+  value: z.number().min(0).optional(), // PER_PERSON can be 0
   condition: z.any().optional().nullable(),
   active: z.boolean().optional(),
+}).refine((data) => {
+  // If value is provided and type is not PER_PERSON, it must be positive
+  if (data.value !== undefined && data.type !== undefined && data.type !== 'PER_PERSON') {
+    return data.value > 0
+  }
+  // If value is provided but type is PER_PERSON, 0 is allowed
+  if (data.value !== undefined && data.type === 'PER_PERSON') {
+    return data.value >= 0
+  }
+  // If only value is provided without type, check if it's positive
+  if (data.value !== undefined && data.type === undefined) {
+    return data.value > 0
+  }
+  return true
+}, {
+  message: 'ค่าส่วนลดต้องมากกว่า 0',
+  path: ['value'],
 })
 
 export async function GET(
@@ -79,7 +96,7 @@ export async function PATCH(
       where: { id: promotionId },
       data: {
         ...(data.name !== undefined && { name: data.name }),
-        ...(data.type !== undefined && { type: data.type }),
+        ...(data.type !== undefined && { type: data.type as any }), // Type assertion for PromoType enum
         ...(data.value !== undefined && { value: data.value }),
         ...(data.condition !== undefined && { condition: data.condition || null }),
         ...(data.active !== undefined && { active: data.active }),

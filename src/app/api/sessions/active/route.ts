@@ -41,7 +41,21 @@ export async function GET() {
       },
     })
 
-    return NextResponse.json({ sessions })
+    // Parse extraChargeIds from JSON (Prisma returns JSON as object/array, normalize to array)
+    const sessionsWithParsedExtraCharges = sessions.map(session => {
+      let extraChargeIds: number[] | null = null
+      if (session.extraChargeIds) {
+        if (Array.isArray(session.extraChargeIds)) {
+          extraChargeIds = session.extraChargeIds.filter((id): id is number => typeof id === 'number')
+        }
+      }
+      return {
+        ...session,
+        extraChargeIds,
+      }
+    })
+
+    return NextResponse.json({ sessions: sessionsWithParsedExtraCharges })
   } catch (error) {
     console.error('Error fetching active sessions:', error)
     return NextResponse.json(

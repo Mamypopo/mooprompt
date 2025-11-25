@@ -6,9 +6,18 @@ import { logAction } from '@/lib/logger'
 const createPromotionSchema = z.object({
   name: z.string().min(1),
   type: z.enum(['PERCENT', 'FIXED', 'PER_PERSON', 'MIN_PEOPLE', 'MIN_AMOUNT']),
-  value: z.number().positive(),
+  value: z.number().min(0), // PER_PERSON can be 0
   condition: z.any().optional().nullable(), // สำหรับเก็บข้อมูลเพิ่มเติม เช่น { buy: 4, pay: 3 }
   active: z.boolean().default(true),
+}).refine((data) => {
+  // PER_PERSON doesn't need value, others need positive value
+  if (data.type === 'PER_PERSON') {
+    return true // value can be 0 for PER_PERSON
+  }
+  return data.value > 0
+}, {
+  message: 'ค่าส่วนลดต้องมากกว่า 0',
+  path: ['value'],
 })
 
 export async function GET(request: NextRequest) {
@@ -41,7 +50,7 @@ export async function POST(request: NextRequest) {
     const promotion = await prisma.promotion.create({
       data: {
         name: data.name,
-        type: data.type,
+        type: data.type as any, // Type assertion for PromoType enum
         value: data.value,
         condition: data.condition || null,
         active: data.active,

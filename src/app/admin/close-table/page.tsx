@@ -26,6 +26,7 @@ interface ActiveSession {
   startTime: string
   expireTime: string | null
   status: 'ACTIVE' | 'CLOSED'
+  extraChargeIds: number[] | null
   table: {
     id: number
     name: string
@@ -314,6 +315,11 @@ export default function CloseTablePage() {
     return `${hours} ชม. ${minutes} นาที`
   }
 
+  // Helper function to get extra charge IDs from session
+  const getSessionExtraChargeIds = (session: ActiveSession): number[] => {
+    return Array.isArray(session.extraChargeIds) ? session.extraChargeIds : []
+  }
+
   // Calculate billing preview
   const [billingPreview, setBillingPreview] = useState<{
     subtotal: number
@@ -506,15 +512,15 @@ export default function CloseTablePage() {
     return (
       <div>
         <div className="h-7 bg-muted rounded w-32 mb-4 sm:mb-6 animate-pulse"></div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-6">
           {/* Sessions List Skeleton */}
-          <div className="lg:col-span-2 space-y-4">
+          <div className="lg:col-span-2 space-y-3">
             {[...Array(3)].map((_, i) => (
               <SessionCardSkeleton key={i} />
             ))}
           </div>
           {/* Billing Form Skeleton */}
-          <div>
+          <div className="lg:col-span-3">
             <BillingFormSkeleton />
           </div>
         </div>
@@ -536,9 +542,9 @@ export default function CloseTablePage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-6">
           {/* Active Sessions List */}
-          <div className="lg:col-span-2 space-y-4">
+          <div className="lg:col-span-2 space-y-3">
             {sessions.map((session) => (
               <Card
                 key={session.id}
@@ -551,81 +557,79 @@ export default function CloseTablePage() {
                     ? 'ring-2 ring-success bg-success/10 shadow-lg scale-[1.02]'
                     : ''
                 } animate-in fade-in slide-in-from-top-2`}
-                onClick={() => setSelectedSession(session.id.toString())}
+                onClick={() => {
+                  setSelectedSession(session.id.toString())
+                  setSelectedExtraCharges(getSessionExtraChargeIds(session))
+                }}
               >
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
+                <CardHeader className="p-4">
+                  <div className="flex justify-between items-start gap-3">
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <CardTitle className="text-lg sm:text-xl">
+                        <CardTitle className="text-base font-semibold truncate">
                           {session.table.name}
                         </CardTitle>
                         {canCancelSession(session) && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-warning/20 dark:bg-warning/10 text-warning-foreground dark:text-warning border border-warning/30 dark:border-warning/20">
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-warning/90 dark:bg-warning/10 text-warning-foreground dark:text-warning border border-warning dark:border-warning/20 shrink-0">
                             <AlertCircle className="w-3 h-3" />
                             ยังไม่มีออเดอร์
                           </span>
                         )}
                       </div>
-                      <div className="flex flex-wrap gap-4 mt-2 text-sm text-muted-foreground">
+                      <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1.5 text-xs text-muted-foreground">
                         <div className="flex items-center gap-1">
-                          <Users className="w-4 h-4" />
+                          <Users className="w-3 h-3" />
                           <span>{session.peopleCount} คน</span>
                         </div>
                         <div className="flex items-center gap-1">
-                          <Clock className="w-4 h-4" />
+                          <Clock className="w-3 h-3" />
                           <span>{getDuration(session.startTime)}</span>
                         </div>
                         {session.package && (
                           <div className="flex items-center gap-1">
-                            <PackageIcon className="w-4 h-4" />
-                            <span>{session.package.name}</span>
+                            <PackageIcon className="w-3 h-3" />
+                            <span className="truncate">{session.package.name}</span>
                           </div>
                         )}
+                        <div className="text-primary font-medium">
+                          {session._count.orders} ออเดอร์
+                        </div>
                       </div>
                     </div>
-                    <div className="text-right flex flex-col items-end gap-2">
-                      <p className="text-xs text-muted-foreground">
-                        เริ่ม: {formatTime(session.startTime)}
-                      </p>
-                      <p className="text-sm font-semibold text-primary">
-                        {session._count.orders} ออเดอร์
-                      </p>
-                      <div className="flex gap-2">
-                        {canCancelSession(session) && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="border-warning/80 dark:border-warning/60 bg-warning/10 dark:bg-warning/10 text-warning-foreground dark:text-warning font-medium hover:bg-warning/20 dark:hover:bg-warning/20 hover:border-warning dark:hover:border-warning/80 shadow-sm"
-                            onClick={(e) => handleCancelSession(session, e)}
-                            disabled={cancelling === session.id}
-                          >
-                            {cancelling === session.id ? (
-                              <>
-                                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-warning-foreground dark:border-warning/80 mr-1"></div>
-                                <span>กำลังยกเลิก...</span>
-                              </>
-                            ) : (
-                              <>
-                                <XCircle className="w-3 h-3 mr-1" />
-                                ยกเลิก
-                              </>
-                            )}
-                          </Button>
-                        )}
+                    <div className="flex gap-1.5 shrink-0">
+                      {canCancelSession(session) && (
                         <Button
                           variant="outline"
                           size="sm"
-                          className="border-border/80 hover:border-primary/50 hover:text-primary shadow-sm"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            window.open(`/api/qr/pdf?sessionId=${session.id}`, '_blank')
-                          }}
+                          className="h-7 px-2 text-xs border-warning dark:border-warning/60 bg-warning/90 dark:bg-warning/10 text-warning-foreground dark:text-warning font-medium hover:bg-warning dark:hover:bg-warning/20 hover:border-warning dark:hover:border-warning/80"
+                          onClick={(e) => handleCancelSession(session, e)}
+                          disabled={cancelling === session.id}
                         >
-                          <QrCode className="w-3 h-3 mr-1" />
-                          พิมพ์ QR
+                          {cancelling === session.id ? (
+                            <>
+                              <div className="animate-spin rounded-full h-2.5 w-2.5 border-b-2 border-warning-foreground dark:border-warning/80 mr-1"></div>
+                              <span className="hidden sm:inline">ยกเลิก</span>
+                            </>
+                          ) : (
+                            <>
+                              <XCircle className="w-3 h-3 sm:mr-1" />
+                              <span className="hidden sm:inline">ยกเลิก</span>
+                            </>
+                          )}
                         </Button>
-                      </div>
+                      )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 px-2 text-xs border-border/80 hover:border-primary/50 hover:text-primary"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          window.open(`/api/qr/pdf?sessionId=${session.id}`, '_blank')
+                        }}
+                      >
+                        <QrCode className="w-3 h-3 sm:mr-1" />
+                        <span className="hidden sm:inline">QR</span>
+                      </Button>
                     </div>
                   </div>
                 </CardHeader>
@@ -634,11 +638,12 @@ export default function CloseTablePage() {
           </div>
 
           {/* Close Table Form */}
-          <Card>
-            <CardHeader>
-              <CardTitle>ปิดโต๊ะ</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <div className="lg:col-span-3">
+            <Card className="sticky top-4">
+              <CardHeader>
+                <CardTitle>ปิดโต๊ะ</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
               <div className="grid gap-2">
                 <div className="flex justify-between items-center">
                   <label className="text-sm font-medium">เลือกโต๊ะ *</label>
@@ -657,7 +662,11 @@ export default function CloseTablePage() {
                 </div>
                 <Select
                   value={selectedSession}
-                  onValueChange={setSelectedSession}
+                  onValueChange={(value) => {
+                    setSelectedSession(value)
+                    const session = sessions.find(s => s.id.toString() === value)
+                    setSelectedExtraCharges(session ? getSessionExtraChargeIds(session) : [])
+                  }}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="เลือกโต๊ะ" />
@@ -693,7 +702,21 @@ export default function CloseTablePage() {
 
               {extraCharges.length > 0 && (
                 <div className="grid gap-2">
-                  <label className="text-sm font-medium">ค่าบริการเพิ่มเติม</label>
+                  <div className="flex justify-between items-center">
+                    <label className="text-sm font-medium">ค่าบริการเพิ่มเติม</label>
+                    {selectedSession && (() => {
+                      const session = sessions.find(s => s.id.toString() === selectedSession)
+                      if (!session) return null
+                      
+                      const sessionExtraChargeIds = getSessionExtraChargeIds(session)
+                      const hasChanges = JSON.stringify([...sessionExtraChargeIds].sort()) !== JSON.stringify([...selectedExtraCharges].sort())
+                      return hasChanges ? (
+                        <span className="text-xs text-muted-foreground">(แก้ไขจากที่เลือกตอนเปิดโต๊ะ)</span>
+                      ) : sessionExtraChargeIds.length > 0 ? (
+                        <span className="text-xs text-muted-foreground">(จากที่เลือกตอนเปิดโต๊ะ)</span>
+                      ) : null
+                    })()}
+                  </div>
                   <div className="space-y-2 border rounded-lg p-3 max-h-48 overflow-y-auto">
                     {extraCharges.map((extraCharge) => {
                       const isSelected = selectedExtraCharges.includes(extraCharge.id)
@@ -888,8 +911,9 @@ export default function CloseTablePage() {
               >
                 {closing ? 'กำลังปิดโต๊ะ...' : 'ปิดโต๊ะและสร้างบิล'}
               </Button>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       )}
     </div>
