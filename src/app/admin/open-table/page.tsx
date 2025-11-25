@@ -272,10 +272,43 @@ export default function OpenTablePage() {
     setCreatedSession(null)
   }
 
+  // Skeleton component for form fields
+  const FormFieldSkeleton = () => (
+    <div className="grid gap-2">
+      <div className="h-4 bg-muted rounded w-20 animate-pulse"></div>
+      <div className="h-10 bg-muted rounded animate-pulse"></div>
+    </div>
+  )
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div>
+        <div className="h-7 bg-muted rounded w-32 mb-4 sm:mb-6 animate-pulse"></div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+          {/* Form Skeleton */}
+          <Card className="animate-pulse">
+            <CardHeader>
+              <div className="h-6 bg-muted rounded w-32"></div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <FormFieldSkeleton />
+              <FormFieldSkeleton />
+              <FormFieldSkeleton />
+              <div className="h-10 bg-muted rounded"></div>
+            </CardContent>
+          </Card>
+          {/* QR Code Skeleton */}
+          <Card className="animate-pulse">
+            <CardHeader>
+              <div className="h-6 bg-muted rounded w-24"></div>
+            </CardHeader>
+            <CardContent>
+              <div className="w-full h-64 bg-muted rounded flex items-center justify-center">
+                <div className="w-48 h-48 bg-muted-foreground/20 rounded"></div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     )
   }
