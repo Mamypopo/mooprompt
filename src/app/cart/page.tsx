@@ -160,7 +160,7 @@ export default function CartPage() {
                     <Trash2 className="w-4 h-4 text-destructive" />
                   </Button>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 mb-2">
                   <Button
                     onClick={() =>
                       updateItem(item.menuItemId, item.qty - 1, item.note)
@@ -183,17 +183,29 @@ export default function CartPage() {
                     <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
                   </Button>
                 </div>
+                <Input
+                  placeholder="หมายเหตุสำหรับรายการนี้ (เช่น ไม่เผ็ด, เพิ่มไข่)"
+                  value={item.note || ''}
+                  onChange={(e) => updateItem(item.menuItemId, item.qty, e.target.value)}
+                  className="text-xs sm:text-sm"
+                />
               </CardContent>
             </Card>
           ))}
         </div>
 
         <div className="space-y-4 mb-4">
-          <Input
-            placeholder="หมายเหตุ (ถ้ามี)"
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-          />
+          <div>
+            <label className="text-sm font-medium mb-2 block">หมายเหตุสำหรับออเดอร์ (ถ้ามี)</label>
+            <Input
+              placeholder="เช่น ต้องการช้อนส้อมเพิ่ม, ต้องการน้ำแข็ง"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              หมายเหตุนี้จะใช้กับทั้งออเดอร์
+            </p>
+          </div>
         </div>
 
         <Card className="sticky bottom-0 left-0 right-0 mb-4 sm:mb-6 shadow-lg">
