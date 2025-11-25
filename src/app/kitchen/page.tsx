@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChefHat, Clock, CheckCircle, XCircle, Settings } from 'lucide-react'
+import { ChefHat, Clock, CheckCircle, XCircle, Settings, Bell, Utensils, FileText, Package, StickyNote } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useTranslations } from '@/lib/i18n'
@@ -43,6 +43,8 @@ export default function KitchenPage() {
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<any>(null)
   const [previousOrderIds, setPreviousOrderIds] = useState<Set<number>>(new Set())
+  const [newOrderIds, setNewOrderIds] = useState<Set<number>>(new Set())
+  const previousOrderIdsRef = useRef<Set<number>>(new Set())
 
   useEffect(() => {
     const currentUser = getUser()
@@ -52,11 +54,13 @@ export default function KitchenPage() {
     }
     setUser(currentUser)
 
-    fetchOrders(true) // Show loading on initial load
+    fetchOrders(true)
     const socket = getSocket()
 
     socket.on('order:new', () => {
-      fetchOrders(false) // Silent update, will show notification
+      setTimeout(() => {
+        fetchOrders(false)
+      }, 100)
     })
 
     socket.on('order:cooking', () => {
@@ -83,73 +87,46 @@ export default function KitchenPage() {
       const data = await response.json()
       const newOrders = data.orders || []
       
-      // Detect new orders (only when not showing loading - i.e., from socket updates)
-      if (!showLoading && previousOrderIds.size > 0) {
-        const newOrderIds = new Set(newOrders.map((o: Order) => o.id))
-        const addedOrders = newOrders.filter((o: Order) => !previousOrderIds.has(o.id))
+      setOrders(newOrders)
+      const newOrderIds = new Set<number>(newOrders.map((o: Order) => o.id))
+      
+      const currentPreviousIds = previousOrderIdsRef.current
+      
+      if (!showLoading && currentPreviousIds.size > 0) {
+        const addedOrders = newOrders.filter((o: Order) => !currentPreviousIds.has(o.id))
         
-        // Show notification for new orders
         if (addedOrders.length > 0) {
           const order = addedOrders[0]
-          const itemCount = order.items.reduce((sum: number, item: OrderItem) => sum + item.qty, 0)
+          
+          const addedOrderIds = new Set<number>(addedOrders.map((o: Order) => o.id))
+          setNewOrderIds(addedOrderIds)
+          
+          setTimeout(() => {
+            setNewOrderIds((prev) => {
+              const next = new Set(prev)
+              addedOrderIds.forEach((id: number) => next.delete(id))
+              return next
+            })
+          }, 5000)
           
           Swal.fire({
             icon: 'info',
-            title: '🆕 มีออเดอร์ใหม่!',
-            html: `
-              <div style="text-align: left; margin-top: 1rem; padding: 0.75rem; background: hsl(var(--muted) / 0.3); border-radius: 8px;">
-                <p style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem; color: hsl(var(--foreground));">
-                  🍽️ โต๊ะ: ${order.session.table.name}
-                </p>
-                <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 0.5rem;">
-                  <span style="font-size: 0.9rem; color: hsl(var(--muted-foreground));">
-                    📋 ออเดอร์ #${order.id}
-                  </span>
-                  <span style="font-size: 0.9rem; color: hsl(var(--muted-foreground));">
-                    📦 ${itemCount} รายการ
-                  </span>
-                </div>
-              </div>
-            `,
+            title: 'มีออเดอร์ใหม่!',
+            text: `${order.session.table.name} : `,
             toast: true,
             position: 'top-end',
             showConfirmButton: false,
-            timer: 5000,
+            timer: 3000,
             timerProgressBar: true,
             customClass: {
               popup: 'swal2-popup-kitchen',
-              title: 'swal2-title-kitchen',
-              htmlContainer: 'swal2-html-container-kitchen',
             },
-            didOpen: () => {
-              // Play notification sound if browser allows
-              try {
-                // Create a simple beep sound using Web Audio API
-                const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
-                const oscillator = audioContext.createOscillator()
-                const gainNode = audioContext.createGain()
-                
-                oscillator.connect(gainNode)
-                gainNode.connect(audioContext.destination)
-                
-                oscillator.frequency.value = 800
-                oscillator.type = 'sine'
-                
-                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime)
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3)
-                
-                oscillator.start(audioContext.currentTime)
-                oscillator.stop(audioContext.currentTime + 0.3)
-              } catch (e) {
-                // Ignore audio errors
-              }
-            }
           })
         }
       }
       
-      setOrders(newOrders)
-      setPreviousOrderIds(new Set(newOrders.map((o: Order) => o.id)))
+      setPreviousOrderIds(newOrderIds)
+      previousOrderIdsRef.current = newOrderIds
     } catch (error) {
       console.error('Error fetching orders:', error)
     } finally {
@@ -254,12 +231,62 @@ export default function KitchenPage() {
   }
 
 
+  // Skeleton component for order items
+  const OrderItemSkeleton = () => (
+    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-start p-3 bg-muted/50 rounded-lg gap-2 animate-pulse">
+      <div className="flex-1 min-w-0 w-full">
+        <div className="flex items-center gap-2 mb-2">
+          <div className="w-4 h-4 bg-muted rounded-full"></div>
+          <div className="h-4 bg-muted rounded w-32"></div>
+          <div className="h-5 bg-muted rounded w-16"></div>
+        </div>
+        <div className="h-12 bg-muted rounded w-full mt-2"></div>
+      </div>
+      <div className="flex gap-2 w-full sm:w-auto">
+        <div className="h-9 bg-muted rounded flex-1 sm:flex-initial sm:w-24"></div>
+        <div className="h-9 bg-muted rounded flex-1 sm:flex-initial sm:w-20"></div>
+      </div>
+    </div>
+  )
+
+  const OrderCardSkeleton = () => (
+    <Card className="border-l-4 border-l-primary animate-pulse">
+      <CardHeader className="p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+          <div className="h-6 bg-muted rounded w-48"></div>
+          <div className="h-4 bg-muted rounded w-24"></div>
+        </div>
+      </CardHeader>
+      <CardContent className="p-4 sm:p-6 pt-0">
+        <div className="space-y-2 sm:space-y-3">
+          {[...Array(3)].map((_, i) => (
+            <OrderItemSkeleton key={i} />
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  )
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">{t('common.loading')}</p>
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-muted rounded animate-pulse"></div>
+              <div className="h-6 sm:h-7 bg-muted rounded w-32 sm:w-40 animate-pulse"></div>
+            </div>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <div className="h-9 bg-muted rounded w-28 sm:w-32 animate-pulse flex-1 sm:flex-initial"></div>
+              <div className="h-9 w-9 bg-muted rounded-md animate-pulse"></div>
+              <div className="h-9 bg-muted rounded w-20 sm:w-24 animate-pulse flex-1 sm:flex-initial"></div>
+            </div>
+          </div>
+          <div className="space-y-3 sm:space-y-4">
+            {[...Array(3)].map((_, i) => (
+              <OrderCardSkeleton key={i} />
+            ))}
+          </div>
         </div>
       </div>
     )
@@ -298,12 +325,27 @@ export default function KitchenPage() {
         ) : (
           <div className="space-y-3 sm:space-y-4">
             {orders.map((order) => (
-              <Card key={order.id} className="border-l-4 border-l-primary">
+              <Card 
+                key={order.id} 
+                className={`border-l-4 border-l-primary transition-all duration-300 ${
+                  newOrderIds.has(order.id)
+                    ? 'ring-2 ring-primary bg-primary/5 dark:bg-primary/10 shadow-lg scale-[1.02] animate-in fade-in slide-in-from-top-2'
+                    : ''
+                }`}
+              >
                 <CardHeader className="p-4 sm:p-6">
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                    <CardTitle className="text-base sm:text-lg">
-                      {order.session.table.name} - ออเดอร์ #{order.id}
-                    </CardTitle>
+                    <div className="flex items-center gap-2">
+                      <CardTitle className="text-base sm:text-lg">
+                        {order.session.table.name} - ออเดอร์ #{order.id}
+                      </CardTitle>
+                      {newOrderIds.has(order.id) && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary text-primary-foreground text-xs font-bold animate-pulse">
+                          <Bell className="w-3 h-3" />
+                          ใหม่
+                        </span>
+                      )}
+                    </div>
                     <span className="text-xs sm:text-sm text-muted-foreground">
                       {new Date(order.createdAt).toLocaleTimeString('th-TH')}
                     </span>
@@ -339,7 +381,7 @@ export default function KitchenPage() {
                           {item.note && (
                             <div className="mt-2 p-2 bg-warning/10 dark:bg-warning/5 border border-warning/20 dark:border-warning/10 rounded-md">
                               <p className="text-xs sm:text-sm font-medium text-warning-foreground dark:text-warning flex items-start gap-1.5">
-                                <span className="mt-0.5">📝</span>
+                                <StickyNote className="w-3 h-3 sm:w-4 sm:h-4 mt-0.5 flex-shrink-0" />
                                 <span>
                                   <span className="font-semibold">หมายเหตุ:</span> {item.note}
                                 </span>
