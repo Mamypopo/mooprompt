@@ -338,10 +338,85 @@ export default function SettingsPage() {
     }
   }
 
+  // Skeleton component for form sections
+  const FormSectionSkeleton = ({ title }: { title: string }) => (
+    <Card className="animate-pulse">
+      <CardHeader>
+        <div className="h-6 bg-muted rounded w-32"></div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid gap-2">
+          <div className="h-4 bg-muted rounded w-20"></div>
+          <div className="h-10 bg-muted rounded"></div>
+        </div>
+        <div className="grid gap-2">
+          <div className="h-4 bg-muted rounded w-16"></div>
+          <div className="h-10 bg-muted rounded"></div>
+        </div>
+        <div className="grid gap-2">
+          <div className="h-4 bg-muted rounded w-24"></div>
+          <div className="h-10 bg-muted rounded"></div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+
+  const ImageSectionSkeleton = () => (
+    <Card className="animate-pulse">
+      <CardHeader>
+        <div className="h-6 bg-muted rounded w-24"></div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid gap-2">
+          <div className="h-4 bg-muted rounded w-20"></div>
+          <div className="w-32 h-32 bg-muted rounded"></div>
+          <div className="h-10 bg-muted rounded"></div>
+          <div className="h-3 bg-muted rounded w-48"></div>
+        </div>
+        <div className="grid gap-2">
+          <div className="h-4 bg-muted rounded w-24"></div>
+          <div className="w-full h-48 bg-muted rounded"></div>
+          <div className="h-10 bg-muted rounded"></div>
+          <div className="h-3 bg-muted rounded w-48"></div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+
+  const TimeSectionSkeleton = () => (
+    <Card className="animate-pulse">
+      <CardHeader>
+        <div className="h-6 bg-muted rounded w-28"></div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid gap-2">
+            <div className="h-4 bg-muted rounded w-16"></div>
+            <div className="h-10 bg-muted rounded"></div>
+          </div>
+          <div className="grid gap-2">
+            <div className="h-4 bg-muted rounded w-16"></div>
+            <div className="h-10 bg-muted rounded"></div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div>
+        <div className="h-7 bg-muted rounded w-32 mb-4 sm:mb-6 animate-pulse"></div>
+        <div className="space-y-6">
+          <FormSectionSkeleton title="ข้อมูลพื้นฐาน" />
+          <ImageSectionSkeleton />
+          <FormSectionSkeleton title="WiFi" />
+          <TimeSectionSkeleton />
+          <div className="flex justify-end gap-2">
+            <div className="h-10 bg-muted rounded w-24 animate-pulse"></div>
+            <div className="h-10 bg-muted rounded w-24 animate-pulse"></div>
+          </div>
+        </div>
       </div>
     )
   }

@@ -596,10 +596,51 @@ export default function MenuManagementPage() {
     ? categories.filter((cat) => cat.items.length > 0)
     : categories
 
+  // Skeleton component for menu items
+  const MenuItemSkeleton = () => (
+    <Card className="overflow-hidden animate-pulse">
+      <div className="aspect-square bg-muted"></div>
+      <CardContent className="p-3 sm:p-4">
+        <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
+        <div className="h-4 bg-muted rounded w-1/2 mb-3"></div>
+        <div className="flex gap-2">
+          <div className="h-8 bg-muted rounded flex-1"></div>
+          <div className="h-8 bg-muted rounded flex-1"></div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+
+  const CategorySkeleton = () => (
+    <div className="mb-6 sm:mb-8">
+      <div className="flex items-center justify-between mb-3 sm:mb-4">
+        <div className="h-6 bg-muted rounded w-32 animate-pulse"></div>
+        <div className="h-8 bg-muted rounded w-24 animate-pulse"></div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
+        {[...Array(8)].map((_, i) => (
+          <MenuItemSkeleton key={i} />
+        ))}
+      </div>
+    </div>
+  )
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3">
+          <div className="h-7 bg-muted rounded w-32 animate-pulse"></div>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <div className="h-9 bg-muted rounded flex-1 sm:flex-none sm:w-32 animate-pulse"></div>
+            <div className="h-9 bg-muted rounded flex-1 sm:flex-none sm:w-28 animate-pulse"></div>
+          </div>
+        </div>
+        <div className="mb-4 sm:mb-6">
+          <div className="h-10 bg-muted rounded w-full max-w-md animate-pulse"></div>
+        </div>
+        {[...Array(3)].map((_, i) => (
+          <CategorySkeleton key={i} />
+        ))}
       </div>
     )
   }
