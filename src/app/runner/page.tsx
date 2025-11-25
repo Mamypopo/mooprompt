@@ -181,8 +181,8 @@ export default function RunnerPage() {
                         </div>
                         <Button
                           onClick={() => handleMarkServed(item.id)}
+                          variant="success"
                           size="sm"
-                          className="bg-success hover:bg-success/90"
                         >
                           {t('runner.mark_served')}
                         </Button>

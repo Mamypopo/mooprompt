@@ -96,9 +96,13 @@ export async function PATCH(
     // Pre-process body to handle edge cases before validation
     const processedBody: any = { ...body }
     
-    // Normalize imageUrl: convert empty string or undefined to null
-    if (processedBody.imageUrl === '' || processedBody.imageUrl === undefined) {
-      processedBody.imageUrl = null
+    // Only normalize imageUrl if it's explicitly provided in the request
+    // If imageUrl is not in the request body, don't touch it
+    if ('imageUrl' in processedBody) {
+      // Normalize imageUrl: convert empty string to null
+      if (processedBody.imageUrl === '' || processedBody.imageUrl === undefined) {
+        processedBody.imageUrl = null
+      }
     }
     
     // Remove undefined values to avoid validation issues
@@ -110,15 +114,18 @@ export async function PATCH(
     
     const data = updateMenuItemSchema.parse(processedBody)
 
-    // Normalize imageUrl: convert empty string to null
-    const normalizedImageUrl = data.imageUrl === '' || data.imageUrl === undefined ? null : data.imageUrl
+    // Only normalize imageUrl if it was explicitly provided
+    const normalizedImageUrl = 'imageUrl' in data 
+      ? (data.imageUrl === '' || data.imageUrl === undefined ? null : data.imageUrl)
+      : undefined
 
     const item = await prisma.menuItem.update({
       where: { id: itemId },
       data: {
         ...(data.name && { name: data.name }),
         ...(data.price !== undefined && { price: data.price }),
-        ...(data.imageUrl !== undefined && { imageUrl: normalizedImageUrl }),
+        // Only update imageUrl if it was explicitly provided in the request
+        ...('imageUrl' in data && { imageUrl: normalizedImageUrl }),
         ...(data.isAvailable !== undefined && { isAvailable: data.isAvailable }),
         ...(data.menuCategoryId && { menuCategoryId: data.menuCategoryId }),
         ...(data.isBuffetItem !== undefined && { isBuffetItem: data.isBuffetItem }),
@@ -138,6 +145,14 @@ export async function PATCH(
       itemId: item.id,
       name: item.name,
     })
+
+    // Emit socket event when availability changes
+    if (typeof global !== 'undefined' && (global as any).io && data.isAvailable !== undefined) {
+      (global as any).io.emit('menu:unavailable', { 
+        menuItemId: item.id,
+        isAvailable: item.isAvailable 
+      })
+    }
 
     return NextResponse.json({ item })
   } catch (error) {

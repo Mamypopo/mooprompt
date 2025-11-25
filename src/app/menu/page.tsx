@@ -15,6 +15,7 @@ import {
 import { useTranslations } from '@/lib/i18n'
 import { useCartStore } from '@/store/cart-store'
 import { LanguageSwitcher } from '@/components/language-switcher'
+import { getSocket } from '@/lib/socket-client'
 import Swal from 'sweetalert2'
 
 interface MenuItem {
@@ -52,10 +53,24 @@ export default function MenuPage() {
     }
 
     fetchMenu()
+
+    // Listen for menu availability updates
+    const socket = getSocket()
+    socket.on('menu:unavailable', () => {
+      // Silently update menu when availability changes (no loading spinner)
+      fetchMenu(true)
+    })
+
+    return () => {
+      socket.off('menu:unavailable')
+    }
   }, [sessionId, router])
 
-  const fetchMenu = async () => {
+  const fetchMenu = async (silent = false) => {
     try {
+      if (!silent) {
+        setLoading(true)
+      }
       const sessionIdNum = sessionId ? parseInt(sessionId, 10) : null
       const url = sessionIdNum
         ? `/api/menu?sessionId=${sessionIdNum}`
@@ -68,7 +83,9 @@ export default function MenuPage() {
     } catch (error) {
       console.error('Error fetching menu:', error)
     } finally {
-      setLoading(false)
+      if (!silent) {
+        setLoading(false)
+      }
     }
   }
 
@@ -272,54 +289,65 @@ export default function MenuPage() {
                     return (
                       <Card
                         key={item.id}
-                        className={`overflow-hidden ${
-                          !item.isAvailable ? 'opacity-60' : ''
+                        className={`overflow-hidden transition-all duration-200 relative ${
+                          !item.isAvailable 
+                            ? 'opacity-60 cursor-not-allowed' 
+                            : 'hover:shadow-md hover:scale-[1.02] cursor-pointer'
                         }`}
                       >
+                        {!item.isAvailable && (
+                          <div className="absolute top-2 right-2 z-10">
+                            <span className="inline-flex items-center px-2 py-1 rounded-md bg-destructive/90 text-destructive-foreground text-xs font-semibold shadow-sm">
+                              หมด
+                            </span>
+                          </div>
+                        )}
                         <CardContent className="p-3 sm:p-4">
                           <div className="flex gap-3 sm:gap-4">
                             {/* รูปภาพด้านซ้าย */}
                             {item.imageUrl ? (
-                              <div className="w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 rounded-md overflow-hidden bg-muted">
+                              <div className="w-24 h-24 sm:w-28 sm:h-28 flex-shrink-0 rounded-lg overflow-hidden bg-muted shadow-sm">
                                 <img
                                   src={item.imageUrl}
                                   alt={item.name}
-                                  className="w-full h-full object-cover"
+                                  className="w-full h-full object-cover transition-transform duration-200 hover:scale-110"
                                 />
                               </div>
                             ) : (
-                              <div className="w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 rounded-md bg-muted" />
+                              <div className="w-24 h-24 sm:w-28 sm:h-28 flex-shrink-0 rounded-lg bg-muted/50 flex items-center justify-center">
+                                <span className="text-muted-foreground text-xs">ไม่มีรูป</span>
+                              </div>
                             )}
                             
                             {/* เนื้อหาด้านขวา */}
                             <div className="flex-1 min-w-0 flex flex-col justify-between">
                               <div className="flex-1">
-                                <div className="flex items-start justify-between gap-2 mb-1">
-                                  <h3 className="font-semibold text-sm sm:text-base line-clamp-2 flex-1">{item.name}</h3>
+                                <div className="flex items-start justify-between gap-2 mb-1.5">
+                                  <h3 className="font-semibold text-sm sm:text-base line-clamp-2 flex-1 leading-tight">{item.name}</h3>
                                   {getCartQuantity(item.id) > 0 && (
-                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-semibold flex-shrink-0">
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-semibold flex-shrink-0 animate-in fade-in slide-in-from-top-1">
                                       <CheckCircle2 className="w-3 h-3" />
-                                      {getCartQuantity(item.id)} ในตะกร้า
+                                      {getCartQuantity(item.id)}
                                     </span>
                                   )}
                                 </div>
                                 <p className="text-sm sm:text-base mb-2 sm:mb-3">
                                   {isBuffetItem ? (
-                                    <span className="text-muted-foreground">รวมในบุฟเฟ่ต์</span>
+                                    <span className="text-muted-foreground text-xs sm:text-sm">รวมในบุฟเฟ่ต์</span>
                                   ) : (
-                                    <span className="text-primary font-bold">฿{item.price.toLocaleString()}</span>
+                                    <span className="text-primary font-bold text-base sm:text-lg">฿{item.price.toLocaleString()}</span>
                                   )}
                                 </p>
                               </div>
                               
                               {/* ปุ่มควบคุม */}
                               <div className="flex items-center gap-2">
-                                <div className="flex items-center gap-1 border rounded-md">
+                                <div className="flex items-center gap-1 border rounded-md bg-background">
                                   <Button
                                     onClick={() => updateQuantity(item.id, -1)}
                                     variant="ghost"
                                     size="icon"
-                                    className="h-8 w-8 p-0"
+                                    className="h-8 w-8 p-0 hover:bg-muted transition-colors"
                                     disabled={!item.isAvailable || getQuantity(item.id) <= 1}
                                   >
                                     <Minus className="w-3 h-3" />
@@ -331,7 +359,7 @@ export default function MenuPage() {
                                     onClick={() => updateQuantity(item.id, 1)}
                                     variant="ghost"
                                     size="icon"
-                                    className="h-8 w-8 p-0"
+                                    className="h-8 w-8 p-0 hover:bg-muted transition-colors"
                                     disabled={!item.isAvailable}
                                   >
                                     <Plus className="w-3 h-3" />
@@ -339,7 +367,7 @@ export default function MenuPage() {
                                 </div>
                                 <Button
                                   onClick={() => handleAddToCart(item)}
-                                  className="flex-1 text-xs sm:text-sm"
+                                  className="flex-1 text-xs sm:text-sm transition-all hover:shadow-sm"
                                   size="sm"
                                   disabled={!item.isAvailable}
                                 >

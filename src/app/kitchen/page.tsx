@@ -91,7 +91,7 @@ export default function KitchenPage() {
         // Show notification for new orders
         if (addedOrders.length > 0) {
           const order = addedOrders[0]
-          const itemCount = order.items.reduce((sum, item) => sum + item.qty, 0)
+          const itemCount = order.items.reduce((sum: number, item: OrderItem) => sum + item.qty, 0)
           
           Swal.fire({
             icon: 'info',
@@ -253,6 +253,7 @@ export default function KitchenPage() {
     }
   }
 
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -357,37 +358,40 @@ export default function KitchenPage() {
                               >
                                 {t('kitchen.mark_cooking')}
                               </Button>
-                              <Button
-                                onClick={() => handleMarkUnavailable(item.menuItem.id, item.menuItem.name)}
-                                size="sm"
-                                variant="outline"
-                                className="text-destructive hover:text-destructive border-destructive hover:bg-destructive/10 flex-1 sm:flex-initial text-xs sm:text-sm"
-                                disabled={!item.menuItem.isAvailable}
-                              >
-                                <XCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                                หมด
-                              </Button>
+                              {item.menuItem.isAvailable && (
+                                <Button
+                                  onClick={() => handleMarkUnavailable(item.menuItem.id, item.menuItem.name)}
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-destructive hover:text-destructive border-destructive hover:bg-destructive/10 flex-1 sm:flex-initial text-xs sm:text-sm"
+                                >
+                                  <XCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                                  หมด
+                                </Button>
+                              )}
                             </>
                           )}
                           {item.status === 'COOKING' && (
                             <>
                               <Button
                                 onClick={() => handleMarkDone(item.id)}
+                                variant="success"
                                 size="sm"
-                                className="bg-success hover:bg-success/90 flex-1 sm:flex-initial text-xs sm:text-sm"
+                                className="flex-1 sm:flex-initial text-xs sm:text-sm"
                               >
                                 {t('kitchen.mark_done')}
                               </Button>
-                              <Button
-                                onClick={() => handleMarkUnavailable(item.menuItem.id, item.menuItem.name)}
-                                size="sm"
-                                variant="outline"
-                                className="text-destructive hover:text-destructive border-destructive hover:bg-destructive/10 flex-1 sm:flex-initial text-xs sm:text-sm"
-                                disabled={!item.menuItem.isAvailable}
-                              >
-                                <XCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                                หมด
-                              </Button>
+                              {item.menuItem.isAvailable && (
+                                <Button
+                                  onClick={() => handleMarkUnavailable(item.menuItem.id, item.menuItem.name)}
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-destructive hover:text-destructive border-destructive hover:bg-destructive/10 flex-1 sm:flex-initial text-xs sm:text-sm"
+                                >
+                                  <XCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                                  หมด
+                                </Button>
+                              )}
                             </>
                           )}
                         </div>

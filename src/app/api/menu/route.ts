@@ -29,10 +29,9 @@ export async function GET(request: NextRequest) {
     // Filter menu items ตาม session type และ search
     const where: any = {}
     
-    // Always filter by availability
-    if (!includeUnavailable) {
-      where.isAvailable = true
-    }
+    // สำหรับลูกค้า: แสดง unavailable items ด้วย (แต่จะ disable)
+    // สำหรับ admin: ใช้ includeUnavailable parameter
+    // ไม่กรอง unavailable items ออก (แสดงทั้งหมด)
 
     // Build session type conditions
     const sessionConditions: any[] = []

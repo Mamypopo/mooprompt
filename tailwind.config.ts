@@ -41,7 +41,7 @@ const config = {
   				foreground: 'hsl(var(--accent-foreground))'
   			},
   			success: {
-  				DEFAULT: '#55DD9A',
+  				DEFAULT: 'hsl(var(--success))',
   				foreground: 'hsl(var(--success-foreground))'
   			},
   			error: {
