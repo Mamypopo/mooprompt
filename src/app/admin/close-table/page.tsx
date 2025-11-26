@@ -270,15 +270,8 @@ export default function CloseTablePage() {
         timerProgressBar: true,
       })
 
-      // Reset
-      setSelectedSession('')
-      setPaymentMethod('CASH')
-      setSelectedExtraCharges([])
-      setSelectedPromotionId('')
-      setDiscountType('')
-      setDiscountValue('')
-      setVatRate('')
-      setReceivedAmount('')
+      // Reset form
+      resetForm()
       
       // Refresh sessions
       fetchActiveSessions()
@@ -371,6 +364,36 @@ export default function CloseTablePage() {
     const received = parseFloat(receivedAmount) || 0
     return Math.max(0, received - billingPreview.grandTotal)
   }, [billingPreview, paymentMethod, receivedAmount])
+
+  // Cash button denominations
+  const cashButtons = [1000, 500, 100, 50, 20, 10, 5, 2, 1]
+
+  // Handle cash button click
+  const handleCashButtonClick = (amount: number) => {
+    const current = parseFloat(receivedAmount) || 0
+    setReceivedAmount((current + amount).toString())
+  }
+
+  // Handle session selection
+  const handleSelectSession = (sessionId: string) => {
+    setSelectedSession(sessionId)
+    const session = sessions.find(s => s.id.toString() === sessionId)
+    if (session) {
+      setSelectedExtraCharges(getSessionExtraChargeIds(session))
+    }
+  }
+
+  // Reset form
+  const resetForm = () => {
+    setSelectedSession('')
+    setPaymentMethod('CASH')
+    setSelectedExtraCharges([])
+    setSelectedPromotionId('')
+    setDiscountType('')
+    setDiscountValue('')
+    setVatRate('')
+    setReceivedAmount('')
+  }
 
   // Helper function to check if session can be cancelled
   const canCancelSession = (session: ActiveSession): boolean => {
@@ -558,8 +581,7 @@ export default function CloseTablePage() {
                     : ''
                 } animate-in fade-in slide-in-from-top-2`}
                 onClick={() => {
-                  setSelectedSession(session.id.toString())
-                  setSelectedExtraCharges(getSessionExtraChargeIds(session))
+                  handleSelectSession(session.id.toString())
                 }}
               >
                 <CardHeader className="p-4">
@@ -644,10 +666,16 @@ export default function CloseTablePage() {
                 <CardTitle>ปิดโต๊ะ</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-              <div className="grid gap-2">
-                <div className="flex justify-between items-center">
-                  <label className="text-sm font-medium">เลือกโต๊ะ *</label>
-                  {selectedSession && (
+              {selectedSession && (() => {
+                const session = sessions.find(s => s.id.toString() === selectedSession)
+                if (!session) return null
+                
+                return (
+                  <div className="flex justify-between items-center mb-2 pb-2 border-b">
+                    <div>
+                      <p className="font-medium">{session.table.name}</p>
+                      <p className="text-sm text-muted-foreground">{session.peopleCount} คน</p>
+                    </div>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -658,31 +686,9 @@ export default function CloseTablePage() {
                       <QrCode className="w-3 h-3 mr-1" />
                       พิมพ์ QR Code
                     </Button>
-                  )}
-                </div>
-                <Select
-                  value={selectedSession}
-                  onValueChange={(value) => {
-                    setSelectedSession(value)
-                    const session = sessions.find(s => s.id.toString() === value)
-                    setSelectedExtraCharges(session ? getSessionExtraChargeIds(session) : [])
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="เลือกโต๊ะ" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {sessions.map((session) => (
-                      <SelectItem
-                        key={session.id}
-                        value={session.id.toString()}
-                      >
-                        {session.table.name} ({session.peopleCount} คน)
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+                  </div>
+                )
+              })()}
 
               <div className="grid gap-2">
                 <label className="text-sm font-medium">วิธีการชำระเงิน *</label>
@@ -856,7 +862,24 @@ export default function CloseTablePage() {
                     onChange={(e) => setReceivedAmount(e.target.value)}
                     min="0"
                     step="0.01"
+                    className="text-lg font-semibold"
                   />
+                  {/* Cash Buttons */}
+                  <div className="grid grid-cols-5 gap-2 mt-2">
+                    {cashButtons.map((amount) => (
+                      <Button
+                        key={amount}
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleCashButtonClick(amount)}
+                        className="font-semibold hover:bg-primary hover:text-primary-foreground transition-colors"
+                      >
+                        {amount.toLocaleString()}
+                      </Button>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">กดปุ่มเพื่อเพิ่มจำนวนเงิน</p>
                 </div>
               )}
 
