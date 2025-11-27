@@ -5,6 +5,24 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { Plus, Minus, ShoppingCart, CheckCircle2, Filter } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetFooter,
+} from '@/components/ui/sheet'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog'
 import {
   Select,
   SelectContent,
@@ -44,9 +62,13 @@ export default function MenuPage() {
   const [categories, setCategories] = useState<Category[]>([])
   const [sessionType, setSessionType] = useState<'buffet' | 'a_la_carte'>('a_la_carte')
   const [loading, setLoading] = useState(true)
-  const { addItem, items } = useCartStore()
+  const { addItem, items, getTotal } = useCartStore()
   const [itemQuantities, setItemQuantities] = useState<Record<number, number>>({})
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
+  const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null)
+  const [isDetailOpen, setIsDetailOpen] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+  const [itemNote, setItemNote] = useState<string>('')
 
   useEffect(() => {
     if (!sessionId) {
@@ -63,8 +85,16 @@ export default function MenuPage() {
       fetchMenu(true)
     })
 
+    // Check if mobile
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+
     return () => {
       socket.off('menu:unavailable')
+      window.removeEventListener('resize', checkMobile)
     }
   }, [sessionId, router])
 
@@ -119,6 +149,18 @@ export default function MenuPage() {
     setItemQuantities(prev => ({ ...prev, [menuItemId]: newQty }))
   }
 
+  const handleItemClick = (item: MenuItem) => {
+    if (!item.isAvailable) return
+    setSelectedItem(item)
+    setIsDetailOpen(true)
+    // Set initial quantity to 1 if not set
+    if (!itemQuantities[item.id]) {
+      setItemQuantities(prev => ({ ...prev, [item.id]: 1 }))
+    }
+    // Reset note when opening new item
+    setItemNote('')
+  }
+
   const handleAddToCart = (item: MenuItem) => {
     if (!item.isAvailable) {
       Swal.fire({
@@ -157,6 +199,7 @@ export default function MenuPage() {
       price: itemType === 'BUFFET_INCLUDED' ? 0 : item.price, // ฟรีถ้าเป็น BUFFET_INCLUDED
       qty,
       itemType,
+      note: itemNote.trim() || undefined,
     })
 
     // Reset quantity to 1 after adding (ไม่ใช้จำนวนจาก cart)
@@ -171,6 +214,11 @@ export default function MenuPage() {
       timer: 3000,
       timerProgressBar: true,
     })
+
+    // Close detail view after adding
+    setIsDetailOpen(false)
+    setSelectedItem(null)
+    setItemNote('')
   }
 
 
@@ -269,6 +317,7 @@ export default function MenuPage() {
                     return (
                       <Card
                         key={item.id}
+                        onClick={() => handleItemClick(item)}
                         className={`overflow-hidden transition-all duration-300 relative animate-fade-in-up ${
                           !item.isAvailable 
                             ? 'opacity-60 cursor-not-allowed' 
@@ -322,43 +371,6 @@ export default function MenuPage() {
                                   )}
                                 </p>
                               </div>
-                              
-                              {/* ปุ่มควบคุม */}
-                              <div className="flex items-center gap-2">
-                                <div className="flex items-center gap-1 border rounded-md bg-background">
-                                  <Button
-                                    onClick={() => updateQuantity(item.id, -1)}
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8 p-0 hover:bg-muted transition-colors"
-                                    disabled={!item.isAvailable || getQuantity(item.id) <= 1}
-                                  >
-                                    <Minus className="w-3 h-3" />
-                                  </Button>
-                                  <span className="w-8 text-center text-sm font-semibold">
-                                    {getQuantity(item.id)}
-                                  </span>
-                                  <Button
-                                    onClick={() => updateQuantity(item.id, 1)}
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8 p-0 hover:bg-muted transition-colors"
-                                    disabled={!item.isAvailable}
-                                  >
-                                    <Plus className="w-3 h-3" />
-                                  </Button>
-                                </div>
-                                <Button
-                                  onClick={() => handleAddToCart(item)}
-                                  className="flex-1 text-xs sm:text-sm transition-all hover:shadow-sm"
-                                  size="sm"
-                                  disabled={!item.isAvailable}
-                                >
-                                  <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                                  <span className="hidden sm:inline">{t('menu.add_to_cart')}</span>
-                                  <span className="sm:hidden">เพิ่ม</span>
-                                </Button>
-                              </div>
                             </div>
                           </div>
                         </CardContent>
@@ -371,15 +383,172 @@ export default function MenuPage() {
           })}
       </div>
 
-      {/* Floating Cart Button */}
+      {/* Menu Detail Sheet (Mobile) / Dialog (Desktop) */}
+      {selectedItem && (
+        <>
+          {/* Mobile: Bottom Sheet */}
+          <Sheet open={isDetailOpen && isMobile} onOpenChange={setIsDetailOpen}>
+            <SheetContent side="bottom" className="h-[85vh] rounded-t-2xl">
+              <SheetHeader>
+                <SheetTitle className="text-xl">{selectedItem.name}</SheetTitle>
+                <SheetDescription>
+                  {sessionType === 'buffet' && selectedItem.isBuffetItem && !selectedItem.isALaCarteItem
+                    ? 'รวมในบุฟเฟ่ต์'
+                    : `฿${selectedItem.price.toLocaleString()}`}
+                </SheetDescription>
+              </SheetHeader>
+              <div className="mt-6 space-y-6">
+                {selectedItem.imageUrl && (
+                  <div className="w-full h-48 rounded-lg overflow-hidden bg-muted">
+                    <img
+                      src={selectedItem.imageUrl}
+                      alt={selectedItem.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+                <div className="flex items-center justify-center gap-4">
+                  <Button
+                    onClick={() => updateQuantity(selectedItem.id, -1)}
+                    variant="outline"
+                    size="icon"
+                    className="h-12 w-12"
+                    disabled={getQuantity(selectedItem.id) <= 1}
+                  >
+                    <Minus className="w-5 h-5" />
+                  </Button>
+                  <span className="text-3xl font-bold w-16 text-center">
+                    {getQuantity(selectedItem.id)}
+                  </span>
+                  <Button
+                    onClick={() => updateQuantity(selectedItem.id, 1)}
+                    variant="outline"
+                    size="icon"
+                    className="h-12 w-12"
+                  >
+                    <Plus className="w-5 h-5" />
+                  </Button>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="item-note" className="text-sm">หมายเหตุ (ไม่บังคับ)</Label>
+                  <Input
+                    id="item-note"
+                    placeholder="เช่น ไม่เผ็ด, เพิ่มไข่, ไม่ใส่ผัก"
+                    value={itemNote}
+                    onChange={(e) => setItemNote(e.target.value)}
+                    className="text-sm"
+                  />
+                </div>
+              </div>
+              <SheetFooter className="mt-auto pt-4">
+                <Button
+                  onClick={() => handleAddToCart(selectedItem)}
+                  className="w-full h-12 text-lg"
+                  size="lg"
+                  disabled={!selectedItem.isAvailable}
+                >
+                  <Plus className="w-5 h-5 mr-2" />
+                  เพิ่มลงตะกร้า
+                </Button>
+              </SheetFooter>
+            </SheetContent>
+          </Sheet>
+
+          {/* Desktop: Dialog */}
+          <Dialog open={isDetailOpen && !isMobile} onOpenChange={setIsDetailOpen}>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle className="text-2xl">{selectedItem.name}</DialogTitle>
+                <DialogDescription className="text-lg">
+                  {sessionType === 'buffet' && selectedItem.isBuffetItem && !selectedItem.isALaCarteItem
+                    ? 'รวมในบุฟเฟ่ต์'
+                    : `฿${selectedItem.price.toLocaleString()}`}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="mt-4 space-y-4">
+                {selectedItem.imageUrl && (
+                  <div className="w-full h-64 rounded-lg overflow-hidden bg-muted">
+                    <img
+                      src={selectedItem.imageUrl}
+                      alt={selectedItem.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+                <div className="flex items-center justify-center gap-4">
+                  <Button
+                    onClick={() => updateQuantity(selectedItem.id, -1)}
+                    variant="outline"
+                    size="icon"
+                    className="h-12 w-12"
+                    disabled={getQuantity(selectedItem.id) <= 1}
+                  >
+                    <Minus className="w-5 h-5" />
+                  </Button>
+                  <span className="text-3xl font-bold w-16 text-center">
+                    {getQuantity(selectedItem.id)}
+                  </span>
+                  <Button
+                    onClick={() => updateQuantity(selectedItem.id, 1)}
+                    variant="outline"
+                    size="icon"
+                    className="h-12 w-12"
+                  >
+                    <Plus className="w-5 h-5" />
+                  </Button>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="item-note-desktop" className="text-sm">หมายเหตุ (ไม่บังคับ)</Label>
+                  <Input
+                    id="item-note-desktop"
+                    placeholder="เช่น ไม่เผ็ด, เพิ่มไข่, ไม่ใส่ผัก"
+                    value={itemNote}
+                    onChange={(e) => setItemNote(e.target.value)}
+                    className="text-sm"
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button
+                  onClick={() => handleAddToCart(selectedItem)}
+                  className="w-full h-12 text-lg"
+                  size="lg"
+                  disabled={!selectedItem.isAvailable}
+                >
+                  <Plus className="w-5 h-5 mr-2" />
+                  เพิ่มลงตะกร้า
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </>
+      )}
+
+      {/* Fixed Footer Cart (Mobile Only) */}
+      {totalCartItems > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t shadow-2xl sm:hidden">
+          <div className="container mx-auto px-4 py-3">
+            <Button
+              onClick={() => router.push(`/cart?session=${sessionId}`)}
+              className="w-full h-12 text-base font-semibold"
+              size="lg"
+            >
+              <ShoppingCart className="w-5 h-5 mr-2" />
+              ตะกร้า ({totalCartItems} รายการ) • ฿{getTotal().toLocaleString()}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Floating Cart Button (Desktop Only) */}
       {totalCartItems > 0 && (
         <Button
           onClick={() => router.push(`/cart?session=${sessionId}`)}
-          className="fixed bottom-6 right-6 z-50 h-12 w-12 sm:h-14 sm:w-14 rounded-full shadow-2xl hover:shadow-2xl hover:scale-105 transition-all duration-300 animate-in fade-in slide-in-from-bottom-4 p-0"
+          className="hidden sm:flex fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full shadow-2xl hover:shadow-2xl hover:scale-105 transition-all duration-300 animate-in fade-in slide-in-from-bottom-4 p-0"
           size="lg"
         >
           <div className="relative flex items-center justify-center w-full h-full">
-            <ShoppingCart className="w-7 h-7 sm:w-8 sm:h-8 stroke-[2.5]" />
+            <ShoppingCart className="w-7 h-7 stroke-[2.5]" />
             <span className="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center min-w-[22px] h-5.5 px-1.5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold border-2 border-background shadow-lg">
               {totalCartItems > 99 ? '99+' : totalCartItems}
             </span>
