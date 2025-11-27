@@ -756,7 +756,7 @@ export default function MenuManagementPage() {
                 เพิ่มเมนู
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
               <DialogHeader className="space-y-3 pb-4 border-b">
                 <DialogTitle className="text-2xl">
                   {editingItem ? 'แก้ไขเมนู' : 'เพิ่มเมนูใหม่'}
@@ -768,7 +768,8 @@ export default function MenuManagementPage() {
                 </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleSubmitItem} className="space-y-6 pt-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* แถวแรก: ชื่อเมนู + ราคา */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="itemName">ชื่อเมนู *</Label>
                     <Input
@@ -794,25 +795,43 @@ export default function MenuManagementPage() {
                   </div>
                 </div>
 
-                <div>
-                  <Label htmlFor="itemCategory">หมวดหมู่ *</Label>
-                  <Select
-                    value={itemCategoryId}
-                    onValueChange={setItemCategoryId}
-                  >
-                    <SelectTrigger id="itemCategory">
-                      <SelectValue placeholder="เลือกหมวดหมู่" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((cat) => (
-                        <SelectItem key={cat.id} value={cat.id.toString()}>
-                          {cat.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                {/* แถวที่สอง: หมวดหมู่ + พร้อมให้บริการ */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="itemCategory">หมวดหมู่ *</Label>
+                    <Select
+                      value={itemCategoryId}
+                      onValueChange={setItemCategoryId}
+                    >
+                      <SelectTrigger id="itemCategory">
+                        <SelectValue placeholder="เลือกหมวดหมู่" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((cat) => (
+                          <SelectItem key={cat.id} value={cat.id.toString()}>
+                            {cat.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex items-end">
+                    <div className="flex items-center space-x-3 bg-muted/30 dark:bg-muted/20 rounded-lg p-4 w-full">
+                      <input
+                        type="checkbox"
+                        id="itemIsAvailable"
+                        checked={itemIsAvailable}
+                        onChange={(e) => setItemIsAvailable(e.target.checked)}
+                        className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 accent-accent cursor-pointer"
+                      />
+                      <Label htmlFor="itemIsAvailable" className="cursor-pointer font-medium">
+                        พร้อมให้บริการ
+                      </Label>
+                    </div>
+                  </div>
                 </div>
 
+                {/* รูปภาพ - ขยายเต็มความกว้าง */}
                 <div>
                   <Label htmlFor="itemImage">รูปภาพ</Label>
                   <div className="space-y-2">
@@ -852,82 +871,72 @@ export default function MenuManagementPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-3 bg-muted/30 dark:bg-muted/20 rounded-lg p-4">
-                  <input
-                    type="checkbox"
-                    id="itemIsAvailable"
-                    checked={itemIsAvailable}
-                    onChange={(e) => setItemIsAvailable(e.target.checked)}
-                    className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 accent-accent cursor-pointer"
-                  />
-                  <Label htmlFor="itemIsAvailable" className="cursor-pointer font-medium">
-                    พร้อมให้บริการ
-                  </Label>
-                </div>
-
-                <div className="space-y-3 border-t border-border/50 pt-6">
-                  <Label className="text-base font-semibold">ประเภทเมนู</Label>
-                  <div className="space-y-3 bg-muted/30 dark:bg-muted/20 rounded-lg p-4">
-                    <div className="flex items-center space-x-3">
-                      <input
-                        type="checkbox"
-                        id="itemIsBuffetItem"
-                        checked={itemIsBuffetItem}
-                        onChange={(e) => setItemIsBuffetItem(e.target.checked)}
-                        className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 accent-accent cursor-pointer"
-                      />
-                      <Label htmlFor="itemIsBuffetItem" className="cursor-pointer text-sm">
-                        เมนูบุฟเฟ่ต์ (ใช้ได้กับบุฟเฟ่ต์)
-                      </Label>
+                {/* แถวที่สาม: ประเภทเมนู + การแสดงผล */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    <Label className="text-base font-semibold">ประเภทเมนู</Label>
+                    <div className="space-y-3 bg-muted/30 dark:bg-muted/20 rounded-lg p-4">
+                      <div className="flex items-center space-x-3">
+                        <input
+                          type="checkbox"
+                          id="itemIsBuffetItem"
+                          checked={itemIsBuffetItem}
+                          onChange={(e) => setItemIsBuffetItem(e.target.checked)}
+                          className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 accent-accent cursor-pointer"
+                        />
+                        <Label htmlFor="itemIsBuffetItem" className="cursor-pointer text-sm">
+                          เมนูบุฟเฟ่ต์ (ใช้ได้กับบุฟเฟ่ต์)
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <input
+                          type="checkbox"
+                          id="itemIsALaCarteItem"
+                          checked={itemIsALaCarteItem}
+                          onChange={(e) => setItemIsALaCarteItem(e.target.checked)}
+                          className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 accent-accent cursor-pointer"
+                        />
+                        <Label htmlFor="itemIsALaCarteItem" className="cursor-pointer text-sm">
+                          เมนู à la carte (ใช้ได้กับ à la carte)
+                        </Label>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        💡 สามารถเลือกได้ทั้งสองแบบ (เมนูจะแสดงในทั้งสองประเภท)
+                      </p>
                     </div>
-                    <div className="flex items-center space-x-3">
-                      <input
-                        type="checkbox"
-                        id="itemIsALaCarteItem"
-                        checked={itemIsALaCarteItem}
-                        onChange={(e) => setItemIsALaCarteItem(e.target.checked)}
-                        className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 accent-accent cursor-pointer"
-                      />
-                      <Label htmlFor="itemIsALaCarteItem" className="cursor-pointer text-sm">
-                        เมนู à la carte (ใช้ได้กับ à la carte)
-                      </Label>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      💡 สามารถเลือกได้ทั้งสองแบบ (เมนูจะแสดงในทั้งสองประเภท)
-                    </p>
                   </div>
-                </div>
 
-                <div className="space-y-3 border-t border-border/50 pt-6">
-                  <Label className="text-base font-semibold">การแสดงผล</Label>
-                  <div className="space-y-3 bg-muted/30 dark:bg-muted/20 rounded-lg p-4">
-                    <div className="flex items-center space-x-3">
-                      <input
-                        type="checkbox"
-                        id="itemIsFeatured"
-                        checked={itemIsFeatured}
-                        onChange={(e) => setItemIsFeatured(e.target.checked)}
-                        className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 accent-accent cursor-pointer"
-                      />
-                      <Label htmlFor="itemIsFeatured" className="cursor-pointer text-sm">
-                        เมนูแนะนำ (แสดงใน Hero Banner)
-                      </Label>
+                  <div className="space-y-3">
+                    <Label className="text-base font-semibold">การแสดงผล</Label>
+                    <div className="space-y-3 bg-muted/30 dark:bg-muted/20 rounded-lg p-4">
+                      <div className="flex items-center space-x-3">
+                        <input
+                          type="checkbox"
+                          id="itemIsFeatured"
+                          checked={itemIsFeatured}
+                          onChange={(e) => setItemIsFeatured(e.target.checked)}
+                          className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 accent-accent cursor-pointer"
+                        />
+                        <Label htmlFor="itemIsFeatured" className="cursor-pointer text-sm">
+                          เมนูแนะนำ (แสดงใน Hero Banner)
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <input
+                          type="checkbox"
+                          id="itemIsPopular"
+                          checked={itemIsPopular}
+                          onChange={(e) => setItemIsPopular(e.target.checked)}
+                          className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 accent-accent cursor-pointer"
+                        />
+                        <Label htmlFor="itemIsPopular" className="cursor-pointer text-sm">
+                          เมนูยอดนิยม (แสดงในส่วนเมนูยอดนิยม)
+                        </Label>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        💡 สามารถเลือกได้ทั้งสองแบบ หรือเลือกอย่างใดอย่างหนึ่ง
+                      </p>
                     </div>
-                    <div className="flex items-center space-x-3">
-                      <input
-                        type="checkbox"
-                        id="itemIsPopular"
-                        checked={itemIsPopular}
-                        onChange={(e) => setItemIsPopular(e.target.checked)}
-                        className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 accent-accent cursor-pointer"
-                      />
-                      <Label htmlFor="itemIsPopular" className="cursor-pointer text-sm">
-                        เมนูยอดนิยม (แสดงในส่วนเมนูยอดนิยม)
-                      </Label>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      💡 สามารถเลือกได้ทั้งสองแบบ หรือเลือกอย่างใดอย่างหนึ่ง
-                    </p>
                   </div>
                 </div>
 
