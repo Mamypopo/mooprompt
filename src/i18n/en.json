@@ -33,7 +33,10 @@
     "buffet_included": "Included in Buffet",
     "out_of_stock": "Out of Stock",
     "items_added": "Added {{qty}} items to cart",
-    "cart_items": "Cart ({{count}} items)"
+    "cart_items": "Cart ({{count}} items)",
+    "popular": "Popular Items",
+    "featured": "Featured",
+    "all_menu": "All Menu"
   },
   "cart": {
     "title": "Shopping Cart",

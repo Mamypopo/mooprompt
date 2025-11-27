@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { Plus, Minus, ShoppingCart, CheckCircle2, Filter } from 'lucide-react'
+import { Plus, Minus, ShoppingCart, CheckCircle2, Filter, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -46,6 +46,8 @@ interface MenuItem {
   isAvailable: boolean
   isBuffetItem?: boolean
   isALaCarteItem?: boolean
+  isFeatured?: boolean
+  isPopular?: boolean
 }
 
 interface Category {
@@ -120,6 +122,7 @@ export default function MenuPage() {
       }
     }
   }
+
 
   // Get quantity to add (from local state only, default to 1)
   // ไม่ sync กับ cart เพื่อให้ผู้ใช้เลือกจำนวนใหม่ได้เสมอ
@@ -247,7 +250,17 @@ export default function MenuPage() {
     <div className="min-h-screen bg-background pb-20 sm:pb-24">
       <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3">
-          <h1 className="text-xl sm:text-2xl font-bold truncate">{t('menu.title')}</h1>
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <Button
+              onClick={() => router.push(`/session/${sessionId}`)}
+              variant="ghost"
+              className="flex-shrink-0 text-sm sm:text-base"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              <span className="hidden sm:inline">{t('common.back')}</span>
+            </Button>
+            <h1 className="text-xl sm:text-2xl font-bold truncate">{t('menu.title')}</h1>
+          </div>
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
               <SelectTrigger className="w-full sm:w-[180px]">
@@ -286,6 +299,7 @@ export default function MenuPage() {
           </div>
         </div>
 
+        {/* All Categories */}
         {categories
           .filter((category) => {
             // กรองตามหมวดหมู่ที่เลือก

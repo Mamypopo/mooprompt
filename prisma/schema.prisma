@@ -93,12 +93,18 @@ model MenuItem {
   // เพิ่ม field สำหรับระบุว่า item นี้ใช้ได้กับบุฟเฟ่ต์หรือ à la carte
   isBuffetItem     Boolean         @default(true)   // ใช้ได้กับบุฟเฟ่ต์
   isALaCarteItem   Boolean         @default(true)   // ใช้ได้กับ à la carte
+  
+  // เพิ่ม field สำหรับกำหนดเมนูยอดนิยมและเมนูแนะนำ
+  isFeatured       Boolean         @default(false)  // เมนูแนะนำ (สำหรับ Hero Banner)
+  isPopular        Boolean         @default(false)  // เมนูยอดนิยม
 
   @@index([name])
   @@index([isAvailable])
   @@index([menuCategoryId])
   @@index([isBuffetItem])
   @@index([isALaCarteItem])
+  @@index([isFeatured])
+  @@index([isPopular])
 }
 
 // ========================================

@@ -27,16 +27,20 @@ const createMenuItemSchema = z.object({
   menuCategoryId: z.number().int().positive(),
   isBuffetItem: z.boolean().default(true),
   isALaCarteItem: z.boolean().default(true),
+  isFeatured: z.boolean().default(false),
+  isPopular: z.boolean().default(false),
 })
 
 const updateMenuItemSchema = z.object({
   name: z.string().min(1).optional(),
   price: z.number().positive().optional(),
-  imageUrl: z.string().url().optional().nullable(),
+  imageUrl: imageUrlSchema.optional().nullable(),
   isAvailable: z.boolean().optional(),
   menuCategoryId: z.number().int().positive().optional(),
   isBuffetItem: z.boolean().optional(),
   isALaCarteItem: z.boolean().optional(),
+  isFeatured: z.boolean().optional(),
+  isPopular: z.boolean().optional(),
 })
 
 // GET - Get all menu items (for admin, includes unavailable)
@@ -97,6 +101,8 @@ export async function POST(request: NextRequest) {
         menuCategoryId: data.menuCategoryId,
         isBuffetItem: data.isBuffetItem,
         isALaCarteItem: data.isALaCarteItem,
+        isFeatured: data.isFeatured,
+        isPopular: data.isPopular,
       },
       include: {
         category: {

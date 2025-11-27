@@ -33,7 +33,10 @@
     "buffet_included": "รวมในบุฟเฟ่ต์",
     "out_of_stock": "หมด",
     "items_added": "เพิ่ม {{qty}} รายการลงตะกร้าแล้ว",
-    "cart_items": "ตะกร้า ({{count}} รายการ)"
+    "cart_items": "ตะกร้า ({{count}} รายการ)",
+    "popular": "เมนูยอดนิยม",
+    "featured": "เมนูแนะนำ",
+    "all_menu": "เมนูทั้งหมด"
   },
   "cart": {
     "title": "ตะกร้าสินค้า",

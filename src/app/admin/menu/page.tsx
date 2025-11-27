@@ -34,6 +34,8 @@ interface MenuItem {
   menuCategoryId: number
   isBuffetItem?: boolean
   isALaCarteItem?: boolean
+  isFeatured?: boolean
+  isPopular?: boolean
   category?: {
     id: number
     name: string
@@ -67,6 +69,8 @@ export default function MenuManagementPage() {
   const [uploadingImage, setUploadingImage] = useState(false)
   const [itemIsBuffetItem, setItemIsBuffetItem] = useState(true)
   const [itemIsALaCarteItem, setItemIsALaCarteItem] = useState(true)
+  const [itemIsFeatured, setItemIsFeatured] = useState(false)
+  const [itemIsPopular, setItemIsPopular] = useState(false)
 
   // Form states for category
   const [categoryName, setCategoryName] = useState('')
@@ -223,6 +227,8 @@ export default function MenuManagementPage() {
     setItemCategoryId('')
     setItemIsAvailable(true)
     setItemImageUrl(null)
+    setItemIsFeatured(false)
+    setItemIsPopular(false)
     setItemImageFile(null)
     setItemImagePreview(null)
     setEditingItem(null)
@@ -246,6 +252,8 @@ export default function MenuManagementPage() {
       setItemImagePreview(item.imageUrl || null)
       setItemIsBuffetItem(item.isBuffetItem ?? true)
       setItemIsALaCarteItem(item.isALaCarteItem ?? true)
+      setItemIsFeatured(item.isFeatured ?? false)
+      setItemIsPopular(item.isPopular ?? false)
     } else {
       resetItemForm()
     }
@@ -328,6 +336,8 @@ export default function MenuManagementPage() {
         menuCategoryId: categoryIdNum,
         isBuffetItem: Boolean(itemIsBuffetItem),
         isALaCarteItem: Boolean(itemIsALaCarteItem),
+        isFeatured: Boolean(itemIsFeatured),
+        isPopular: Boolean(itemIsPopular),
       }
       
       // Always include imageUrl (null if no image, or valid URL)
@@ -884,6 +894,39 @@ export default function MenuManagementPage() {
                     </div>
                     <p className="text-xs text-muted-foreground mt-2">
                       💡 สามารถเลือกได้ทั้งสองแบบ (เมนูจะแสดงในทั้งสองประเภท)
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-3 border-t border-border/50 pt-6">
+                  <Label className="text-base font-semibold">การแสดงผล</Label>
+                  <div className="space-y-3 bg-muted/30 dark:bg-muted/20 rounded-lg p-4">
+                    <div className="flex items-center space-x-3">
+                      <input
+                        type="checkbox"
+                        id="itemIsFeatured"
+                        checked={itemIsFeatured}
+                        onChange={(e) => setItemIsFeatured(e.target.checked)}
+                        className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 accent-accent cursor-pointer"
+                      />
+                      <Label htmlFor="itemIsFeatured" className="cursor-pointer text-sm">
+                        เมนูแนะนำ (แสดงใน Hero Banner)
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <input
+                        type="checkbox"
+                        id="itemIsPopular"
+                        checked={itemIsPopular}
+                        onChange={(e) => setItemIsPopular(e.target.checked)}
+                        className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 accent-accent cursor-pointer"
+                      />
+                      <Label htmlFor="itemIsPopular" className="cursor-pointer text-sm">
+                        เมนูยอดนิยม (แสดงในส่วนเมนูยอดนิยม)
+                      </Label>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      💡 สามารถเลือกได้ทั้งสองแบบ หรือเลือกอย่างใดอย่างหนึ่ง
                     </p>
                   </div>
                 </div>

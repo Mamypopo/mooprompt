@@ -28,6 +28,8 @@ const updateMenuItemSchema = z.object({
   menuCategoryId: z.number().int().positive().optional(),
   isBuffetItem: z.boolean().optional(),
   isALaCarteItem: z.boolean().optional(),
+  isFeatured: z.boolean().optional(),
+  isPopular: z.boolean().optional(),
 })
 
 // GET - Get single menu item
@@ -131,6 +133,8 @@ export async function PATCH(
         ...(data.menuCategoryId && { menuCategoryId: data.menuCategoryId }),
         ...(data.isBuffetItem !== undefined && { isBuffetItem: data.isBuffetItem }),
         ...(data.isALaCarteItem !== undefined && { isALaCarteItem: data.isALaCarteItem }),
+        ...(data.isFeatured !== undefined && { isFeatured: data.isFeatured }),
+        ...(data.isPopular !== undefined && { isPopular: data.isPopular }),
       },
       include: {
         category: {

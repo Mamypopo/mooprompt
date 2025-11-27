@@ -134,11 +134,11 @@ export default function CartPage() {
         <div className="container mx-auto px-4 py-6">
           <div className="flex justify-between items-center mb-4">
             <Button
-              onClick={() => router.push(`/menu?session=${sessionId}`)}
+              onClick={() => router.push(`/session/${sessionId}`)}
               variant="ghost"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
-              {t('cart.back_to_menu')}
+              {t('common.back')}
             </Button>
             <LanguageSwitcher />
           </div>
@@ -163,13 +163,12 @@ export default function CartPage() {
       <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
         <div className="flex justify-between items-center mb-4 gap-2">
             <Button
-              onClick={() => router.push(`/menu?session=${sessionId}`)}
+              onClick={() => router.push(`/session/${sessionId}`)}
               variant="ghost"
               className="text-sm sm:text-base"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
-              <span className="hidden sm:inline">{t('cart.back_to_menu')}</span>
-              <span className="sm:hidden">{t('common.back')}</span>
+              {t('common.back')}
             </Button>
           <LanguageSwitcher />
         </div>
