@@ -326,7 +326,7 @@ export default function ExtraChargesPage() {
                   id="active"
                   checked={active}
                   onChange={(e) => setActive(e.target.checked)}
-                  className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 accent-primary"
+                  className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 accent-accent cursor-pointer"
                 />
                 <Label htmlFor="active" className="cursor-pointer font-medium">
                   เปิดใช้งาน

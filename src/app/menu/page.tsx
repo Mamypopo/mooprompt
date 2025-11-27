@@ -258,8 +258,8 @@ export default function MenuPage() {
             }
 
             return (
-              <div key={category.id} className="mb-6 sm:mb-8">
-                <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">{category.name}</h2>
+              <div key={category.id} className="mb-6 sm:mb-8 animate-fade-in-up">
+                <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-primary">{category.name}</h2>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                   {filteredItems.map((item) => {
@@ -269,11 +269,14 @@ export default function MenuPage() {
                     return (
                       <Card
                         key={item.id}
-                        className={`overflow-hidden transition-all duration-300 relative ${
+                        className={`overflow-hidden transition-all duration-300 relative animate-fade-in-up ${
                           !item.isAvailable 
                             ? 'opacity-60 cursor-not-allowed' 
-                            : 'hover:shadow-lg hover:scale-[1.02] hover:border-primary/50 cursor-pointer'
+                            : 'hover:shadow-lg hover:scale-[1.02] hover:border-primary/50 cursor-pointer hover-lift active-scale'
                         }`}
+                        style={{
+                          animationDelay: `${item.id * 0.05}s`
+                        }}
                       >
                         {!item.isAvailable && (
                           <div className="absolute top-2 right-2 z-10">

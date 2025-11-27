@@ -9,17 +9,19 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/80 shadow-md hover:shadow-lg transition-shadow",
+        default: "bg-primary text-primary-foreground hover:bg-primary/90 active:scale-95 shadow-md hover:shadow-lg hover-lift focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all",
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90 dark:bg-destructive dark:text-destructive-foreground dark:hover:bg-destructive/80 shadow-md hover:shadow-lg transition-shadow",
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90 dark:bg-destructive dark:text-destructive-foreground dark:hover:bg-destructive/80 shadow-md hover:shadow-lg hover-lift active:scale-95 transition-all",
         success:
-          "bg-success text-success-foreground hover:bg-success/90 dark:bg-success dark:text-success-foreground dark:hover:bg-success/80 shadow-md hover:shadow-lg transition-shadow",
+          "bg-success text-success-foreground hover:bg-success/90 dark:bg-success dark:text-success-foreground dark:hover:bg-success/80 shadow-md hover:shadow-lg hover-lift active:scale-95 transition-all",
         outline:
-          "border-2 border-input bg-background hover:bg-muted hover:text-foreground transition-colors",
+          "border-2 border-input bg-background hover:bg-muted hover:text-foreground hover:border-primary/50 active:scale-95 transition-all",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-sm",
-        ghost: "hover:bg-muted hover:text-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-sm hover-lift active:scale-95 transition-all",
+        accent:
+          "bg-accent text-accent-foreground hover:bg-accent/90 dark:bg-accent dark:text-accent-foreground dark:hover:bg-accent/80 shadow-md hover:shadow-lg hover-lift active:scale-95 transition-all",
+        ghost: "hover:bg-muted hover:text-foreground active:scale-95 transition-all",
+        link: "text-primary underline-offset-4 hover:underline transition-all",
       },
       size: {
         default: "h-10 px-4 py-2",

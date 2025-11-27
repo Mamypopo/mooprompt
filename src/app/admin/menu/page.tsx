@@ -848,7 +848,7 @@ export default function MenuManagementPage() {
                     id="itemIsAvailable"
                     checked={itemIsAvailable}
                     onChange={(e) => setItemIsAvailable(e.target.checked)}
-                    className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 accent-primary"
+                    className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 accent-accent cursor-pointer"
                   />
                   <Label htmlFor="itemIsAvailable" className="cursor-pointer font-medium">
                     พร้อมให้บริการ
@@ -864,7 +864,7 @@ export default function MenuManagementPage() {
                         id="itemIsBuffetItem"
                         checked={itemIsBuffetItem}
                         onChange={(e) => setItemIsBuffetItem(e.target.checked)}
-                        className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 accent-primary"
+                        className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 accent-accent cursor-pointer"
                       />
                       <Label htmlFor="itemIsBuffetItem" className="cursor-pointer text-sm">
                         เมนูบุฟเฟ่ต์ (ใช้ได้กับบุฟเฟ่ต์)
@@ -876,7 +876,7 @@ export default function MenuManagementPage() {
                         id="itemIsALaCarteItem"
                         checked={itemIsALaCarteItem}
                         onChange={(e) => setItemIsALaCarteItem(e.target.checked)}
-                        className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 accent-primary"
+                        className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 accent-accent cursor-pointer"
                       />
                       <Label htmlFor="itemIsALaCarteItem" className="cursor-pointer text-sm">
                         เมนู à la carte (ใช้ได้กับ à la carte)

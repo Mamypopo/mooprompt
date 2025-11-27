@@ -575,7 +575,7 @@ export default function PromotionsPage() {
                   id="active"
                   checked={active}
                   onChange={(e) => setActive(e.target.checked)}
-                  className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 accent-primary"
+                  className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 accent-accent cursor-pointer"
                 />
                 <Label htmlFor="active" className="cursor-pointer font-medium">
                   เปิดใช้งาน
@@ -617,7 +617,7 @@ export default function PromotionsPage() {
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <CardTitle className="text-lg">{promotion.name}</CardTitle>
-                  <Badge variant={promotion.active ? 'default' : 'secondary'}>
+                  <Badge variant={promotion.active ? 'success' : 'outline'}>
                     {promotion.active ? 'เปิดใช้งาน' : 'ปิดใช้งาน'}
                   </Badge>
                 </div>

@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/select'
 import { useStaffLocale } from '@/lib/i18n-staff'
 import Swal from 'sweetalert2'
+import { Badge } from '@/components/ui/badge'
 
 interface User {
   id: number
@@ -113,9 +114,6 @@ export default function UsersPage() {
       setLoading(false)
     }
   }
-
-  // Users are already filtered and sorted by server
-  // No need for client-side filtering
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -628,19 +626,19 @@ export default function UsersPage() {
                         <div className="text-muted-foreground">@{user.username}</div>
                       </td>
                       <td className="p-4">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                        <Badge variant="default">
                           {roleLabels[user.role]}
-                        </span>
+                        </Badge>
                       </td>
                       <td className="p-4">
                         {user.active ? (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          <Badge variant="success">
                             เปิดใช้งาน
-                          </span>
+                          </Badge>
                         ) : (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                          <Badge variant="outline">
                             ปิดใช้งาน
-                          </span>
+                          </Badge>
                         )}
                       </td>
                       <td className="p-4 text-sm text-muted-foreground">

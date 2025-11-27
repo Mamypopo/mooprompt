@@ -459,7 +459,7 @@ export default function OpenTablePage() {
                           key={extraCharge.id}
                           className={`flex items-center gap-2 p-2 rounded cursor-pointer transition-colors ${
                             isSelected 
-                              ? 'bg-primary/10 dark:bg-primary/20 border border-primary dark:border-primary/50' 
+                              ? 'bg-accent/10 dark:bg-accent/20 border border-accent dark:border-accent/50' 
                               : 'hover:bg-muted/50 dark:hover:bg-muted/30'
                           }`}
                           onClick={() => {
@@ -474,7 +474,7 @@ export default function OpenTablePage() {
                             type="checkbox"
                             checked={isSelected}
                             onChange={() => {}}
-                            className="w-4 h-4"
+                            className="w-4 h-4 rounded accent-accent cursor-pointer"
                           />
                           <div className="flex-1">
                             <p className="text-sm font-medium">{extraCharge.name}</p>
