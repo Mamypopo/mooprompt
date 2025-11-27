@@ -17,6 +17,8 @@ import { useTranslations } from '@/lib/i18n'
 import { useStaffLocale } from '@/lib/i18n-staff'
 import { getSocket } from '@/lib/socket-client'
 import Swal from '@/lib/swal-config'
+import { SessionCardSkeleton, BillingFormSkeleton } from '@/components/skeletons'
+import { Skeleton } from '@/components/ui/skeleton'
 
 interface ActiveSession {
   id: number
@@ -486,55 +488,11 @@ export default function CloseTablePage() {
     }
   }
 
-  // Skeleton component for session cards
-  const SessionCardSkeleton = () => (
-    <Card className="animate-pulse">
-      <CardHeader>
-        <div className="flex justify-between items-start">
-          <div className="flex-1">
-            <div className="h-6 bg-muted rounded w-24 mb-2"></div>
-            <div className="flex gap-4 mt-2">
-              <div className="h-4 bg-muted rounded w-16"></div>
-              <div className="h-4 bg-muted rounded w-20"></div>
-              <div className="h-4 bg-muted rounded w-24"></div>
-            </div>
-          </div>
-          <div className="text-right">
-            <div className="h-3 bg-muted rounded w-20 mb-2"></div>
-            <div className="h-4 bg-muted rounded w-16 mb-2"></div>
-            <div className="flex gap-2">
-              <div className="h-8 bg-muted rounded w-20"></div>
-              <div className="h-8 bg-muted rounded w-20"></div>
-            </div>
-          </div>
-        </div>
-      </CardHeader>
-    </Card>
-  )
-
-  // Skeleton component for billing form
-  const BillingFormSkeleton = () => (
-    <Card className="animate-pulse">
-      <CardHeader>
-        <div className="h-6 bg-muted rounded w-32"></div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="h-4 bg-muted rounded w-24"></div>
-        <div className="h-10 bg-muted rounded"></div>
-        <div className="h-4 bg-muted rounded w-32"></div>
-        <div className="h-10 bg-muted rounded"></div>
-        <div className="h-4 bg-muted rounded w-24"></div>
-        <div className="h-10 bg-muted rounded"></div>
-        <div className="h-4 bg-muted rounded w-16"></div>
-        <div className="h-10 bg-muted rounded"></div>
-      </CardContent>
-    </Card>
-  )
 
   if (loading) {
     return (
       <div>
-        <div className="h-7 bg-muted rounded w-32 mb-4 sm:mb-6 animate-pulse"></div>
+        <Skeleton className="h-7 w-32 mb-4 sm:mb-6" />
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-6">
           {/* Sessions List Skeleton */}
           <div className="lg:col-span-2 space-y-3">

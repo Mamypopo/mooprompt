@@ -23,6 +23,8 @@ import {
 } from '@/components/ui/select'
 import { useStaffLocale } from '@/lib/i18n-staff'
 import Swal from 'sweetalert2'
+import { ExtraChargeSkeleton } from '@/components/skeletons'
+import { Skeleton } from '@/components/ui/skeleton'
 
 interface ExtraCharge {
   id: number
@@ -232,38 +234,13 @@ export default function ExtraChargesPage() {
     }
   }
 
-  // Skeleton component for extra charge cards
-  const ExtraChargeSkeleton = () => (
-    <Card className="animate-pulse">
-      <CardHeader>
-        <div className="flex justify-between items-start">
-          <div className="h-6 bg-muted rounded w-3/4"></div>
-          <div className="h-5 bg-muted rounded w-16"></div>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-2">
-        <div>
-          <div className="h-4 bg-muted rounded w-12 mb-2"></div>
-          <div className="h-6 bg-muted rounded w-24"></div>
-        </div>
-        <div>
-          <div className="h-4 bg-muted rounded w-16 mb-2"></div>
-          <div className="h-5 bg-muted rounded w-20"></div>
-        </div>
-        <div className="flex gap-2 pt-4">
-          <div className="flex-1 h-9 bg-muted rounded"></div>
-          <div className="flex-1 h-9 bg-muted rounded"></div>
-        </div>
-      </CardContent>
-    </Card>
-  )
 
   if (loading) {
     return (
       <div>
         <div className="flex justify-between items-center mb-6">
-          <div className="h-7 bg-muted rounded w-48 animate-pulse"></div>
-          <div className="h-10 bg-muted rounded w-36 animate-pulse"></div>
+          <Skeleton className="h-7 w-48" />
+          <Skeleton className="h-10 w-36" />
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {[...Array(6)].map((_, i) => (

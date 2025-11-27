@@ -11,6 +11,8 @@ import { getUser, logout } from '@/lib/auth-helpers'
 import { getSocket } from '@/lib/socket-client'
 import { ThemeToggle } from '@/components/theme-toggle'
 import Swal from 'sweetalert2'
+import { OrderCardSkeleton } from '@/components/skeletons'
+import { Skeleton } from '@/components/ui/skeleton'
 
 interface OrderItem {
   id: number
@@ -234,41 +236,6 @@ export default function KitchenPage() {
   }
 
 
-  // Skeleton component for order items
-  const OrderItemSkeleton = () => (
-    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-start p-3 bg-muted/50 rounded-lg gap-2 animate-pulse">
-      <div className="flex-1 min-w-0 w-full">
-        <div className="flex items-center gap-2 mb-2">
-          <div className="w-4 h-4 bg-muted rounded-full"></div>
-          <div className="h-4 bg-muted rounded w-32"></div>
-          <div className="h-5 bg-muted rounded w-16"></div>
-        </div>
-        <div className="h-12 bg-muted rounded w-full mt-2"></div>
-      </div>
-      <div className="flex gap-2 w-full sm:w-auto">
-        <div className="h-9 bg-muted rounded flex-1 sm:flex-initial sm:w-24"></div>
-        <div className="h-9 bg-muted rounded flex-1 sm:flex-initial sm:w-20"></div>
-      </div>
-    </div>
-  )
-
-  const OrderCardSkeleton = () => (
-    <Card className="border-l-4 border-l-primary animate-pulse">
-      <CardHeader className="p-4 sm:p-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-          <div className="h-6 bg-muted rounded w-48"></div>
-          <div className="h-4 bg-muted rounded w-24"></div>
-        </div>
-      </CardHeader>
-      <CardContent className="p-4 sm:p-6 pt-0">
-        <div className="space-y-2 sm:space-y-3">
-          {[...Array(3)].map((_, i) => (
-            <OrderItemSkeleton key={i} />
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  )
 
   if (loading) {
     return (
@@ -276,13 +243,13 @@ export default function KitchenPage() {
         <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3">
             <div className="flex items-center gap-2 sm:gap-3">
-              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-muted rounded animate-pulse"></div>
-              <div className="h-6 sm:h-7 bg-muted rounded w-32 sm:w-40 animate-pulse"></div>
+              <Skeleton className="w-6 h-6 sm:w-8 sm:h-8 rounded" />
+              <Skeleton className="h-6 sm:h-7 w-32 sm:w-40" />
             </div>
             <div className="flex items-center gap-2 w-full sm:w-auto">
-              <div className="h-9 bg-muted rounded w-28 sm:w-32 animate-pulse flex-1 sm:flex-initial"></div>
-              <div className="h-9 w-9 bg-muted rounded-md animate-pulse"></div>
-              <div className="h-9 bg-muted rounded w-20 sm:w-24 animate-pulse flex-1 sm:flex-initial"></div>
+              <Skeleton className="h-9 w-28 sm:w-32 flex-1 sm:flex-initial" />
+              <Skeleton className="h-9 w-9 rounded-md" />
+              <Skeleton className="h-9 w-20 sm:w-24 flex-1 sm:flex-initial" />
             </div>
           </div>
           <div className="space-y-3 sm:space-y-4">

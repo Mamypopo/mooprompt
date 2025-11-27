@@ -17,6 +17,8 @@ import { useCartStore } from '@/store/cart-store'
 import { LanguageSwitcher } from '@/components/language-switcher'
 import { getSocket } from '@/lib/socket-client'
 import Swal from 'sweetalert2'
+import { CategorySkeleton } from '@/components/skeletons'
+import { Skeleton } from '@/components/ui/skeleton'
 
 interface MenuItem {
   id: number
@@ -171,38 +173,16 @@ export default function MenuPage() {
     })
   }
 
-  // Skeleton component for menu items
-  const MenuItemSkeleton = () => (
-    <Card className="overflow-hidden animate-pulse">
-      <div className="aspect-square bg-muted"></div>
-      <CardContent className="p-3 sm:p-4">
-        <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
-        <div className="h-4 bg-muted rounded w-1/2 mb-3"></div>
-        <div className="h-9 bg-muted rounded"></div>
-      </CardContent>
-    </Card>
-  )
-
-  const CategorySkeleton = () => (
-    <div className="mb-6 sm:mb-8">
-      <div className="h-6 bg-muted rounded w-32 mb-3 sm:mb-4 animate-pulse"></div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-        {[...Array(6)].map((_, i) => (
-          <MenuItemSkeleton key={i} />
-        ))}
-      </div>
-    </div>
-  )
 
   if (loading) {
     return (
       <div className="min-h-screen bg-background pb-20 sm:pb-24">
         <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
           <div className="flex justify-between items-center mb-4 sm:mb-6 gap-2">
-            <div className="h-7 bg-muted rounded w-32 animate-pulse"></div>
+            <Skeleton className="h-7 w-32" />
             <div className="flex items-center gap-2">
-              <div className="h-9 w-9 bg-muted rounded animate-pulse"></div>
-              <div className="h-9 w-9 bg-muted rounded animate-pulse"></div>
+              <Skeleton className="h-9 w-9 rounded" />
+              <Skeleton className="h-9 w-9 rounded" />
             </div>
           </div>
           {[...Array(3)].map((_, i) => (
@@ -289,10 +269,10 @@ export default function MenuPage() {
                     return (
                       <Card
                         key={item.id}
-                        className={`overflow-hidden transition-all duration-200 relative ${
+                        className={`overflow-hidden transition-all duration-300 relative ${
                           !item.isAvailable 
                             ? 'opacity-60 cursor-not-allowed' 
-                            : 'hover:shadow-md hover:scale-[1.02] cursor-pointer'
+                            : 'hover:shadow-lg hover:scale-[1.02] hover:border-primary/50 cursor-pointer'
                         }`}
                       >
                         {!item.isAvailable && (

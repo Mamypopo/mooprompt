@@ -4,59 +4,59 @@
 
 @layer base {
   :root {
-    /* Light Mode Colors */
-    --background: 340 100% 98%; /* #FFF6F9 - LightBG */
+    /* Light Mode Colors - Modern Red Theme */
+    --background: 0 0% 100%; /* #FFFFFF - ขาวสะอาด */
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 345 100% 71%; /* #FF6A8B */
+    --primary: 0 84% 60%; /* #EF4444 - Red-500 สีแดงสดใส */
     --primary-foreground: 0 0% 100%;
-    --secondary: 200 100% 78%; /* #8ED7FF */
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
+    --secondary: 0 73% 71%; /* #F87171 - Red-400 สีแดงอ่อน */
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 96.1%; /* สีเทาอ่อน */
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 50 100% 75%; /* #FFEA80 */
+    --accent: 45 96% 76%; /* #FBBF24 - Amber-400 สีเหลืองทอง */
     --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 100% 74%; /* #FF7A7A - Error */
+    --destructive: 0 84% 60%; /* #EF4444 - ใช้สีเดียวกับ primary */
     --destructive-foreground: 0 0% 100%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 345 100% 71%; /* Primary color for focus ring */
-    --radius: 0.5rem;
-    --success: 142 76% 50%; /* #10B981 - สีเขียวสดขึ้น */
+    --border: 0 0% 89.8%; /* สีขอบอ่อน */
+    --input: 0 0% 89.8%;
+    --ring: 0 84% 60%; /* Primary color for focus ring */
+    --radius: 0.75rem; /* เพิ่ม border radius ให้โค้งมนขึ้น */
+    --success: 142 76% 50%; /* #10B981 - สีเขียวสด */
     --success-foreground: 0 0% 100%;
-    --error: 0 100% 74%; /* #FF7A7A */
+    --error: 0 84% 60%; /* #EF4444 */
     --error-foreground: 0 0% 100%;
     --warning: 25 95% 53%; /* #FF8C42 - สีส้มสำหรับ warning/cancel */
     --warning-foreground: 0 0% 100%;
   }
 
   .dark {
-    /* Dark Mode Colors */
-    --background: 0 0% 11%; /* #1D1D1D - DarkSurface */
+    /* Dark Mode Colors - Modern Red Theme */
+    --background: 0 0% 12%; /* #1F1F1F - เทาเข้ม */
     --foreground: 0 0% 98%;
-    --card: 0 0% 13%; /* Slightly lighter than background */
+    --card: 0 0% 15%; /* Slightly lighter than background */
     --card-foreground: 0 0% 98%;
-    --popover: 0 0% 13%;
+    --popover: 0 0% 15%;
     --popover-foreground: 0 0% 98%;
-    --primary: 345 100% 65%; /* #FF4D7A - สีชมพูเข้มสำหรับ dark mode */
+    --primary: 0 84% 55%; /* #DC2626 - Red-600 สีแดงเข้มขึ้นสำหรับ dark mode */
     --primary-foreground: 0 0% 100%;
-    --secondary: 200 100% 78%; /* #8ED7FF - Keep secondary color */
-    --secondary-foreground: 0 0% 11%;
+    --secondary: 0 73% 65%; /* Red-500 สีแดงอ่อน */
+    --secondary-foreground: 0 0% 100%;
     --muted: 0 0% 20%;
     --muted-foreground: 0 0% 65%;
-    --accent: 50 100% 75%; /* #FFEA80 - Keep accent color */
-    --accent-foreground: 0 0% 11%;
-    --destructive: 0 100% 65%; /* #FF5252 - สีแดงเข้มขึ้นสำหรับ dark mode */
+    --accent: 45 96% 70%; /* Amber-500 สีเหลืองทอง */
+    --accent-foreground: 0 0% 12%;
+    --destructive: 0 84% 55%; /* #DC2626 - ใช้สีเดียวกับ primary */
     --destructive-foreground: 0 0% 100%;
     --border: 0 0% 25%;
     --input: 0 0% 20%;
-    --ring: 345 100% 71%; /* Primary color for focus ring */
-    --success: 142 76% 50%; /* #10B981 - สีเขียวสดขึ้น */
+    --ring: 0 84% 55%; /* Primary color for focus ring */
+    --success: 142 76% 50%; /* #10B981 - สีเขียวสด */
     --success-foreground: 0 0% 100%;
-    --error: 0 100% 74%; /* #FF7A7A - Keep error color */
+    --error: 0 84% 55%; /* #DC2626 */
     --error-foreground: 0 0% 100%;
     --warning: 25 95% 53%; /* #FF8C42 - สีส้มสำหรับ warning/cancel */
     --warning-foreground: 0 0% 100%;
@@ -85,20 +85,22 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-muted-foreground/30 rounded-full;
+  @apply bg-primary/30 rounded-full;
+  transition: background-color 0.2s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-muted-foreground/50;
+  @apply bg-primary/50;
 }
 
 /* Dark mode scrollbar */
 .dark ::-webkit-scrollbar-thumb {
-  @apply bg-muted-foreground/40;
+  @apply bg-primary/40;
+  transition: background-color 0.2s ease;
 }
 
 .dark ::-webkit-scrollbar-thumb:hover {
-  @apply bg-muted-foreground/60;
+  @apply bg-primary/60;
 }
 
 /* Glass effect */

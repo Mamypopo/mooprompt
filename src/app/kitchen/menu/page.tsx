@@ -11,6 +11,8 @@ import { getUser, logout } from '@/lib/auth-helpers'
 import { getSocket } from '@/lib/socket-client'
 import { ThemeToggle } from '@/components/theme-toggle'
 import Swal from 'sweetalert2'
+import { CategorySkeleton } from '@/components/skeletons'
+import { Skeleton } from '@/components/ui/skeleton'
 
 interface MenuItem {
   id: number
@@ -146,37 +148,6 @@ export default function KitchenMenuPage() {
     }
   }
 
-  // Skeleton component for menu items
-  const MenuItemSkeleton = () => (
-    <Card className="overflow-hidden animate-pulse">
-      <div className="w-full h-32 sm:h-40 bg-muted"></div>
-      <CardContent className="p-3 sm:p-4">
-        <div className="flex justify-between items-start gap-2 mb-2">
-          <div className="flex-1 min-w-0">
-            <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
-            <div className="h-4 bg-muted rounded w-1/2"></div>
-          </div>
-          <div className="w-5 h-5 bg-muted rounded-full"></div>
-        </div>
-        <div className="h-9 bg-muted rounded-md"></div>
-      </CardContent>
-    </Card>
-  )
-
-  const CategorySkeleton = () => (
-    <Card>
-      <CardHeader className="p-4 sm:p-6">
-        <div className="h-6 bg-muted rounded w-32"></div>
-      </CardHeader>
-      <CardContent className="p-4 sm:p-6 pt-0">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-          {[...Array(6)].map((_, i) => (
-            <MenuItemSkeleton key={i} />
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  )
 
   if (loading) {
     return (
@@ -184,16 +155,16 @@ export default function KitchenMenuPage() {
         <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3">
             <div className="flex items-center gap-2 sm:gap-3">
-              <div className="h-10 w-10 bg-muted rounded-md animate-pulse"></div>
-              <div className="h-6 bg-muted rounded w-24 sm:w-32 animate-pulse"></div>
+              <Skeleton className="h-10 w-10 rounded-md" />
+              <Skeleton className="h-6 w-24 sm:w-32" />
             </div>
             <div className="flex items-center gap-2 w-full sm:w-auto">
-              <div className="h-9 w-9 bg-muted rounded-md animate-pulse"></div>
-              <div className="h-9 w-20 sm:w-24 bg-muted rounded-md animate-pulse flex-1 sm:flex-initial"></div>
+              <Skeleton className="h-9 w-9 rounded-md" />
+              <Skeleton className="h-9 w-20 sm:w-24 flex-1 sm:flex-initial" />
             </div>
           </div>
           {[...Array(3)].map((_, i) => (
-            <CategorySkeleton key={i} />
+            <CategorySkeleton key={i} variant="kitchen" />
           ))}
         </div>
       </div>
