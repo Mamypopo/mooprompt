@@ -38,7 +38,7 @@ export default function CartPage() {
     if (items.length === 0) {
       Swal.fire({
         icon: 'warning',
-        title: 'ตะกร้าว่างเปล่า',
+        title: t('cart.empty'),
         toast: true,
         position: 'top-end',
         showConfirmButton: false,
@@ -138,7 +138,7 @@ export default function CartPage() {
               variant="ghost"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
-              กลับไปเมนู
+              {t('cart.back_to_menu')}
             </Button>
             <LanguageSwitcher />
           </div>
@@ -149,7 +149,7 @@ export default function CartPage() {
                 onClick={() => router.push(`/menu?session=${sessionId}`)}
                 className="mt-4"
               >
-                ดูเมนู
+                {t('cart.view_menu')}
               </Button>
             </CardContent>
           </Card>
@@ -162,15 +162,15 @@ export default function CartPage() {
     <div className="min-h-screen bg-background pb-24 sm:pb-28">
       <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
         <div className="flex justify-between items-center mb-4 gap-2">
-          <Button
-            onClick={() => router.push(`/menu?session=${sessionId}`)}
-            variant="ghost"
-            className="text-sm sm:text-base"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            <span className="hidden sm:inline">กลับไปเมนู</span>
-            <span className="sm:hidden">กลับ</span>
-          </Button>
+            <Button
+              onClick={() => router.push(`/menu?session=${sessionId}`)}
+              variant="ghost"
+              className="text-sm sm:text-base"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              <span className="hidden sm:inline">{t('cart.back_to_menu')}</span>
+              <span className="sm:hidden">{t('common.back')}</span>
+            </Button>
           <LanguageSwitcher />
         </div>
 
@@ -186,7 +186,7 @@ export default function CartPage() {
                     <p className="text-primary font-bold text-sm sm:text-base">
                       {item.itemType === 'BUFFET_INCLUDED' ? (
                         <>
-                          ฿0 <span className="text-xs text-muted-foreground">(รวมในบุฟเฟ่ต์)</span>
+                          ฿0 <span className="text-xs text-muted-foreground">({t('menu.buffet_included')})</span>
                         </>
                       ) : (
                         <>฿{item.price.toLocaleString()}</>
@@ -226,7 +226,7 @@ export default function CartPage() {
                   </Button>
                 </div>
                 <Input
-                  placeholder="หมายเหตุสำหรับรายการนี้ (เช่น ไม่เผ็ด, เพิ่มไข่)"
+                  placeholder={t('cart.item_note')}
                   value={item.note || ''}
                   onChange={(e) => updateItem(item.menuItemId, item.qty, e.target.value)}
                   className="text-xs sm:text-sm"
@@ -238,13 +238,15 @@ export default function CartPage() {
 
         <div className="space-y-4 mb-4">
           <div>
-            <label className="text-sm font-medium mb-2 block">หมายเหตุสำหรับออเดอร์ (ถ้ามี)</label>
+            <label className="text-sm font-medium mb-2 block">{t('cart.order_note')}</label>
             <Input
-              placeholder="เช่น ต้องการช้อนส้อมเพิ่ม, ต้องการน้ำแข็ง"
+              placeholder={t('cart.order_note_placeholder')}
               value={note}
               onChange={(e) => setNote(e.target.value)}
             />
-           
+            <p className="text-xs text-muted-foreground mt-1">
+              {t('cart.order_note_helper')}
+            </p>
           </div>
         </div>
 

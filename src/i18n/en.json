@@ -23,9 +23,17 @@
     "cart": "Cart",
     "quantity": "Quantity",
     "note": "Note",
+    "note_optional": "Note (Optional)",
+    "note_placeholder": "e.g. No spicy, Add egg, No vegetables",
     "price": "Price",
     "available": "Available",
-    "unavailable": "Unavailable"
+    "unavailable": "Unavailable",
+    "filter_category": "Filter Category",
+    "all_categories": "All Categories",
+    "buffet_included": "Included in Buffet",
+    "out_of_stock": "Out of Stock",
+    "items_added": "Added {{qty}} items to cart",
+    "cart_items": "Cart ({{count}} items)"
   },
   "cart": {
     "title": "Shopping Cart",
@@ -33,10 +41,17 @@
     "total": "Total",
     "checkout": "Checkout",
     "remove": "Remove",
-    "update": "Update"
+    "update": "Update",
+    "back_to_menu": "Back to Menu",
+    "view_menu": "View Menu",
+    "item_note": "Note for this item (e.g. No spicy, Add egg)",
+    "order_note": "Order Note (if any)",
+    "order_note_placeholder": "e.g. Need extra utensils, Need ice",
+    "order_note_helper": "This note applies to the entire order"
   },
   "order": {
     "title": "Order",
+    "order_number": "Order #{{id}}",
     "status": {
       "waiting": "Waiting",
       "cooking": "Cooking",
@@ -51,9 +66,17 @@
     "scan_qr": "Scan QR Code",
     "table_number": "Table",
     "people_count": "People Count",
+    "people_count_label": "People Count: {{count}}",
     "session": "Session",
+    "session_label": "Session: {{id}}",
     "open": "Open Table",
-    "close": "Close Table"
+    "close": "Close Table",
+    "status": "Table Status",
+    "package": "Package",
+    "package_label": "Package: {{name}}",
+    "menu": "Menu",
+    "cart": "Cart",
+    "orders": "Orders"
   },
   "kitchen": {
     "title": "Kitchen",

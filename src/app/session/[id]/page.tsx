@@ -103,11 +103,11 @@ export default function SessionPage() {
               {t('table.table_number')} {session?.table?.tableNumber}
             </h1>
             <p className="text-sm sm:text-base text-muted-foreground">
-              {t('table.people_count')}: {session?.peopleCount} คน
+              {t('table.people_count_label', { count: session?.peopleCount })}
             </p>
             {session?.package && (
               <p className="text-sm text-muted-foreground">
-                แพ็กเกจ: {session.package.name}
+                {t('table.package_label', { name: session.package.name })}
               </p>
             )}
           </div>
@@ -121,7 +121,7 @@ export default function SessionPage() {
             variant="outline"
           >
             <MenuIcon className="w-5 h-5 sm:w-6 sm:h-6 mb-1 sm:mb-2" />
-            <span className="text-xs sm:text-sm">เมนู</span>
+            <span className="text-xs sm:text-sm">{t('table.menu')}</span>
           </Button>
           <Button
             onClick={() => router.push(`/cart?session=${sessionId}`)}
@@ -129,7 +129,7 @@ export default function SessionPage() {
             variant="outline"
           >
             <ShoppingCart className="w-5 h-5 sm:w-6 sm:h-6 mb-1 sm:mb-2" />
-            <span className="text-xs sm:text-sm">ตะกร้า</span>
+            <span className="text-xs sm:text-sm">{t('table.cart')}</span>
           </Button>
           <Button
             onClick={() => router.push(`/orders?session=${sessionId}`)}
@@ -137,14 +137,14 @@ export default function SessionPage() {
             variant="outline"
           >
             <Receipt className="w-5 h-5 sm:w-6 sm:h-6 mb-1 sm:mb-2" />
-            <span className="text-xs sm:text-sm">ออเดอร์</span>
+            <span className="text-xs sm:text-sm">{t('table.orders')}</span>
           </Button>
         </div>
 
         <div className="bg-card rounded-lg p-3 sm:p-4 shadow-sm">
-          <h2 className="font-semibold mb-2 text-sm sm:text-base">สถานะโต๊ะ</h2>
+          <h2 className="font-semibold mb-2 text-sm sm:text-base">{t('table.status')}</h2>
           <p className="text-xs sm:text-sm text-muted-foreground">
-            เซสชัน: {sessionId}
+            {t('table.session_label', { id: sessionId })}
           </p>
         </div>
       </div>

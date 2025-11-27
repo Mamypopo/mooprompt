@@ -133,7 +133,7 @@ export default function OrdersPage() {
             className="text-sm sm:text-base"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            กลับ
+            {t('common.back')}
           </Button>
           <LanguageSwitcher />
         </div>
@@ -153,7 +153,7 @@ export default function OrdersPage() {
                 <CardHeader className="p-4 sm:p-6">
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                     <CardTitle className="text-base sm:text-lg">
-                      ออเดอร์ #{order.id}
+                      {t('order.order_number', { id: order.id })}
                     </CardTitle>
                     <span className="text-xs sm:text-sm text-muted-foreground">
                       {new Date(order.createdAt).toLocaleTimeString('th-TH')}

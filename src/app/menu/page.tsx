@@ -207,7 +207,7 @@ export default function MenuPage() {
 
     Swal.fire({
       icon: 'success',
-      title: `เพิ่ม ${qty} รายการลงตะกร้าแล้ว`,
+      title: t('menu.items_added', { qty }),
       toast: true,
       position: 'top-end',
       showConfirmButton: false,
@@ -252,10 +252,10 @@ export default function MenuPage() {
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
               <SelectTrigger className="w-full sm:w-[180px]">
                 <Filter className="w-4 h-4 mr-2" />
-                <SelectValue placeholder="กรองหมวดหมู่" />
+                <SelectValue placeholder={t('menu.filter_category')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">ทุกหมวดหมู่</SelectItem>
+                <SelectItem value="all">{t('menu.all_categories')}</SelectItem>
                 {categories.map((category) => {
                   const hasItems = sessionType === 'buffet'
                     ? category.items.some(item => item.isBuffetItem || (item.isALaCarteItem && !item.isBuffetItem))
@@ -330,7 +330,7 @@ export default function MenuPage() {
                         {!item.isAvailable && (
                           <div className="absolute top-2 right-2 z-10">
                             <span className="inline-flex items-center px-2 py-1 rounded-md bg-destructive/90 text-destructive-foreground text-xs font-semibold shadow-sm">
-                              หมด
+                              {t('menu.out_of_stock')}
                             </span>
                           </div>
                         )}
@@ -365,7 +365,7 @@ export default function MenuPage() {
                                 </div>
                                 <p className="text-sm sm:text-base mb-2 sm:mb-3">
                                   {isBuffetItem ? (
-                                    <span className="text-muted-foreground text-xs sm:text-sm">รวมในบุฟเฟ่ต์</span>
+                                    <span className="text-muted-foreground text-xs sm:text-sm">{t('menu.buffet_included')}</span>
                                   ) : (
                                     <span className="text-primary font-bold text-base sm:text-lg">฿{item.price.toLocaleString()}</span>
                                   )}
@@ -430,10 +430,10 @@ export default function MenuPage() {
                   </Button>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="item-note" className="text-sm">หมายเหตุ (ไม่บังคับ)</Label>
+                  <Label htmlFor="item-note" className="text-sm">{t('menu.note_optional')}</Label>
                   <Input
                     id="item-note"
-                    placeholder="เช่น ไม่เผ็ด, เพิ่มไข่, ไม่ใส่ผัก"
+                    placeholder={t('menu.note_placeholder')}
                     value={itemNote}
                     onChange={(e) => setItemNote(e.target.value)}
                     className="text-sm"
@@ -448,7 +448,7 @@ export default function MenuPage() {
                   disabled={!selectedItem.isAvailable}
                 >
                   <Plus className="w-5 h-5 mr-2" />
-                  เพิ่มลงตะกร้า
+                  {t('menu.add_to_cart')}
                 </Button>
               </SheetFooter>
             </SheetContent>
@@ -461,7 +461,7 @@ export default function MenuPage() {
                 <DialogTitle className="text-2xl">{selectedItem.name}</DialogTitle>
                 <DialogDescription className="text-lg">
                   {sessionType === 'buffet' && selectedItem.isBuffetItem && !selectedItem.isALaCarteItem
-                    ? 'รวมในบุฟเฟ่ต์'
+                    ? t('menu.buffet_included')
                     : `฿${selectedItem.price.toLocaleString()}`}
                 </DialogDescription>
               </DialogHeader>
@@ -498,10 +498,10 @@ export default function MenuPage() {
                   </Button>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="item-note-desktop" className="text-sm">หมายเหตุ (ไม่บังคับ)</Label>
+                  <Label htmlFor="item-note-desktop" className="text-sm">{t('menu.note_optional')}</Label>
                   <Input
                     id="item-note-desktop"
-                    placeholder="เช่น ไม่เผ็ด, เพิ่มไข่, ไม่ใส่ผัก"
+                    placeholder={t('menu.note_placeholder')}
                     value={itemNote}
                     onChange={(e) => setItemNote(e.target.value)}
                     className="text-sm"
@@ -516,7 +516,7 @@ export default function MenuPage() {
                   disabled={!selectedItem.isAvailable}
                 >
                   <Plus className="w-5 h-5 mr-2" />
-                  เพิ่มลงตะกร้า
+                  {t('menu.add_to_cart')}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -534,7 +534,7 @@ export default function MenuPage() {
               size="lg"
             >
               <ShoppingCart className="w-5 h-5 mr-2" />
-              ตะกร้า ({totalCartItems} รายการ) • ฿{getTotal().toLocaleString()}
+              {t('menu.cart_items', { count: totalCartItems })} • ฿{getTotal().toLocaleString()}
             </Button>
           </div>
         </div>
