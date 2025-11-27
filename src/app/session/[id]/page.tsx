@@ -6,6 +6,7 @@ import { ShoppingCart, Menu as MenuIcon, Receipt } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useTranslations } from '@/lib/i18n'
 import { LanguageSwitcher } from '@/components/language-switcher'
+import { SessionSkeleton } from '@/components/skeletons'
 import Swal from 'sweetalert2'
 
 export default function SessionPage() {
@@ -90,14 +91,7 @@ export default function SessionPage() {
   }, [sessionId, router])
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">{t('common.loading')}</p>
-        </div>
-      </div>
-    )
+    return <SessionSkeleton />
   }
 
   return (

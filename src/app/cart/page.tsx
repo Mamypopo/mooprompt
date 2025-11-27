@@ -9,6 +9,8 @@ import { Input } from '@/components/ui/input'
 import { useTranslations } from '@/lib/i18n'
 import { useCartStore } from '@/store/cart-store'
 import { LanguageSwitcher } from '@/components/language-switcher'
+import { CartItemSkeleton } from '@/components/skeletons'
+import { Skeleton } from '@/components/ui/skeleton'
 import Swal from 'sweetalert2'
 
 export default function CartPage() {
@@ -18,12 +20,18 @@ export default function CartPage() {
   const sessionId = searchParams.get('session')
   const { items, removeItem, updateItem, clearCart, getTotal } = useCartStore()
   const [note, setNote] = useState('')
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!sessionId) {
       router.push('/')
       return
     }
+    // Simulate loading for cart items
+    const timer = setTimeout(() => {
+      setLoading(false)
+    }, 300)
+    return () => clearTimeout(timer)
   }, [sessionId, router])
 
   const handleCheckout = async () => {
@@ -84,6 +92,40 @@ export default function CartPage() {
         timerProgressBar: true,
       })
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background pb-24 sm:pb-28">
+        <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
+          <div className="flex justify-between items-center mb-4 gap-2">
+            <Skeleton className="h-9 w-24" />
+            <Skeleton className="h-9 w-9 rounded" />
+          </div>
+          <Skeleton className="h-7 w-32 mb-4 sm:mb-6" />
+          <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
+            {[...Array(3)].map((_, i) => (
+              <CartItemSkeleton key={i} />
+            ))}
+          </div>
+          <div className="space-y-4 mb-4">
+            <div>
+              <Skeleton className="h-5 w-40 mb-2" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+          </div>
+          <Card className="sticky bottom-0 left-0 right-0 mb-4 sm:mb-6 shadow-lg">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex justify-between items-center mb-3 sm:mb-4">
+                <Skeleton className="h-6 w-16" />
+                <Skeleton className="h-8 w-24" />
+              </div>
+              <Skeleton className="h-12 w-full rounded-lg" />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
   }
 
   if (items.length === 0) {
@@ -202,9 +244,7 @@ export default function CartPage() {
               value={note}
               onChange={(e) => setNote(e.target.value)}
             />
-            <p className="text-xs text-muted-foreground mt-1">
-              หมายเหตุนี้จะใช้กับทั้งออเดอร์
-            </p>
+           
           </div>
         </div>
 

@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useTranslations } from '@/lib/i18n'
 import { getSocket } from '@/lib/socket-client'
 import { LanguageSwitcher } from '@/components/language-switcher'
+import { OrderCardSkeleton } from '@/components/skeletons'
+import { Skeleton } from '@/components/ui/skeleton'
 
 interface OrderItem {
   id: number
@@ -69,6 +71,7 @@ export default function OrdersPage() {
 
   const fetchOrders = async () => {
     try {
+      setLoading(true)
       // In a real app, fetch orders for this session
       // For now, we'll use a mock API endpoint
       const response = await fetch(`/api/session/${sessionId}/orders`)
@@ -103,10 +106,18 @@ export default function OrdersPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">{t('common.loading')}</p>
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
+          <div className="flex justify-between items-center mb-4 gap-2">
+            <Skeleton className="h-9 w-20" />
+            <Skeleton className="h-9 w-9 rounded" />
+          </div>
+          <Skeleton className="h-7 w-32 mb-4 sm:mb-6" />
+          <div className="space-y-3 sm:space-y-4">
+            {[...Array(3)].map((_, i) => (
+              <OrderCardSkeleton key={i} itemCount={2} />
+            ))}
+          </div>
         </div>
       </div>
     )
