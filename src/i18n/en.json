@@ -77,6 +77,7 @@
     "status": "Table Status",
     "package": "Package",
     "package_label": "Package: {{name}}",
+    "home": "Home",
     "menu": "Menu",
     "cart": "Cart",
     "orders": "Orders"

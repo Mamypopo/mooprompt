@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useTranslations } from '@/lib/i18n'
 import { getSocket } from '@/lib/socket-client'
 import { LanguageSwitcher } from '@/components/language-switcher'
+import { ThemeToggle } from '@/components/theme-toggle'
 import { OrderCardSkeleton } from '@/components/skeletons'
 import { CustomerFooter } from '@/components/customer-footer'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -136,7 +137,10 @@ export default function OrdersPage() {
             <ArrowLeft className="w-4 h-4 mr-2" />
             {t('common.back')}
           </Button>
-          <LanguageSwitcher />
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <LanguageSwitcher />
+          </div>
         </div>
 
         <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">{t('order.title')}</h1>

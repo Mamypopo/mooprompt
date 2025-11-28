@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { useTranslations } from '@/lib/i18n'
 import { useCartStore } from '@/store/cart-store'
 import { LanguageSwitcher } from '@/components/language-switcher'
+import { ThemeToggle } from '@/components/theme-toggle'
 import { CartItemSkeleton } from '@/components/skeletons'
 import { CustomerFooter } from '@/components/customer-footer'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -160,7 +161,7 @@ export default function CartPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-24 md:pb-28">
+    <div className="min-h-screen bg-background pb-40 md:pb-28">
       <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
         <div className="flex justify-between items-center mb-4 gap-2">
             <Button
@@ -171,7 +172,10 @@ export default function CartPage() {
               <ArrowLeft className="w-4 h-4 mr-2" />
               {t('common.back')}
             </Button>
-          <LanguageSwitcher />
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <LanguageSwitcher />
+          </div>
         </div>
 
         <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">{t('cart.title')}</h1>
@@ -250,7 +254,8 @@ export default function CartPage() {
           </div>
         </div>
 
-        <Card className="sticky bottom-0 left-0 right-0 mb-4 sm:mb-6 shadow-lg">
+        {/* Checkout Card - Fixed at bottom on mobile (above footer), sticky on desktop */}
+        <Card className="fixed bottom-16 left-0 right-0 md:sticky md:bottom-0 md:mb-4 md:sm:mb-6 shadow-lg z-40 md:z-auto">
           <CardContent className="p-4 sm:p-6">
             <div className="flex justify-between items-center mb-3 sm:mb-4">
               <span className="text-base sm:text-lg font-semibold">{t('cart.total')}</span>

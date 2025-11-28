@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { useTranslations } from '@/lib/i18n'
 import { LanguageSwitcher } from '@/components/language-switcher'
+import { ThemeToggle } from '@/components/theme-toggle'
 import { SessionSkeleton } from '@/components/skeletons'
 import { useCartStore } from '@/store/cart-store'
 import { CustomerFooter } from '@/components/customer-footer'
@@ -244,7 +245,10 @@ export default function SessionPage() {
               </p>
             )}
           </div>
-          <LanguageSwitcher />
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <LanguageSwitcher />
+          </div>
         </div>
 
         {/* Navigation Buttons - Hidden on mobile (footer handles it), shown on desktop */}
@@ -424,31 +428,24 @@ export default function SessionPage() {
             </div>
           </div>
         )}
-
-        <div className="bg-card rounded-lg p-3 sm:p-4 shadow-sm">
-          <h2 className="font-semibold mb-2 text-sm sm:text-base">{t('table.status')}</h2>
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            {t('table.session_label', { id: sessionId })}
-          </p>
-        </div>
       </div>
 
       {/* Mobile: Sheet for item details */}
       <Sheet open={isDetailOpen && isMobile} onOpenChange={setIsDetailOpen}>
-        <SheetContent className="flex flex-col">
+        <SheetContent side="bottom" className="h-[85vh] rounded-t-2xl">
           {selectedItem && (
             <>
               <SheetHeader>
-                <SheetTitle className="text-xl sm:text-2xl">{selectedItem.name}</SheetTitle>
-                <SheetDescription className="text-lg">
+                <SheetTitle className="text-xl">{selectedItem.name}</SheetTitle>
+                <SheetDescription>
                   {sessionType === 'buffet' && selectedItem.isBuffetItem && !selectedItem.isALaCarteItem
                     ? t('menu.buffet_included')
                     : `฿${selectedItem.price.toLocaleString()}`}
                 </SheetDescription>
               </SheetHeader>
-              <div className="flex-1 overflow-y-auto py-4">
+              <div className="mt-6 space-y-6">
                 {selectedItem.imageUrl && (
-                  <div className="relative w-full h-48 sm:h-64 mb-4 rounded-lg overflow-hidden">
+                  <div className="w-full h-48 rounded-lg overflow-hidden bg-muted">
                     <img
                       src={selectedItem.imageUrl}
                       alt={selectedItem.name}
@@ -456,37 +453,37 @@ export default function SessionPage() {
                     />
                   </div>
                 )}
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-base">{t('menu.quantity')}</Label>
-                    <div className="flex items-center gap-3">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => setItemQuantity(Math.max(1, itemQuantity - 1))}
-                      >
-                        <Minus className="w-4 h-4" />
-                      </Button>
-                      <span className="w-12 text-center font-semibold">{itemQuantity}</span>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => setItemQuantity(itemQuantity + 1)}
-                      >
-                        <Plus className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="item-note" className="text-sm">{t('menu.note_optional')}</Label>
-                    <Input
-                      id="item-note"
-                      placeholder={t('menu.note_placeholder')}
-                      value={itemNote}
-                      onChange={(e) => setItemNote(e.target.value)}
-                      className="text-sm"
-                    />
-                  </div>
+                <div className="flex items-center justify-center gap-4">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setItemQuantity(Math.max(1, itemQuantity - 1))}
+                    className="h-12 w-12"
+                    disabled={itemQuantity <= 1}
+                  >
+                    <Minus className="w-5 h-5" />
+                  </Button>
+                  <span className="text-3xl font-bold w-16 text-center">
+                    {itemQuantity}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setItemQuantity(itemQuantity + 1)}
+                    className="h-12 w-12"
+                  >
+                    <Plus className="w-5 h-5" />
+                  </Button>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="item-note" className="text-sm">{t('menu.note_optional')}</Label>
+                  <Input
+                    id="item-note"
+                    placeholder={t('menu.note_placeholder')}
+                    value={itemNote}
+                    onChange={(e) => setItemNote(e.target.value)}
+                    className="text-sm"
+                  />
                 </div>
               </div>
               <SheetFooter className="mt-auto pt-4">
@@ -528,25 +525,27 @@ export default function SessionPage() {
                 </div>
               )}
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label className="text-base">{t('menu.quantity')}</Label>
-                  <div className="flex items-center gap-3">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setItemQuantity(Math.max(1, itemQuantity - 1))}
-                    >
-                      <Minus className="w-4 h-4" />
-                    </Button>
-                    <span className="w-12 text-center font-semibold">{itemQuantity}</span>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setItemQuantity(itemQuantity + 1)}
-                    >
-                      <Plus className="w-4 h-4" />
-                    </Button>
-                  </div>
+                <div className="flex items-center justify-center gap-4">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setItemQuantity(Math.max(1, itemQuantity - 1))}
+                    className="h-12 w-12"
+                    disabled={itemQuantity <= 1}
+                  >
+                    <Minus className="w-5 h-5" />
+                  </Button>
+                  <span className="text-3xl font-bold w-16 text-center">
+                    {itemQuantity}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setItemQuantity(itemQuantity + 1)}
+                    className="h-12 w-12"
+                  >
+                    <Plus className="w-5 h-5" />
+                  </Button>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="item-note-desktop" className="text-sm">{t('menu.note_optional')}</Label>

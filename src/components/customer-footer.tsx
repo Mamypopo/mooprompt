@@ -1,7 +1,7 @@
 'use client'
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { Menu as MenuIcon, ShoppingCart, Receipt } from 'lucide-react'
+import { Home, Menu as MenuIcon, ShoppingCart, Receipt } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useCartStore } from '@/store/cart-store'
@@ -19,6 +19,12 @@ export function CustomerFooter() {
   const totalCartItems = items.reduce((sum, item) => sum + item.qty, 0)
 
   const menuItems = [
+    {
+      href: `/session/${sessionId}`,
+      icon: Home,
+      label: t('table.home'),
+      isActive: pathname.startsWith('/session/') && pathname !== '/menu',
+    },
     {
       href: `/menu?session=${sessionId}`,
       icon: MenuIcon,
@@ -54,7 +60,7 @@ export function CustomerFooter() {
 
   return (
     <footer className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t shadow-lg md:hidden pb-safe">
-      <div className="grid grid-cols-3 h-16">
+      <div className="grid grid-cols-4 h-16">
         {menuItems.map((item) => {
           const Icon = item.icon
           return (
