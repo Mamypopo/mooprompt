@@ -99,7 +99,7 @@ export default function MenuManagementPage() {
         params.append('search', debouncedSearchTerm)
       }
       
-      const response = await fetch(`/api/menu?${params.toString()}`)
+      const response = await fetch(`/api/admin/menu?${params.toString()}`)
       
       if (!response.ok) {
         throw new Error('Failed to fetch menu')

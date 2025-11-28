@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { ArrowLeft, Clock, CheckCircle } from 'lucide-react'
+import { ArrowLeft, Clock, CheckCircle, ChefHat, Utensils } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import { useTranslations } from '@/lib/i18n'
 import { getSocket } from '@/lib/socket-client'
 import { LanguageSwitcher } from '@/components/language-switcher'
@@ -20,6 +21,7 @@ interface OrderItem {
   }
   qty: number
   status: 'WAITING' | 'COOKING' | 'DONE' | 'SERVED'
+  itemType?: 'BUFFET_INCLUDED' | 'A_LA_CARTE'
 }
 
 interface Order {
@@ -36,6 +38,7 @@ export default function OrdersPage() {
   const sessionId = searchParams.get('session')
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
+  const [isBuffet, setIsBuffet] = useState(false)
 
   useEffect(() => {
     if (!sessionId) {
@@ -73,8 +76,6 @@ export default function OrdersPage() {
   const fetchOrders = async () => {
     try {
       setLoading(true)
-      // In a real app, fetch orders for this session
-      // For now, we'll use a mock API endpoint
       const response = await fetch(`/api/session/${sessionId}/orders`)
       if (response.ok) {
         const data = await response.json()
@@ -87,22 +88,92 @@ export default function OrdersPage() {
     }
   }
 
-  const getStatusIcon = (status: string) => {
+  // Fetch session info to check if it's buffet
+  useEffect(() => {
+    if (!sessionId) return
+
+    const fetchSessionInfo = async () => {
+      try {
+        const sessionIdNum = parseInt(sessionId, 10)
+        if (isNaN(sessionIdNum)) return
+
+        const response = await fetch(`/api/session/${sessionIdNum}`)
+        if (response.ok) {
+          const data = await response.json()
+          setIsBuffet(data.session?.packageId !== null && data.session?.packageId !== undefined)
+        }
+      } catch (error) {
+        console.error('Error fetching session info:', error)
+      }
+    }
+
+    fetchSessionInfo()
+  }, [sessionId])
+
+  const getStatusConfig = (status: string) => {
     switch (status) {
       case 'WAITING':
+        return {
+          icon: Clock,
+          color: 'text-yellow-500',
+          bgColor: 'bg-yellow-500/10',
+          borderColor: 'border-yellow-500',
+          badgeVariant: 'warning' as const,
+        }
       case 'COOKING':
-        return <Clock className="w-4 h-4 text-yellow-500" />
+        return {
+          icon: ChefHat,
+          color: 'text-orange-500',
+          bgColor: 'bg-orange-500/10',
+          borderColor: 'border-orange-500',
+          badgeVariant: 'accent' as const,
+        }
       case 'DONE':
-        return <CheckCircle className="w-4 h-4 text-green-500" />
+        return {
+          icon: Utensils,
+          color: 'text-green-500',
+          bgColor: 'bg-green-500/10',
+          borderColor: 'border-green-500',
+          badgeVariant: 'success' as const,
+        }
       case 'SERVED':
-        return <CheckCircle className="w-4 h-4 text-blue-500" />
+        return {
+          icon: CheckCircle,
+          color: 'text-blue-500',
+          bgColor: 'bg-blue-500/10',
+          borderColor: 'border-blue-500',
+          badgeVariant: 'secondary' as const, // ใช้ secondary (สีน้ำเงิน) แทน default (สีแดง)
+        }
       default:
-        return null
+        return {
+          icon: Clock,
+          color: 'text-muted-foreground',
+          bgColor: 'bg-muted',
+          borderColor: 'border-border',
+          badgeVariant: 'outline' as const,
+        }
     }
   }
 
   const getStatusText = (status: string) => {
     return t(`order.status.${status.toLowerCase()}`)
+  }
+
+  const getOrderTotal = (order: Order) => {
+    if (isBuffet) {
+      // สำหรับบุฟเฟ่ต์: คำนวณแค่ A_LA_CARTE items (ยอดเพิ่มเติม)
+      return order.items.reduce((total, item) => {
+        if (item.itemType === 'A_LA_CARTE') {
+          return total + (item.menuItem.price * item.qty)
+        }
+        return total
+      }, 0)
+    } else {
+      // สำหรับ à la carte: คำนวณทั้งหมด
+      return order.items.reduce((total, item) => {
+        return total + (item.menuItem.price * item.qty)
+      }, 0)
+    }
   }
 
   if (loading) {
@@ -152,45 +223,106 @@ export default function OrdersPage() {
           </Card>
         ) : (
           <div className="space-y-3 sm:space-y-4">
-            {orders.map((order) => (
-              <Card key={order.id}>
-                <CardHeader className="p-4 sm:p-6">
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                    <CardTitle className="text-base sm:text-lg">
-                      {t('order.order_number', { id: order.id })}
-                    </CardTitle>
-                    <span className="text-xs sm:text-sm text-muted-foreground">
-                      {new Date(order.createdAt).toLocaleTimeString('th-TH')}
-                    </span>
-                  </div>
-                </CardHeader>
-                <CardContent className="p-4 sm:p-6 pt-0">
-                  <div className="space-y-2">
-                    {order.items.map((item) => (
-                      <div
-                        key={item.id}
-                        className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-2 border-b last:border-0 gap-2"
-                      >
-                        <div className="flex items-center gap-2">
-                          {getStatusIcon(item.status)}
-                          <span className="text-sm sm:text-base">
-                            {item.menuItem.name} x {item.qty}
-                          </span>
+            {orders.map((order) => {
+              const orderTotal = getOrderTotal(order)
+              // หา status ที่มากที่สุดใน order (เพื่อแสดง border color)
+              const orderStatus = order.items.some(item => item.status === 'SERVED')
+                ? 'SERVED'
+                : order.items.some(item => item.status === 'DONE')
+                ? 'DONE'
+                : order.items.some(item => item.status === 'COOKING')
+                ? 'COOKING'
+                : 'WAITING'
+              const statusConfig = getStatusConfig(orderStatus)
+              
+              return (
+                <Card 
+                  key={order.id}
+                  className={`border-l-4 ${statusConfig.borderColor} transition-all duration-300 hover:shadow-lg`}
+                >
+                  <CardHeader className="p-3 sm:p-4">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                      <div className="flex items-center gap-2">
+                        <div className={`p-1.5 rounded-md ${statusConfig.bgColor}`}>
+                          {(() => {
+                            const Icon = statusConfig.icon
+                            return <Icon className={`w-4 h-4 ${statusConfig.color}`} />
+                          })()}
                         </div>
-                        <div className="text-left sm:text-right w-full sm:w-auto">
-                          <p className="font-semibold text-sm sm:text-base">
-                            ฿{(item.menuItem.price * item.qty).toLocaleString()}
-                          </p>
+                        <div>
+                          <CardTitle className="text-sm sm:text-base font-semibold">
+                            {t('order.order_number', { id: order.id })}
+                          </CardTitle>
                           <p className="text-xs text-muted-foreground">
-                            {getStatusText(item.status)}
+                            {new Date(order.createdAt).toLocaleString('th-TH', {
+                              month: 'short',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
                           </p>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                      <div className="flex items-center gap-2">
+                        <Badge variant={statusConfig.badgeVariant} className="text-xs">
+                          {getStatusText(orderStatus)}
+                        </Badge>
+                        <div className="text-right">
+                          <p className="text-xs text-foreground font-medium">
+                            {isBuffet ? 'ยอดเพิ่มเติม' : 'ยอดรวม'}
+                          </p>
+                          <p className="text-lg font-bold text-primary sm:text-xl">
+                            {orderTotal > 0 ? `฿${orderTotal.toLocaleString()}` : (
+                              <span className="text-muted-foreground text-base">฿0</span>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-3 sm:p-4 pt-0">
+                    <div className="space-y-1.5">
+                      {order.items.map((item) => {
+                        const itemStatusConfig = getStatusConfig(item.status)
+                        const ItemIcon = itemStatusConfig.icon
+                        return (
+                          <div
+                            key={item.id}
+                            className={`flex flex-col sm:flex-row justify-between items-start sm:items-center p-2 rounded-md ${itemStatusConfig.bgColor} gap-1.5 transition-all duration-200`}
+                          >
+                            <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                              <ItemIcon className={`w-3.5 h-3.5 ${itemStatusConfig.color} flex-shrink-0`} />
+                              <span className="text-sm font-medium truncate">
+                                {item.menuItem.name}
+                              </span>
+                              <Badge variant="outline" className="text-xs px-1.5 py-0">
+                                x {item.qty}
+                              </Badge>
+                            </div>
+                            <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+                              <Badge variant={itemStatusConfig.badgeVariant} className="text-xs">
+                                {getStatusText(item.status)}
+                              </Badge>
+                              <p className="font-semibold text-sm whitespace-nowrap">
+                                {item.itemType === 'BUFFET_INCLUDED' ? (
+                                  <span className="text-muted-foreground text-xs">
+                                    {t('menu.buffet_included')}
+                                  </span>
+                                ) : (
+                                  <span className="text-primary">
+                                    ฿{(item.menuItem.price * item.qty).toLocaleString()}
+                                  </span>
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+              )
+            })}
           </div>
         )}
       </div>

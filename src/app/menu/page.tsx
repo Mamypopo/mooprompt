@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Plus, Minus, ShoppingCart, CheckCircle2, Filter, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -72,37 +72,19 @@ export default function MenuPage() {
   const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [itemNote, setItemNote] = useState<string>('')
+  const hasLoadedRef = useRef(false) // ติดตามว่าโหลดครั้งแรกเสร็จแล้วหรือยัง
+  const fetchingRef = useRef(false) // ป้องกันการเรียก fetchMenu พร้อมกันหลายครั้ง
+  const lastSessionIdRef = useRef<string | null>(null) // ติดตาม sessionId ที่ fetch แล้ว
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null) // สำหรับ debounce socket event
 
-  useEffect(() => {
-    if (!sessionId) {
-      router.push('/')
+  const fetchMenu = useCallback(async (silent = false) => {
+    // ป้องกันการเรียกซ้ำถ้ากำลัง fetch อยู่แล้ว
+    if (fetchingRef.current) {
       return
     }
 
-    fetchMenu()
-
-    // Listen for menu availability updates
-    const socket = getSocket()
-    socket.on('menu:unavailable', () => {
-      // Silently update menu when availability changes (no loading spinner)
-      fetchMenu(true)
-    })
-
-    // Check if mobile
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-
-    return () => {
-      socket.off('menu:unavailable')
-      window.removeEventListener('resize', checkMobile)
-    }
-  }, [sessionId, router])
-
-  const fetchMenu = async (silent = false) => {
     try {
+      fetchingRef.current = true
       if (!silent) {
         setLoading(true)
       }
@@ -112,18 +94,72 @@ export default function MenuPage() {
         : '/api/menu'
       
       const response = await fetch(url)
+      if (!response.ok) {
+        throw new Error('Failed to fetch menu')
+      }
       const data = await response.json()
       setCategories(data.categories || [])
       setSessionType(data.sessionType || 'a_la_carte')
+      if (!silent) {
+        hasLoadedRef.current = true // บันทึกว่าโหลดครั้งแรกเสร็จแล้ว
+        lastSessionIdRef.current = sessionId // บันทึก sessionId ที่ fetch แล้ว
+      }
     } catch (error) {
       console.error('Error fetching menu:', error)
+      // Could add error state here if needed
     } finally {
+      fetchingRef.current = false
       if (!silent) {
         setLoading(false)
       }
     }
-  }
+  }, [sessionId])
 
+  useEffect(() => {
+    if (!sessionId) {
+      router.push('/')
+      return
+    }
+
+    // เรียก fetchMenu เฉพาะเมื่อ sessionId เปลี่ยน (ไม่ใช่แค่ re-render)
+    const shouldFetch = lastSessionIdRef.current !== sessionId
+    if (shouldFetch) {
+      hasLoadedRef.current = false // รีเซ็ต flag เมื่อ sessionId เปลี่ยน
+      lastSessionIdRef.current = sessionId // อัพเดท sessionId ที่จะ fetch
+      fetchMenu()
+    }
+
+    // Setup socket listener for real-time updates
+    const socket = getSocket()
+    const handleMenuUnavailable = () => {
+      // Silently update menu when availability changes (no loading spinner)
+      // ใช้ debounce เพื่อป้องกันการ update หลายครั้งติดกัน
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current)
+      }
+      debounceTimeoutRef.current = setTimeout(() => {
+        fetchMenu(true)
+      }, 200)
+    }
+    socket.on('menu:unavailable', handleMenuUnavailable)
+
+    // Setup mobile detection
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+
+    // Cleanup
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current)
+        debounceTimeoutRef.current = null
+      }
+      socket.off('menu:unavailable', handleMenuUnavailable)
+      window.removeEventListener('resize', checkMobile)
+    }
+  }, [sessionId, fetchMenu, router])
 
   // Get quantity to add (from local state only, default to 1)
   // ไม่ sync กับ cart เพื่อให้ผู้ใช้เลือกจำนวนใหม่ได้เสมอ
@@ -323,11 +359,11 @@ export default function MenuPage() {
             }
 
             return (
-              <div key={category.id} className="mb-6 sm:mb-8 animate-fade-in-up">
+              <div key={category.id} className={`mb-6 sm:mb-8 ${hasLoadedRef.current ? '' : 'animate-fade-in-up'}`}>
                 <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-primary">{category.name}</h2>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                  {filteredItems.map((item) => {
+                  {filteredItems.map((item, itemIndex) => {
                     // ตรวจสอบว่าเป็นเมนูบุฟเฟ่ต์หรือไม่ (สำหรับแสดงราคา)
                     const isBuffetItem = sessionType === 'buffet' && item.isBuffetItem && !item.isALaCarteItem
                     
@@ -335,13 +371,15 @@ export default function MenuPage() {
                       <Card
                         key={item.id}
                         onClick={() => handleItemClick(item)}
-                        className={`overflow-hidden transition-all duration-300 relative animate-fade-in-up ${
+                        className={`overflow-hidden transition-all duration-300 relative ${
+                          hasLoadedRef.current ? '' : 'animate-fade-in-up'
+                        } ${
                           !item.isAvailable 
                             ? 'opacity-60 cursor-not-allowed' 
                             : 'hover:shadow-lg hover:scale-[1.02] hover:border-primary/50 cursor-pointer hover-lift active-scale'
                         }`}
-                        style={{
-                          animationDelay: `${item.id * 0.05}s`
+                        style={hasLoadedRef.current ? undefined : {
+                          animationDelay: `${itemIndex * 0.03}s`
                         }}
                       >
                         {!item.isAvailable && (
@@ -539,22 +577,6 @@ export default function MenuPage() {
             </DialogContent>
           </Dialog>
         </>
-      )}
-
-      {/* Floating Cart Button (Desktop Only) */}
-      {totalCartItems > 0 && (
-        <Button
-          onClick={() => router.push(`/cart?session=${sessionId}`)}
-          className="hidden sm:flex fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full shadow-2xl hover:shadow-2xl hover:scale-105 transition-all duration-300 animate-in fade-in slide-in-from-bottom-4 p-0"
-          size="lg"
-        >
-          <div className="relative flex items-center justify-center w-full h-full">
-            <ShoppingCart className="w-7 h-7 stroke-[2.5]" />
-            <span className="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center min-w-[22px] h-5.5 px-1.5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold border-2 border-background shadow-lg">
-              {totalCartItems > 99 ? '99+' : totalCartItems}
-            </span>
-          </div>
-        </Button>
       )}
     </div>
   )

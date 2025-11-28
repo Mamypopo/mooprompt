@@ -4,34 +4,31 @@ import { prisma } from '@/lib/prisma'
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
-    const includeUnavailable = searchParams.get('includeUnavailable') === 'true'
     const sessionId = searchParams.get('sessionId')
-    const search = searchParams.get('search') || '' // Search term for menu items
+    const search = searchParams.get('search') || ''
+
+    if (!sessionId) {
+      return NextResponse.json(
+        { error: 'sessionId is required' },
+        { status: 400 }
+      )
+    }
 
     // Fetch session เพื่อดูว่าเป็นบุฟเฟ่ต์หรือ à la carte
     let isBuffet = false
-    if (sessionId) {
-      try {
-        const sessionIdNum = parseInt(sessionId, 10)
-        if (!isNaN(sessionIdNum)) {
-          const session = await prisma.tableSession.findUnique({
-            where: { id: sessionIdNum },
-            select: { packageId: true },
-          })
-          isBuffet = session?.packageId !== null
-        }
-      } catch (error) {
-        // ถ้า session ไม่พบหรือ error ก็ไม่เป็นไร (ใช้ default = à la carte)
-        console.error('Error fetching session:', error)
+    try {
+      const sessionIdNum = parseInt(sessionId, 10)
+      if (!isNaN(sessionIdNum)) {
+        const session = await prisma.tableSession.findUnique({
+          where: { id: sessionIdNum },
+          select: { packageId: true },
+        })
+        isBuffet = session?.packageId !== null
       }
+    } catch (error) {
+      // ถ้า session ไม่พบหรือ error ก็ไม่เป็นไร (ใช้ default = à la carte)
+      console.error('Error fetching session:', error)
     }
-
-    // Filter menu items ตาม session type และ search
-    const where: any = {}
-    
-    // สำหรับลูกค้า: แสดง unavailable items ด้วย (แต่จะ disable)
-    // สำหรับ admin: ใช้ includeUnavailable parameter
-    // ไม่กรอง unavailable items ออก (แสดงทั้งหมด)
 
     // Build session type conditions
     const sessionConditions: any[] = []
@@ -46,6 +43,9 @@ export async function GET(request: NextRequest) {
       sessionConditions.push({ isALaCarteItem: true })
     }
 
+    // Filter menu items ตาม session type และ search
+    const where: any = {}
+    
     // Combine session type with search
     if (search) {
       // If searching, combine search with session conditions using AND
