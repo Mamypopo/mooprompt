@@ -9,6 +9,7 @@ import { useTranslations } from '@/lib/i18n'
 import { LanguageSwitcher } from '@/components/language-switcher'
 import { SessionSkeleton } from '@/components/skeletons'
 import { useCartStore } from '@/store/cart-store'
+import { CustomerFooter } from '@/components/customer-footer'
 import {
   Sheet,
   SheetContent,
@@ -227,7 +228,7 @@ export default function SessionPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-20 md:pb-0">
       <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
         <div className="flex justify-between items-start mb-4 sm:mb-6 gap-2">
           <div className="flex-1 min-w-0">
@@ -246,7 +247,8 @@ export default function SessionPage() {
           <LanguageSwitcher />
         </div>
 
-        <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-6">
+        {/* Navigation Buttons - Hidden on mobile (footer handles it), shown on desktop */}
+        <div className="hidden md:grid grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-6">
           <Button
             onClick={() => router.push(`/menu?session=${sessionId}`)}
             className="h-16 sm:h-20 flex-col"
@@ -572,6 +574,8 @@ export default function SessionPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      <CustomerFooter />
     </div>
   )
 }

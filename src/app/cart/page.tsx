@@ -10,6 +10,7 @@ import { useTranslations } from '@/lib/i18n'
 import { useCartStore } from '@/store/cart-store'
 import { LanguageSwitcher } from '@/components/language-switcher'
 import { CartItemSkeleton } from '@/components/skeletons'
+import { CustomerFooter } from '@/components/customer-footer'
 import { Skeleton } from '@/components/ui/skeleton'
 import Swal from 'sweetalert2'
 
@@ -159,7 +160,7 @@ export default function CartPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-24 sm:pb-28">
+    <div className="min-h-screen bg-background pb-24 md:pb-28">
       <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
         <div className="flex justify-between items-center mb-4 gap-2">
             <Button
@@ -263,6 +264,7 @@ export default function CartPage() {
           </CardContent>
         </Card>
       </div>
+      <CustomerFooter />
     </div>
   )
 }

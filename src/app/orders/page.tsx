@@ -9,6 +9,7 @@ import { useTranslations } from '@/lib/i18n'
 import { getSocket } from '@/lib/socket-client'
 import { LanguageSwitcher } from '@/components/language-switcher'
 import { OrderCardSkeleton } from '@/components/skeletons'
+import { CustomerFooter } from '@/components/customer-footer'
 import { Skeleton } from '@/components/ui/skeleton'
 
 interface OrderItem {
@@ -124,7 +125,7 @@ export default function OrdersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-20 md:pb-0">
       <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
         <div className="flex justify-between items-center mb-4 gap-2">
           <Button
@@ -190,6 +191,7 @@ export default function OrdersPage() {
           </div>
         )}
       </div>
+      <CustomerFooter />
     </div>
   )
 }

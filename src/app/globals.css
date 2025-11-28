@@ -438,3 +438,14 @@ html {
   border-radius: calc(var(--radius) - 2px);
 }
 
+/* Safe Area Support for iOS */
+@layer utilities {
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+}
+

@@ -37,6 +37,7 @@ import { getSocket } from '@/lib/socket-client'
 import Swal from 'sweetalert2'
 import { CategorySkeleton } from '@/components/skeletons'
 import { Skeleton } from '@/components/ui/skeleton'
+import { CustomerFooter } from '@/components/customer-footer'
 
 interface MenuItem {
   id: number
@@ -247,7 +248,7 @@ export default function MenuPage() {
   const totalCartItems = getTotalCartItems()
 
   return (
-    <div className="min-h-screen bg-background pb-20 sm:pb-24">
+    <div className="min-h-screen bg-background pb-20 md:pb-24">
       <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3">
           <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -538,22 +539,6 @@ export default function MenuPage() {
         </>
       )}
 
-      {/* Fixed Footer Cart (Mobile Only) */}
-      {totalCartItems > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t shadow-2xl sm:hidden">
-          <div className="container mx-auto px-4 py-3">
-            <Button
-              onClick={() => router.push(`/cart?session=${sessionId}`)}
-              className="w-full h-12 text-base font-semibold"
-              size="lg"
-            >
-              <ShoppingCart className="w-5 h-5 mr-2" />
-              {t('menu.cart_items', { count: totalCartItems })} • ฿{getTotal().toLocaleString()}
-            </Button>
-          </div>
-        </div>
-      )}
-
       {/* Floating Cart Button (Desktop Only) */}
       {totalCartItems > 0 && (
         <Button
@@ -569,6 +554,8 @@ export default function MenuPage() {
           </div>
         </Button>
       )}
+
+      <CustomerFooter />
     </div>
   )
 }
