@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { ArrowLeft, Clock, CheckCircle, ChefHat, Utensils } from 'lucide-react'
+import { ArrowLeft, Clock, CheckCircle, ChefHat, Utensils, FileText, StickyNote } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -18,10 +18,12 @@ interface OrderItem {
   menuItem: {
     name: string
     price: number
+    imageUrl?: string | null
     isBuffetItem?: boolean
     isALaCarteItem?: boolean
   }
   qty: number
+  note?: string | null
   status: 'WAITING' | 'COOKING' | 'DONE' | 'SERVED'
   itemType?: 'BUFFET_INCLUDED' | 'A_LA_CARTE'
 }
@@ -30,6 +32,7 @@ interface Order {
   id: number
   createdAt: string
   status: string
+  note?: string | null
   items: OrderItem[]
 }
 
@@ -312,19 +315,24 @@ export default function OrdersPage() {
                   key={order.id}
                   className={`border-l-4 ${statusConfig.borderColor} transition-all duration-300 hover:shadow-lg`}
                 >
-                  <CardHeader className="p-3 sm:p-4">
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                      <div className="flex items-center gap-2">
+                  <CardHeader className="p-3 sm:p-4 relative">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                      <div className="flex items-center gap-2 flex-1 pr-20 sm:pr-0">
                         <div className={`p-1.5 rounded-md ${statusConfig.bgColor}`}>
                           {(() => {
                             const Icon = statusConfig.icon
                             return <Icon className={`w-4 h-4 ${statusConfig.color}`} />
                           })()}
                         </div>
-                        <div>
-                          <CardTitle className="text-sm sm:text-base font-semibold">
-                            {t('order.order_number', { id: order.id })}
-                          </CardTitle>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <CardTitle className="text-sm sm:text-base font-semibold">
+                              {t('order.order_number', { id: order.id })}
+                            </CardTitle>
+                            <Badge variant={statusConfig.badgeVariant} className="text-xs">
+                              {getStatusText(orderStatus)}
+                            </Badge>
+                          </div>
                           <p className="text-xs text-muted-foreground">
                             {new Date(order.createdAt).toLocaleString('th-TH', {
                               month: 'short',
@@ -335,24 +343,31 @@ export default function OrdersPage() {
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant={statusConfig.badgeVariant} className="text-xs">
-                          {getStatusText(orderStatus)}
-                        </Badge>
-                        <div className="text-right">
-                          <p className="text-xs text-foreground font-medium">
-                            {isBuffet ? 'ยอดเพิ่มเติม' : 'ยอดรวม'}
-                          </p>
-                          <p className="text-lg font-bold text-primary sm:text-xl">
-                            {orderTotal > 0 ? `฿${orderTotal.toLocaleString()}` : (
-                              <span className="text-muted-foreground text-base">฿0</span>
-                            )}
-                          </p>
-                        </div>
+                      {/* ยอดเพิ่มเติม/ยอดรวม - บน mobile: absolute, บน desktop: flex item */}
+                      <div className="absolute top-3 right-3 sm:static sm:top-auto sm:right-auto text-right flex-shrink-0">
+                        <p className="text-xs text-foreground font-medium">
+                          {isBuffet ? 'ยอดเพิ่มเติม' : 'ยอดรวม'}
+                        </p>
+                        <p className="text-lg font-bold text-primary sm:text-xl">
+                          {orderTotal > 0 ? `฿${orderTotal.toLocaleString()}` : (
+                            <span className="text-muted-foreground text-base">฿0</span>
+                          )}
+                        </p>
                       </div>
                     </div>
                   </CardHeader>
                   <CardContent className="p-3 sm:p-4 pt-0">
+                    {/* Order Note (ถ้ามี) */}
+                    {order.note && (
+                      <div className="mb-3 p-2.5 bg-muted/50 dark:bg-muted/30 rounded-md border-l-2 border-primary">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <FileText className="w-3.5 h-3.5 text-muted-foreground" />
+                          <p className="text-xs font-medium text-muted-foreground">หมายเหตุออเดอร์:</p>
+                        </div>
+                        <p className="text-sm text-foreground">{order.note}</p>
+                      </div>
+                    )}
+                    
                     <div className="space-y-1.5">
                       {order.items.map((item) => {
                         const itemStatusConfig = getStatusConfig(item.status)
@@ -360,33 +375,59 @@ export default function OrdersPage() {
                         return (
                           <div
                             key={item.id}
-                            className={`flex flex-col sm:flex-row justify-between items-start sm:items-center p-2 rounded-md ${itemStatusConfig.bgColor} gap-1.5 transition-all duration-200`}
+                            className={`flex flex-col p-2.5 rounded-md ${itemStatusConfig.bgColor} gap-2 transition-all duration-200`}
                           >
-                            <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                              <ItemIcon className={`w-3.5 h-3.5 ${itemStatusConfig.color} flex-shrink-0`} />
-                              <span className="text-sm font-medium truncate">
-                                {item.menuItem.name}
-                              </span>
-                              <Badge variant="outline" className="text-xs px-1.5 py-0">
-                                x {item.qty}
-                              </Badge>
-                            </div>
-                            <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
-                              <Badge variant={itemStatusConfig.badgeVariant} className="text-xs">
-                                {getStatusText(item.status)}
-                              </Badge>
-                              <p className="font-semibold text-sm whitespace-nowrap">
-                                {item.itemType === 'BUFFET_INCLUDED' ? (
-                                  <span className="text-muted-foreground text-xs">
-                                    {t('menu.buffet_included')}
-                                  </span>
+                            {/* Row 1: รูปภาพ (ถ้ามี), ชื่อเมนู, จำนวน, สถานะ, ราคา */}
+                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                              <div className="flex items-center gap-2 flex-1 min-w-0">
+                                {/* รูปภาพเมนู (ถ้ามี) */}
+                                {item.menuItem.imageUrl ? (
+                                  <img
+                                    src={item.menuItem.imageUrl}
+                                    alt={item.menuItem.name}
+                                    className="w-10 h-10 rounded-md object-cover flex-shrink-0"
+                                  />
                                 ) : (
-                                  <span className="text-primary">
-                                    ฿{(item.menuItem.price * item.qty).toLocaleString()}
-                                  </span>
+                                  <div className="w-10 h-10 rounded-md bg-muted flex items-center justify-center flex-shrink-0">
+                                    <ItemIcon className={`w-5 h-5 ${itemStatusConfig.color}`} />
+                                  </div>
                                 )}
-                              </p>
+                                <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                                  <span className="text-sm font-medium truncate">
+                                    {item.menuItem.name}
+                                  </span>
+                                  <Badge variant="outline" className="text-xs px-1.5 py-0 flex-shrink-0">
+                                    x {item.qty}
+                                  </Badge>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+                                <Badge variant={itemStatusConfig.badgeVariant} className="text-xs">
+                                  {getStatusText(item.status)}
+                                </Badge>
+                                <p className="font-semibold text-sm whitespace-nowrap">
+                                  {item.itemType === 'BUFFET_INCLUDED' ? (
+                                    <span className="text-muted-foreground text-xs">
+                                      {t('menu.buffet_included')}
+                                    </span>
+                                  ) : (
+                                    <span className="text-primary">
+                                      ฿{(item.menuItem.price * item.qty).toLocaleString()}
+                                    </span>
+                                  )}
+                                </p>
+                              </div>
                             </div>
+                            
+                            {/* Row 2: Note ของ item (ถ้ามี) */}
+                            {item.note && (
+                              <div className="flex items-start gap-1.5 pl-12 sm:pl-14">
+                                <StickyNote className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                                <p className="text-xs text-muted-foreground italic flex-1 break-words">
+                                  {item.note}
+                                </p>
+                              </div>
+                            )}
                           </div>
                         )
                       })}
