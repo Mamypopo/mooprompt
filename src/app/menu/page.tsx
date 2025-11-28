@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback, useRef } from 'react'
+import { determineItemType } from '@/lib/menu-item-type'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Plus, Minus, ShoppingCart, CheckCircle2, Filter, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -218,20 +219,7 @@ export default function MenuPage() {
     const qty = getQuantity(item.id)
 
     // กำหนด itemType ตาม session type และ item properties
-    let itemType: 'BUFFET_INCLUDED' | 'A_LA_CARTE' = 'A_LA_CARTE'
-    
-    if (sessionType === 'buffet') {
-      // ถ้าเป็นบุฟเฟ่ต์ และ item นี้เป็น buffet item → ฟรี
-      if (item.isBuffetItem) {
-        itemType = 'BUFFET_INCLUDED'
-      } else {
-        // ถ้าไม่ใช่ buffet item → จ่ายเพิ่ม
-        itemType = 'A_LA_CARTE'
-      }
-    } else {
-      // ถ้าเป็น à la carte → จ่ายตามราคา
-      itemType = 'A_LA_CARTE'
-    }
+    const itemType = determineItemType(sessionType, item)
 
     addItem({
       menuItemId: item.id,

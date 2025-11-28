@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { ArrowLeft, Clock, CheckCircle, ChefHat, Utensils } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -18,6 +18,8 @@ interface OrderItem {
   menuItem: {
     name: string
     price: number
+    isBuffetItem?: boolean
+    isALaCarteItem?: boolean
   }
   qty: number
   status: 'WAITING' | 'COOKING' | 'DONE' | 'SERVED'
@@ -38,43 +40,20 @@ export default function OrdersPage() {
   const sessionId = searchParams.get('session')
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
-  const [isBuffet, setIsBuffet] = useState(false)
+  const [isBuffet, setIsBuffet] = useState<boolean | null>(null) // null = ยังไม่รู้
+  const [isBuffetLoading, setIsBuffetLoading] = useState(true)
+  
+  // ใช้ ref เพื่อป้องกันการเรียก API ซ้ำ
+  const fetchingOrdersRef = useRef(false)
+  const fetchingSessionRef = useRef(false)
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  useEffect(() => {
-    if (!sessionId) {
-      router.push('/')
-      return
-    }
-
-    fetchOrders()
-    const socket = getSocket()
-
-    socket.on('order:new', () => {
-      fetchOrders()
-    })
-
-    socket.on('order:cooking', () => {
-      fetchOrders()
-    })
-
-    socket.on('order:done', () => {
-      fetchOrders()
-    })
-
-    socket.on('order:served', () => {
-      fetchOrders()
-    })
-
-    return () => {
-      socket.off('order:new')
-      socket.off('order:cooking')
-      socket.off('order:done')
-      socket.off('order:served')
-    }
-  }, [sessionId, router])
-
-  const fetchOrders = async () => {
+  // Wrap fetchOrders ใน useCallback เพื่อป้องกันการสร้าง function ใหม่ทุกครั้ง
+  const fetchOrders = useCallback(async () => {
+    if (!sessionId || fetchingOrdersRef.current) return
+    
     try {
+      fetchingOrdersRef.current = true
       setLoading(true)
       const response = await fetch(`/api/session/${sessionId}/orders`)
       if (response.ok) {
@@ -85,30 +64,93 @@ export default function OrdersPage() {
       console.error('Error fetching orders:', error)
     } finally {
       setLoading(false)
+      fetchingOrdersRef.current = false
     }
-  }
+  }, [sessionId])
+
+  // Debounced version สำหรับ socket events
+  const debouncedFetchOrders = useCallback(() => {
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current)
+    }
+    debounceTimeoutRef.current = setTimeout(() => {
+      fetchOrders()
+    }, 300) // Debounce 300ms
+  }, [fetchOrders])
+
+  useEffect(() => {
+    if (!sessionId) {
+      router.push('/')
+      return
+    }
+
+    fetchOrders()
+    const socket = getSocket()
+
+    socket.on('order:new', debouncedFetchOrders)
+    socket.on('order:cooking', debouncedFetchOrders)
+    socket.on('order:done', debouncedFetchOrders)
+    socket.on('order:served', debouncedFetchOrders)
+
+    return () => {
+      socket.off('order:new')
+      socket.off('order:cooking')
+      socket.off('order:done')
+      socket.off('order:served')
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current)
+      }
+    }
+  }, [sessionId, router, fetchOrders, debouncedFetchOrders])
 
   // Fetch session info to check if it's buffet
+  // เรียกแค่ครั้งเดียวเมื่อ sessionId เปลี่ยน (ไม่ต้อง depend on orders)
   useEffect(() => {
-    if (!sessionId) return
+    if (!sessionId || fetchingSessionRef.current) return
 
     const fetchSessionInfo = async () => {
       try {
+        fetchingSessionRef.current = true
+        setIsBuffetLoading(true)
         const sessionIdNum = parseInt(sessionId, 10)
-        if (isNaN(sessionIdNum)) return
+        if (isNaN(sessionIdNum)) {
+          setIsBuffetLoading(false)
+          fetchingSessionRef.current = false
+          return
+        }
 
         const response = await fetch(`/api/session/${sessionIdNum}`)
         if (response.ok) {
           const data = await response.json()
-          setIsBuffet(data.session?.packageId !== null && data.session?.packageId !== undefined)
+          const hasPackage = data.session?.packageId !== null && data.session?.packageId !== undefined
+          setIsBuffet(hasPackage)
+        } else {
+          // ถ้า response ไม่ ok → default = false (à la carte)
+          // ไม่ต้องเช็คจาก orders เพราะจะทำให้เกิด loop
+          setIsBuffet(false)
         }
       } catch (error) {
         console.error('Error fetching session info:', error)
+        setIsBuffet(false)
+      } finally {
+        setIsBuffetLoading(false)
+        fetchingSessionRef.current = false
       }
     }
 
     fetchSessionInfo()
   }, [sessionId])
+  
+  // Fallback: ถ้า session API ไม่ได้ข้อมูล ให้เช็คจาก orders (แค่ครั้งเดียว)
+  useEffect(() => {
+    // ถ้ายังไม่รู้ว่าเป็น buffet และมี orders แล้ว → ลองเช็คจาก orders
+    if (isBuffet === null && orders.length > 0 && !fetchingSessionRef.current) {
+      const hasBuffetItems = orders.some(order => 
+        order.items.some(item => item.itemType === 'BUFFET_INCLUDED')
+      )
+      setIsBuffet(hasBuffetItems)
+    }
+  }, [orders, isBuffet])
 
   const getStatusConfig = (status: string) => {
     switch (status) {
@@ -160,13 +202,42 @@ export default function OrdersPage() {
   }
 
   const getOrderTotal = (order: Order) => {
+    // ถ้ายังไม่รู้ว่าเป็น buffet หรือไม่ → return 0 (รอให้ state พร้อม)
+    if (isBuffet === null) {
+      return 0
+    }
+    
     if (isBuffet) {
       // สำหรับบุฟเฟ่ต์: คำนวณแค่ A_LA_CARTE items (ยอดเพิ่มเติม)
+      // ไม่รวม BUFFET_INCLUDED items (ฟรี)
       return order.items.reduce((total, item) => {
+        // ตรวจสอบ itemType ก่อน (ถ้ามี)
         if (item.itemType === 'A_LA_CARTE') {
           return total + (item.menuItem.price * item.qty)
+        } else if (item.itemType === 'BUFFET_INCLUDED') {
+          // ฟรี (ไม่รวม)
+          return total
         }
-        return total
+        
+        // ถ้า itemType ไม่มีหรือไม่ชัดเจน (null, undefined, หรือค่าอื่น) 
+        // ให้เช็คจาก menuItem properties (fallback logic)
+        const isALaCarte = item.menuItem.isALaCarteItem ?? false
+        const isBuffetItem = item.menuItem.isBuffetItem ?? false
+        
+        // ถ้าเป็น à la carte item (ไม่ใช่ buffet item เท่านั้น) → จ่ายเพิ่ม
+        if (isALaCarte && !isBuffetItem) {
+          return total + (item.menuItem.price * item.qty)
+        }
+        // ถ้าเป็นทั้งสองแบบ → จ่ายเพิ่ม (เพราะเป็นเมนูเพิ่มเติม)
+        if (isALaCarte && isBuffetItem) {
+          return total + (item.menuItem.price * item.qty)
+        }
+        // ถ้าเป็น buffet item เท่านั้น → ฟรี (ไม่รวม)
+        if (!isALaCarte && isBuffetItem) {
+          return total
+        }
+        // ถ้าไม่มีข้อมูลเลย → จ่ายเพิ่ม (default เพื่อความปลอดภัย)
+        return total + (item.menuItem.price * item.qty)
       }, 0)
     } else {
       // สำหรับ à la carte: คำนวณทั้งหมด
@@ -176,7 +247,8 @@ export default function OrdersPage() {
     }
   }
 
-  if (loading) {
+  // แสดง loading ถ้ายังโหลด orders หรือยังไม่รู้ว่าเป็น buffet หรือไม่
+  if (loading || isBuffetLoading || isBuffet === null) {
     return (
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">

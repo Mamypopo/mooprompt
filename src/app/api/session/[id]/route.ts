@@ -66,27 +66,18 @@ export async function GET(
       )
     }
 
-    // Check if session is active
-    if (session.status !== 'ACTIVE') {
-      return NextResponse.json(
-        { error: 'Session ไม่ได้เปิดใช้งาน', session },
-        { status: 400 }
-      )
-    }
-
-    // Check if session has expired
-    if (session.expireTime && new Date(session.expireTime) < new Date()) {
-      return NextResponse.json(
-        { error: 'Session หมดอายุแล้ว', session },
-        { status: 400 }
-      )
-    }
+    // Check if session is active (แต่ยัง return session data เพื่อให้ดูออเดอร์เก่าได้)
+    // ไม่ return error เพราะอาจต้องการดูออเดอร์เก่า
+    const isActive = session.status === 'ACTIVE'
+    const isExpired = session.expireTime && new Date(session.expireTime) < new Date()
 
     return NextResponse.json({ 
       session: {
         ...session,
         extraCharges,
-      }
+      },
+      isActive,
+      isExpired,
     })
   } catch (error) {
     console.error('Error fetching session:', error)

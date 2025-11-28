@@ -90,11 +90,14 @@ model MenuItem {
   category         MenuCategory    @relation(fields: [menuCategoryId], references: [id])
   orderItems       OrderItem[]
   
-  // เพิ่ม field สำหรับระบุว่า item นี้ใช้ได้กับบุฟเฟ่ต์หรือ à la carte
-  isBuffetItem     Boolean         @default(true)   // ใช้ได้กับบุฟเฟ่ต์
-  isALaCarteItem   Boolean         @default(true)   // ใช้ได้กับ à la carte
+  // Field สำหรับ filtering (แสดงใน session type ไหน)
+  isBuffetItem     Boolean         @default(true)   // แสดงในบุฟเฟ่ต์
+  isALaCarteItem   Boolean         @default(true)   // แสดงใน à la carte
   
-  // เพิ่ม field สำหรับกำหนดเมนูยอดนิยมและเมนูแนะนำ
+  // Field สำหรับการคิดเงิน (ฟรีในบุฟเฟ่ต์หรือไม่)
+  isFreeInBuffet   Boolean         @default(true)   // ฟรีในบุฟเฟ่ต์ (ถ้าแสดงในบุฟเฟ่ต์)
+  
+  // Field สำหรับกำหนดเมนูยอดนิยมและเมนูแนะนำ
   isFeatured       Boolean         @default(false)  // เมนูแนะนำ (สำหรับ Hero Banner)
   isPopular        Boolean         @default(false)  // เมนูยอดนิยม
 
@@ -103,6 +106,7 @@ model MenuItem {
   @@index([menuCategoryId])
   @@index([isBuffetItem])
   @@index([isALaCarteItem])
+  @@index([isFreeInBuffet])
   @@index([isFeatured])
   @@index([isPopular])
 }

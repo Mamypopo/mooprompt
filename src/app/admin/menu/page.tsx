@@ -34,6 +34,7 @@ interface MenuItem {
   menuCategoryId: number
   isBuffetItem?: boolean
   isALaCarteItem?: boolean
+  isFreeInBuffet?: boolean
   isFeatured?: boolean
   isPopular?: boolean
   category?: {
@@ -69,6 +70,7 @@ export default function MenuManagementPage() {
   const [uploadingImage, setUploadingImage] = useState(false)
   const [itemIsBuffetItem, setItemIsBuffetItem] = useState(true)
   const [itemIsALaCarteItem, setItemIsALaCarteItem] = useState(true)
+  const [itemIsFreeInBuffet, setItemIsFreeInBuffet] = useState(true)
   const [itemIsFeatured, setItemIsFeatured] = useState(false)
   const [itemIsPopular, setItemIsPopular] = useState(false)
 
@@ -234,6 +236,7 @@ export default function MenuManagementPage() {
     setEditingItem(null)
     setItemIsBuffetItem(true)
     setItemIsALaCarteItem(true)
+    setItemIsFreeInBuffet(true)
   }
 
   const resetCategoryForm = () => {
@@ -252,6 +255,7 @@ export default function MenuManagementPage() {
       setItemImagePreview(item.imageUrl || null)
       setItemIsBuffetItem(item.isBuffetItem ?? true)
       setItemIsALaCarteItem(item.isALaCarteItem ?? true)
+      setItemIsFreeInBuffet(item.isFreeInBuffet ?? true)
       setItemIsFeatured(item.isFeatured ?? false)
       setItemIsPopular(item.isPopular ?? false)
     } else {
@@ -336,16 +340,13 @@ export default function MenuManagementPage() {
         menuCategoryId: categoryIdNum,
         isBuffetItem: Boolean(itemIsBuffetItem),
         isALaCarteItem: Boolean(itemIsALaCarteItem),
+        isFreeInBuffet: Boolean(itemIsFreeInBuffet),
         isFeatured: Boolean(itemIsFeatured),
         isPopular: Boolean(itemIsPopular),
       }
       
-      // Always include imageUrl (null if no image, or valid URL)
-      // Convert empty string to null
       payload.imageUrl = finalImageUrl && finalImageUrl.trim() !== '' ? finalImageUrl.trim() : null
       
-      // Log payload for debugging
-      console.log('Sending payload:', payload)
 
       if (editingItem) {
         // Update
@@ -873,37 +874,84 @@ export default function MenuManagementPage() {
 
                 {/* แถวที่สาม: ประเภทเมนู + การแสดงผล */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-3">
-                    <Label className="text-base font-semibold">ประเภทเมนู</Label>
-                    <div className="space-y-3 bg-muted/30 dark:bg-muted/20 rounded-lg p-4">
-                      <div className="flex items-center space-x-3">
-                        <input
-                          type="checkbox"
-                          id="itemIsBuffetItem"
-                          checked={itemIsBuffetItem}
-                          onChange={(e) => setItemIsBuffetItem(e.target.checked)}
-                          className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 accent-accent cursor-pointer"
-                        />
-                        <Label htmlFor="itemIsBuffetItem" className="cursor-pointer text-sm">
-                          เมนูบุฟเฟ่ต์ (ใช้ได้กับบุฟเฟ่ต์)
-                        </Label>
+                  <div className="space-y-4">
+                    <div>
+                      <Label className="text-base font-semibold mb-3 block">ประเภทเมนู</Label>
+                      <div className="space-y-3 bg-muted/30 dark:bg-muted/20 rounded-lg p-4">
+                        <div className="flex items-center space-x-3">
+                          <input
+                            type="checkbox"
+                            id="itemIsBuffetItem"
+                            checked={itemIsBuffetItem}
+                            onChange={(e) => setItemIsBuffetItem(e.target.checked)}
+                            className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 accent-accent cursor-pointer"
+                          />
+                          <Label htmlFor="itemIsBuffetItem" className="cursor-pointer text-sm">
+                            เมนูบุฟเฟ่ต์ (ใช้ได้กับบุฟเฟ่ต์)
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-3">
+                          <input
+                            type="checkbox"
+                            id="itemIsALaCarteItem"
+                            checked={itemIsALaCarteItem}
+                            onChange={(e) => setItemIsALaCarteItem(e.target.checked)}
+                            className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 accent-accent cursor-pointer"
+                          />
+                          <Label htmlFor="itemIsALaCarteItem" className="cursor-pointer text-sm">
+                            เมนู à la carte (ใช้ได้กับ à la carte)
+                          </Label>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-3 pt-3 border-t border-border/50">
+                          💡 สามารถเลือกได้ทั้งสองแบบ (เมนูจะแสดงในทั้งสองประเภท)
+                        </p>
                       </div>
-                      <div className="flex items-center space-x-3">
-                        <input
-                          type="checkbox"
-                          id="itemIsALaCarteItem"
-                          checked={itemIsALaCarteItem}
-                          onChange={(e) => setItemIsALaCarteItem(e.target.checked)}
-                          className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 accent-accent cursor-pointer"
-                        />
-                        <Label htmlFor="itemIsALaCarteItem" className="cursor-pointer text-sm">
-                          เมนู à la carte (ใช้ได้กับ à la carte)
-                        </Label>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-2">
-                        💡 สามารถเลือกได้ทั้งสองแบบ (เมนูจะแสดงในทั้งสองประเภท)
-                      </p>
                     </div>
+                    
+                    {/* แสดง checkbox "ฟรีในบุฟเฟ่ต์" เฉพาะเมื่อเลือก "เมนูบุฟเฟ่ต์" */}
+                    {itemIsBuffetItem && (
+                      <div className="animate-in fade-in slide-in-from-top-2 duration-200">
+                        <Label className="text-base font-semibold mb-3 block">การคิดเงินในบุฟเฟ่ต์</Label>
+                        <div className="space-y-3 bg-muted/30 dark:bg-muted/20 rounded-lg p-4 border-l-4 border-primary">
+                          <div className="flex items-center space-x-3">
+                            <input
+                              type="checkbox"
+                              id="itemIsFreeInBuffet"
+                              checked={itemIsFreeInBuffet}
+                              onChange={(e) => setItemIsFreeInBuffet(e.target.checked)}
+                              className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 accent-accent cursor-pointer"
+                            />
+                            <Label htmlFor="itemIsFreeInBuffet" className="cursor-pointer text-sm font-medium">
+                              ฟรีในบุฟเฟ่ต์ (รวมในบุฟเฟ่ต์)
+                            </Label>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-2 pl-7">
+                            {itemIsFreeInBuffet 
+                              ? '✅ เมนูนี้จะฟรีสำหรับลูกค้าบุฟเฟ่ต์'
+                              : '💰 เมนูนี้จะจ่ายเพิ่มสำหรับลูกค้าบุฟเฟ่ต์ (เมนูเพิ่มเติม)'}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* แสดงข้อความแนะนำเมื่อเลือก "เมนู à la carte" เท่านั้น */}
+                    {!itemIsBuffetItem && itemIsALaCarteItem && (
+                      <div className="animate-in fade-in slide-in-from-top-2 duration-200">
+                        <div className="bg-blue-50 dark:bg-blue-950/30 rounded-lg p-4 border-l-4 border-blue-500">
+                          <div className="flex items-start space-x-2">
+                            <span className="text-blue-600 dark:text-blue-400 text-lg">ℹ️</span>
+                            <div className="flex-1">
+                              <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
+                                เมนูเพิ่มเติมสำหรับบุฟเฟ่ต์
+                              </p>
+                              <p className="text-xs text-blue-700 dark:text-blue-300">
+                                เมนูนี้จะแสดงในบุฟเฟ่ต์และจะจ่ายเพิ่ม (ไม่รวมในบุฟเฟ่ต์)
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div className="space-y-3">

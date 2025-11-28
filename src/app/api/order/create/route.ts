@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { logAction } from '@/lib/logger'
 import { z } from 'zod'
 import { emitSocketEvent } from '@/lib/socket'
+import { determineItemType } from '@/lib/menu-item-type'
 
 const createOrderSchema = z.object({
   tableSessionId: z.number().int().positive(),
@@ -25,6 +26,9 @@ export async function POST(request: NextRequest) {
     // Verify session exists and is active
     const session = await prisma.tableSession.findUnique({
       where: { id: data.tableSessionId },
+      include: {
+        package: true,
+      },
     })
 
     if (!session || session.status !== 'ACTIVE') {
@@ -34,6 +38,22 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // ตรวจสอบว่าเป็น buffet หรือ à la carte
+    const isBuffet = session.packageId !== null
+
+    // Fetch menu items เพื่อตรวจสอบ properties
+    const menuItemIds = data.items.map(item => item.menuItemId)
+    const menuItems = await prisma.menuItem.findMany({
+      where: { id: { in: menuItemIds } },
+      select: {
+        id: true,
+        isBuffetItem: true,
+        isALaCarteItem: true,
+      },
+    })
+
+    const menuItemMap = new Map(menuItems.map(item => [item.id, item]))
+
     // Create order with items
     const order = await prisma.order.create({
       data: {
@@ -41,13 +61,27 @@ export async function POST(request: NextRequest) {
         note: data.note,
         status: 'OPEN',
         items: {
-          create: data.items.map((item) => ({
-            menuItemId: item.menuItemId,
-            qty: item.qty,
-            note: item.note,
-            status: 'WAITING',
-            itemType: item.itemType || 'A_LA_CARTE', // ใช้ itemType ที่ส่งมา หรือ default = A_LA_CARTE
-          })),
+          create: data.items.map((item) => {
+            // กำหนด itemType: ใช้ที่ส่งมา หรือคำนวณใหม่ตาม logic
+            let itemType: 'BUFFET_INCLUDED' | 'A_LA_CARTE' = item.itemType || 'A_LA_CARTE'
+            
+            // ถ้าไม่ได้ส่ง itemType มา ให้คำนวณตาม logic
+            if (!item.itemType) {
+              const menuItem = menuItemMap.get(item.menuItemId)
+              if (menuItem) {
+                const sessionType = isBuffet ? 'buffet' : 'a_la_carte'
+                itemType = determineItemType(sessionType, menuItem)
+              }
+            }
+            
+            return {
+              menuItemId: item.menuItemId,
+              qty: item.qty,
+              note: item.note,
+              status: 'WAITING',
+              itemType,
+            }
+          }),
         },
       },
       include: {

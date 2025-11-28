@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { determineItemType } from '@/lib/menu-item-type'
 import { ShoppingCart, Menu as MenuIcon, Receipt, Star, ChevronLeft, ChevronRight, Plus, Minus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -197,15 +198,17 @@ export default function SessionPage() {
     if (!item.isAvailable) return
 
     const qty = itemQuantity
-    const isBuffetItem = sessionType === 'buffet' && item.isBuffetItem && !item.isALaCarteItem
+    
+    // กำหนด itemType ตาม session type และ item properties
+    const itemType = determineItemType(sessionType, item)
 
     addItem({
       menuItemId: item.id,
       name: item.name,
-      price: item.price,
+      price: itemType === 'BUFFET_INCLUDED' ? 0 : item.price, // ฟรีถ้าเป็น BUFFET_INCLUDED
       qty,
       note: itemNote,
-      itemType: isBuffetItem ? 'BUFFET_INCLUDED' : 'A_LA_CARTE',
+      itemType,
     })
 
     Swal.fire({

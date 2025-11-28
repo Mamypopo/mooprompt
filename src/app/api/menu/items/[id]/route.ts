@@ -28,6 +28,7 @@ const updateMenuItemSchema = z.object({
   menuCategoryId: z.number().int().positive().optional(),
   isBuffetItem: z.boolean().optional(),
   isALaCarteItem: z.boolean().optional(),
+  isFreeInBuffet: z.boolean().optional(),
   isFeatured: z.boolean().optional(),
   isPopular: z.boolean().optional(),
 })
@@ -133,6 +134,7 @@ export async function PATCH(
         ...(data.menuCategoryId && { menuCategoryId: data.menuCategoryId }),
         ...(data.isBuffetItem !== undefined && { isBuffetItem: data.isBuffetItem }),
         ...(data.isALaCarteItem !== undefined && { isALaCarteItem: data.isALaCarteItem }),
+        ...(data.isFreeInBuffet !== undefined && { isFreeInBuffet: data.isFreeInBuffet }),
         ...(data.isFeatured !== undefined && { isFeatured: data.isFeatured }),
         ...(data.isPopular !== undefined && { isPopular: data.isPopular }),
       },

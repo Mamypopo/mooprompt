@@ -27,6 +27,7 @@ const createMenuItemSchema = z.object({
   menuCategoryId: z.number().int().positive(),
   isBuffetItem: z.boolean().default(true),
   isALaCarteItem: z.boolean().default(true),
+  isFreeInBuffet: z.boolean().default(true),
   isFeatured: z.boolean().default(false),
   isPopular: z.boolean().default(false),
 })
@@ -39,6 +40,7 @@ const updateMenuItemSchema = z.object({
   menuCategoryId: z.number().int().positive().optional(),
   isBuffetItem: z.boolean().optional(),
   isALaCarteItem: z.boolean().optional(),
+  isFreeInBuffet: z.boolean().optional(),
   isFeatured: z.boolean().optional(),
   isPopular: z.boolean().optional(),
 })
@@ -101,6 +103,7 @@ export async function POST(request: NextRequest) {
         menuCategoryId: data.menuCategoryId,
         isBuffetItem: data.isBuffetItem,
         isALaCarteItem: data.isALaCarteItem,
+        isFreeInBuffet: data.isFreeInBuffet,
         isFeatured: data.isFeatured,
         isPopular: data.isPopular,
       },
