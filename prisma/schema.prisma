@@ -83,6 +83,7 @@ model MenuCategory {
 model MenuItem {
   id               Int             @id @default(autoincrement())
   name             String
+  description      String?          // รายละเอียดเมนู (เช่น ส่วนประกอบ, วิธีทำ)
   price            Float
   imageUrl         String?
   isAvailable      Boolean         @default(true)

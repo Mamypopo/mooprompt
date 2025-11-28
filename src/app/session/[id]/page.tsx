@@ -34,11 +34,13 @@ import Swal from 'sweetalert2'
 interface MenuItem {
   id: number
   name: string
+  description?: string | null
   price: number
   imageUrl?: string
   isAvailable: boolean
   isBuffetItem?: boolean
   isALaCarteItem?: boolean
+  isFreeInBuffet?: boolean
   isFeatured?: boolean
   isPopular?: boolean
 }
@@ -316,6 +318,11 @@ export default function SessionPage() {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent flex items-end">
                       <div className="p-4 sm:p-6 w-full">
                         <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2">{item.name}</h3>
+                        {item.description && (
+                          <p className="text-xs sm:text-sm text-white/80 line-clamp-2 mb-2">
+                            {item.description}
+                          </p>
+                        )}
                         <p className="text-sm sm:text-base text-white/90">
                           {sessionType === 'buffet' && item.isBuffetItem && !item.isALaCarteItem
                             ? t('menu.buffet_included')
@@ -416,6 +423,11 @@ export default function SessionPage() {
                     )}
                     <CardContent className="p-3">
                       <h3 className="font-semibold text-sm mb-1 line-clamp-2">{item.name}</h3>
+                      {item.description && (
+                        <p className="text-xs text-muted-foreground line-clamp-2 mb-1.5 leading-relaxed">
+                          {item.description}
+                        </p>
+                      )}
                       <p className="text-primary font-bold text-sm">
                         {isBuffetItem ? (
                           <span className="text-muted-foreground text-xs">{t('menu.buffet_included')}</span>
@@ -453,6 +465,11 @@ export default function SessionPage() {
                       alt={selectedItem.name}
                       className="w-full h-full object-cover"
                     />
+                  </div>
+                )}
+                {selectedItem.description && (
+                  <div className="text-sm text-muted-foreground leading-relaxed">
+                    {selectedItem.description}
                   </div>
                 )}
                 <div className="flex items-center justify-center gap-4">
@@ -524,6 +541,11 @@ export default function SessionPage() {
                     alt={selectedItem.name}
                     className="w-full h-full object-cover"
                   />
+                </div>
+              )}
+              {selectedItem.description && (
+                <div className="text-sm text-muted-foreground leading-relaxed">
+                  {selectedItem.description}
                 </div>
               )}
               <div className="space-y-4">

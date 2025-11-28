@@ -21,6 +21,7 @@ const imageUrlSchema = z.preprocess(
 
 const createMenuItemSchema = z.object({
   name: z.string().min(1),
+  description: z.string().optional().nullable(),
   price: z.number().positive(),
   imageUrl: imageUrlSchema.optional().nullable(),
   isAvailable: z.boolean().default(true),
@@ -94,9 +95,13 @@ export async function POST(request: NextRequest) {
     // Normalize imageUrl: convert empty string to null
     const normalizedImageUrl = data.imageUrl === '' ? null : data.imageUrl
 
+    // Normalize description: convert empty string to null
+    const normalizedDescription = data.description === '' ? null : data.description
+
     const item = await prisma.menuItem.create({
       data: {
         name: data.name,
+        description: normalizedDescription,
         price: data.price,
         imageUrl: normalizedImageUrl,
         isAvailable: data.isAvailable,

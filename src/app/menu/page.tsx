@@ -43,11 +43,13 @@ import { Skeleton } from '@/components/ui/skeleton'
 interface MenuItem {
   id: number
   name: string
+  description?: string | null
   price: number
   imageUrl?: string
   isAvailable: boolean
   isBuffetItem?: boolean
   isALaCarteItem?: boolean
+  isFreeInBuffet?: boolean
   isFeatured?: boolean
   isPopular?: boolean
 }
@@ -406,6 +408,11 @@ export default function MenuPage() {
                                     </span>
                                   )}
                                 </div>
+                                {item.description && (
+                                  <p className="text-xs text-muted-foreground line-clamp-2 mb-1.5 leading-relaxed">
+                                    {item.description}
+                                  </p>
+                                )}
                                 <p className="text-sm sm:text-base mb-2 sm:mb-3">
                                   {isBuffetItem ? (
                                     <span className="text-muted-foreground text-xs sm:text-sm">{t('menu.buffet_included')}</span>
@@ -448,6 +455,11 @@ export default function MenuPage() {
                       alt={selectedItem.name}
                       className="w-full h-full object-cover"
                     />
+                  </div>
+                )}
+                {selectedItem.description && (
+                  <div className="text-sm text-muted-foreground leading-relaxed">
+                    {selectedItem.description}
                   </div>
                 )}
                 <div className="flex items-center justify-center gap-4">
@@ -516,6 +528,11 @@ export default function MenuPage() {
                       alt={selectedItem.name}
                       className="w-full h-full object-cover"
                     />
+                  </div>
+                )}
+                {selectedItem.description && (
+                  <div className="text-sm text-muted-foreground leading-relaxed">
+                    {selectedItem.description}
                   </div>
                 )}
                 <div className="flex items-center justify-center gap-4">

@@ -78,7 +78,7 @@ export function CustomerFooter() {
                 {item.badge && (
                   <Badge
                     variant="destructive"
-                    className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center text-xs"
+                    className="absolute -top-2 -right-2 min-w-[18px] h-[18px] px-1 flex items-center justify-center text-[10px] font-bold leading-none rounded-full"
                   >
                     {item.badge > 99 ? '99+' : item.badge}
                   </Badge>

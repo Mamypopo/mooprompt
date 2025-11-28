@@ -28,6 +28,7 @@ import Image from 'next/image'
 interface MenuItem {
   id: number
   name: string
+  description?: string | null
   price: number
   imageUrl?: string | null
   isAvailable: boolean
@@ -61,6 +62,7 @@ export default function MenuManagementPage() {
 
   // Form states for menu item
   const [itemName, setItemName] = useState('')
+  const [itemDescription, setItemDescription] = useState('')
   const [itemPrice, setItemPrice] = useState('')
   const [itemCategoryId, setItemCategoryId] = useState<string>('')
   const [itemIsAvailable, setItemIsAvailable] = useState(true)
@@ -225,6 +227,7 @@ export default function MenuManagementPage() {
 
   const resetItemForm = () => {
     setItemName('')
+    setItemDescription('')
     setItemPrice('')
     setItemCategoryId('')
     setItemIsAvailable(true)
@@ -248,6 +251,7 @@ export default function MenuManagementPage() {
     if (item) {
       setEditingItem(item)
       setItemName(item.name)
+      setItemDescription(item.description || '')
       setItemPrice(item.price.toString())
       setItemCategoryId(item.menuCategoryId.toString())
       setItemIsAvailable(item.isAvailable)
@@ -335,6 +339,7 @@ export default function MenuManagementPage() {
 
       const payload: any = {
         name: itemName.trim(),
+        description: itemDescription.trim() || null,
         price: Number(price),
         isAvailable: Boolean(itemIsAvailable),
         menuCategoryId: categoryIdNum,
@@ -796,6 +801,19 @@ export default function MenuManagementPage() {
                   </div>
                 </div>
 
+                {/* รายละเอียดเมนู */}
+                <div>
+                  <Label htmlFor="itemDescription">รายละเอียดเมนู</Label>
+                  <textarea
+                    id="itemDescription"
+                    value={itemDescription}
+                    onChange={(e) => setItemDescription(e.target.value)}
+                    placeholder="เช่น ส่วนประกอบ, วิธีทำ, ข้อมูลเพิ่มเติม (ไม่บังคับ)"
+                    className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    rows={3}
+                  />
+                </div>
+
                 {/* แถวที่สอง: หมวดหมู่ + พร้อมให้บริการ */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
@@ -1082,6 +1100,11 @@ export default function MenuManagementPage() {
                                   <h3 className="font-semibold text-sm sm:text-base truncate">
                                     {item.name}
                                   </h3>
+                                  {item.description && (
+                                    <p className="text-xs text-muted-foreground line-clamp-2 mt-1 mb-1 leading-relaxed">
+                                      {item.description}
+                                    </p>
+                                  )}
                                   <p className="text-primary font-bold text-sm sm:text-base">
                                     ฿{item.price.toLocaleString()}
                                   </p>

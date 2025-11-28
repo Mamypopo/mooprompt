@@ -22,6 +22,7 @@ const imageUrlSchema = z.preprocess(
 
 const updateMenuItemSchema = z.object({
   name: z.string().min(1).optional(),
+  description: z.string().optional().nullable(),
   price: z.number().positive().optional(),
   imageUrl: imageUrlSchema.optional().nullable(),
   isAvailable: z.boolean().optional(),
@@ -122,11 +123,17 @@ export async function PATCH(
     const normalizedImageUrl = 'imageUrl' in data 
       ? (data.imageUrl === '' || data.imageUrl === undefined ? null : data.imageUrl)
       : undefined
+    
+    // Normalize description: convert empty string to null
+    const normalizedDescription = 'description' in data
+      ? (data.description === '' || data.description === undefined ? null : data.description)
+      : undefined
 
     const item = await prisma.menuItem.update({
       where: { id: itemId },
       data: {
         ...(data.name && { name: data.name }),
+        ...('description' in data && { description: normalizedDescription }),
         ...(data.price !== undefined && { price: data.price }),
         // Only update imageUrl if it was explicitly provided in the request
         ...('imageUrl' in data && { imageUrl: normalizedImageUrl }),
