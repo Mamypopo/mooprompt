@@ -14,16 +14,25 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Fetch session เพื่อดูว่าเป็นบุฟเฟ่ต์หรือ à la carte
+    // Fetch session เพื่อดูว่าเป็นบุฟเฟ่ต์หรือ à la carte และเช็คว่าหมดอายุหรือไม่
     let isBuffet = false
+    let isExpired = false
     try {
       const sessionIdNum = parseInt(sessionId, 10)
       if (!isNaN(sessionIdNum)) {
         const session = await prisma.tableSession.findUnique({
           where: { id: sessionIdNum },
-          select: { packageId: true },
+          select: { 
+            packageId: true,
+            expireTime: true,
+            status: true,
+          },
         })
         isBuffet = session?.packageId !== null
+        // Check if session is expired
+        if (session?.expireTime && new Date(session.expireTime) < new Date()) {
+          isExpired = true
+        }
       }
     } catch (error) {
       // ถ้า session ไม่พบหรือ error ก็ไม่เป็นไร (ใช้ default = à la carte)
@@ -86,6 +95,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       categories,
       sessionType: isBuffet ? 'buffet' : 'a_la_carte',
+      isExpired,
     })
   } catch (error) {
     console.error('Error fetching menu:', error)

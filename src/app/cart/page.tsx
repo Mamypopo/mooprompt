@@ -22,6 +22,7 @@ export default function CartPage() {
   const { items, removeItem, updateItem, clearCart, getTotal } = useCartStore()
   const [note, setNote] = useState('')
   const [loading, setLoading] = useState(true)
+  const [isExpired, setIsExpired] = useState(false)
 
   useEffect(() => {
     if (!sessionId) {
@@ -35,11 +36,53 @@ export default function CartPage() {
     return () => clearTimeout(timer)
   }, [sessionId, router])
 
+  // Check session expiration
+  useEffect(() => {
+    const checkSessionExpiration = async () => {
+      if (!sessionId) return
+      
+      try {
+        const sessionIdNum = parseInt(sessionId, 10)
+        if (isNaN(sessionIdNum)) return
+
+        const response = await fetch(`/api/session/${sessionIdNum}`)
+        if (response.ok) {
+          const data = await response.json()
+          if (data.isExpired) {
+            setIsExpired(true)
+          }
+        }
+      } catch (error) {
+        console.error('Error checking session expiration:', error)
+      }
+    }
+
+    checkSessionExpiration()
+    // Check every 30 seconds
+    const interval = setInterval(checkSessionExpiration, 30000)
+    return () => clearInterval(interval)
+  }, [sessionId])
+
   const handleCheckout = async () => {
     if (items.length === 0) {
       Swal.fire({
         icon: 'warning',
         title: t('cart.empty'),
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+      })
+      return
+    }
+
+    // Block if session is expired
+    if (isExpired) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Session หมดอายุแล้ว',
+        text: 'ไม่สามารถสั่งอาหารได้ กรุณาติดต่อพนักงาน',
         toast: true,
         position: 'top-end',
         showConfirmButton: false,

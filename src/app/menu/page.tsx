@@ -75,6 +75,7 @@ export default function MenuPage() {
   const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [itemNote, setItemNote] = useState<string>('')
+  const [isExpired, setIsExpired] = useState(false)
   const hasLoadedRef = useRef(false) // ติดตามว่าโหลดครั้งแรกเสร็จแล้วหรือยัง
   const fetchingRef = useRef(false) // ป้องกันการเรียก fetchMenu พร้อมกันหลายครั้ง
   const lastSessionIdRef = useRef<string | null>(null) // ติดตาม sessionId ที่ fetch แล้ว
@@ -103,6 +104,12 @@ export default function MenuPage() {
       const data = await response.json()
       setCategories(data.categories || [])
       setSessionType(data.sessionType || 'a_la_carte')
+      // Check if session is expired
+      if (data.isExpired) {
+        setIsExpired(true)
+      } else {
+        setIsExpired(false)
+      }
       if (!silent) {
         hasLoadedRef.current = true // บันทึกว่าโหลดครั้งแรกเสร็จแล้ว
         lastSessionIdRef.current = sessionId // บันทึก sessionId ที่ fetch แล้ว
@@ -209,6 +216,21 @@ export default function MenuPage() {
       Swal.fire({
         icon: 'warning',
         title: 'สินค้าไม่พร้อมให้บริการ',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+      })
+      return
+    }
+
+    // Block if session is expired
+    if (isExpired) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Session หมดอายุแล้ว',
+        text: 'ไม่สามารถสั่งอาหารได้ กรุณาติดต่อพนักงาน',
         toast: true,
         position: 'top-end',
         showConfirmButton: false,

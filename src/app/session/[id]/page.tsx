@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { determineItemType } from '@/lib/menu-item-type'
-import { ShoppingCart, Menu as MenuIcon, Receipt, Star, ChevronLeft, ChevronRight, Plus, Minus } from 'lucide-react'
+import { ShoppingCart, Menu as MenuIcon, Receipt, Star, ChevronLeft, ChevronRight, Plus, Minus, Clock, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { useTranslations } from '@/lib/i18n'
@@ -62,6 +62,8 @@ export default function SessionPage() {
   const [itemQuantity, setItemQuantity] = useState(1)
   const { addItem } = useCartStore()
   const [sessionType, setSessionType] = useState<'buffet' | 'a_la_carte'>('a_la_carte')
+  const [timeRemaining, setTimeRemaining] = useState<string>('')
+  const [isExpired, setIsExpired] = useState(false)
 
   useEffect(() => {
     const fetchSession = async () => {
@@ -116,6 +118,16 @@ export default function SessionPage() {
 
         setSession(data.session)
         setSessionType(data.session?.packageId ? 'buffet' : 'a_la_carte')
+        
+        // Check if session is expired
+        if (data.isExpired) {
+          setIsExpired(true)
+        }
+        
+        // Calculate time remaining if expireTime exists
+        if (data.session?.expireTime) {
+          updateTimeRemaining(data.session.expireTime)
+        }
       } catch (error) {
         console.error('Error fetching session:', error)
         Swal.fire({
@@ -196,8 +208,63 @@ export default function SessionPage() {
     setIsDetailOpen(true)
   }
 
+  // Calculate and update time remaining
+  const updateTimeRemaining = useCallback((expireTime: string) => {
+    const update = () => {
+      const now = new Date()
+      const expire = new Date(expireTime)
+      const diff = expire.getTime() - now.getTime()
+
+      if (diff <= 0) {
+        setTimeRemaining('หมดอายุแล้ว')
+        setIsExpired(true)
+        return
+      }
+
+      setIsExpired(false)
+      const hours = Math.floor(diff / (1000 * 60 * 60))
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000)
+
+      if (hours > 0) {
+        setTimeRemaining(`${hours} ชม. ${minutes} นาที`)
+      } else if (minutes > 0) {
+        setTimeRemaining(`${minutes} นาที ${seconds} วินาที`)
+      } else {
+        setTimeRemaining(`${seconds} วินาที`)
+      }
+    }
+
+    update()
+    const interval = setInterval(update, 1000)
+    return () => clearInterval(interval)
+  }, [])
+
+  // Update time remaining when session changes
+  useEffect(() => {
+    if (session?.expireTime) {
+      const cleanup = updateTimeRemaining(session.expireTime)
+      return cleanup
+    }
+  }, [session?.expireTime, updateTimeRemaining])
+
   const handleAddToCart = (item: MenuItem) => {
     if (!item.isAvailable) return
+
+    // Block if session is expired
+    if (isExpired) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Session หมดอายุแล้ว',
+        text: 'ไม่สามารถสั่งอาหารได้ กรุณาติดต่อพนักงาน',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+      })
+      return
+    }
 
     const qty = itemQuantity
     
@@ -247,6 +314,27 @@ export default function SessionPage() {
               <p className="text-sm text-muted-foreground">
                 {t('table.package_label', { name: session.package.name })}
               </p>
+            )}
+            {session?.expireTime && (
+              <div className={`flex items-center gap-1.5 mt-2 text-xs ${
+                timeRemaining === 'หมดอายุแล้ว' 
+                  ? 'text-destructive font-semibold' 
+                  : timeRemaining.includes('นาที') && !timeRemaining.includes('ชม.')
+                    ? 'text-warning font-medium'
+                    : 'text-muted-foreground'
+              }`}>
+                {timeRemaining === 'หมดอายุแล้ว' ? (
+                  <>
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    <span>หมดอายุแล้ว</span>
+                  </>
+                ) : (
+                  <>
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>เหลือเวลา: {timeRemaining}</span>
+                  </>
+                )}
+              </div>
             )}
           </div>
           <div className="flex items-center gap-2">

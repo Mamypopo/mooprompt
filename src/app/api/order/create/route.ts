@@ -38,6 +38,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Check if session has expired
+    if (session.expireTime && new Date(session.expireTime) < new Date()) {
+      return NextResponse.json(
+        { error: 'Session หมดอายุแล้ว ไม่สามารถสั่งอาหารได้' },
+        { status: 400 }
+      )
+    }
+
     // ตรวจสอบว่าเป็น buffet หรือ à la carte
     const isBuffet = session.packageId !== null
 
@@ -45,11 +53,6 @@ export async function POST(request: NextRequest) {
     const menuItemIds = data.items.map(item => item.menuItemId)
     const menuItems = await prisma.menuItem.findMany({
       where: { id: { in: menuItemIds } },
-      select: {
-        id: true,
-        isBuffetItem: true,
-        isALaCarteItem: true,
-      },
     })
 
     const menuItemMap = new Map(menuItems.map(item => [item.id, item]))
@@ -70,7 +73,10 @@ export async function POST(request: NextRequest) {
               const menuItem = menuItemMap.get(item.menuItemId)
               if (menuItem) {
                 const sessionType = isBuffet ? 'buffet' : 'a_la_carte'
-                itemType = determineItemType(sessionType, menuItem)
+                // determineItemType ต้องการ isFreeInBuffet แต่ถ้ายังไม่มีใน DB ให้ใช้ default
+                itemType = determineItemType(sessionType, {
+                  isFreeInBuffet: (menuItem as any).isFreeInBuffet ?? true,
+                })
               }
             }
             
