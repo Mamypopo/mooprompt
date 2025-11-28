@@ -3,6 +3,7 @@ import { Inter, Prompt } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
 import { SwalInit } from '@/components/swal-init'
+import { CustomerFooter } from '@/components/customer-footer'
 
 const prompt = Prompt({
   subsets: ['latin', 'thai'],
@@ -36,6 +37,7 @@ export default function RootLayout({
         >
           <SwalInit />
           {children}
+          <CustomerFooter />
         </ThemeProvider>
       </body>
     </html>

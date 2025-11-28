@@ -10,7 +10,6 @@ import { LanguageSwitcher } from '@/components/language-switcher'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { SessionSkeleton } from '@/components/skeletons'
 import { useCartStore } from '@/store/cart-store'
-import { CustomerFooter } from '@/components/customer-footer'
 import {
   Sheet,
   SheetContent,
@@ -573,8 +572,6 @@ export default function SessionPage() {
           )}
         </DialogContent>
       </Dialog>
-
-      <CustomerFooter />
     </div>
   )
 }

@@ -11,7 +11,6 @@ import { useCartStore } from '@/store/cart-store'
 import { LanguageSwitcher } from '@/components/language-switcher'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { CartItemSkeleton } from '@/components/skeletons'
-import { CustomerFooter } from '@/components/customer-footer'
 import { Skeleton } from '@/components/ui/skeleton'
 import Swal from 'sweetalert2'
 
@@ -142,7 +141,10 @@ export default function CartPage() {
               <ArrowLeft className="w-4 h-4 mr-2" />
               {t('common.back')}
             </Button>
-            <LanguageSwitcher />
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <LanguageSwitcher />
+            </div>
           </div>
           <Card className="text-center py-12">
             <CardContent>
@@ -269,7 +271,6 @@ export default function CartPage() {
           </CardContent>
         </Card>
       </div>
-      <CustomerFooter />
     </div>
   )
 }

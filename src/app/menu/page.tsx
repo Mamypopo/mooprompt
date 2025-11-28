@@ -38,7 +38,6 @@ import { getSocket } from '@/lib/socket-client'
 import Swal from 'sweetalert2'
 import { CategorySkeleton } from '@/components/skeletons'
 import { Skeleton } from '@/components/ui/skeleton'
-import { CustomerFooter } from '@/components/customer-footer'
 
 interface MenuItem {
   id: number
@@ -557,8 +556,6 @@ export default function MenuPage() {
           </div>
         </Button>
       )}
-
-      <CustomerFooter />
     </div>
   )
 }

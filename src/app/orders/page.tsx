@@ -10,7 +10,6 @@ import { getSocket } from '@/lib/socket-client'
 import { LanguageSwitcher } from '@/components/language-switcher'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { OrderCardSkeleton } from '@/components/skeletons'
-import { CustomerFooter } from '@/components/customer-footer'
 import { Skeleton } from '@/components/ui/skeleton'
 
 interface OrderItem {
@@ -195,7 +194,6 @@ export default function OrdersPage() {
           </div>
         )}
       </div>
-      <CustomerFooter />
     </div>
   )
 }
