@@ -9,7 +9,6 @@ import { Input } from '@/components/ui/input'
 import { useTranslations } from '@/lib/i18n'
 import { useCartStore } from '@/store/cart-store'
 import { LanguageSwitcher } from '@/components/language-switcher'
-import { ThemeToggle } from '@/components/theme-toggle'
 import { CartItemSkeleton } from '@/components/skeletons'
 import { Skeleton } from '@/components/ui/skeleton'
 import Swal from 'sweetalert2'
@@ -185,7 +184,6 @@ export default function CartPage() {
               {t('common.back')}
             </Button>
             <div className="flex items-center gap-2">
-              <ThemeToggle />
               <LanguageSwitcher />
             </div>
           </div>
@@ -218,7 +216,6 @@ export default function CartPage() {
               {t('common.back')}
             </Button>
           <div className="flex items-center gap-2">
-            <ThemeToggle />
             <LanguageSwitcher />
           </div>
         </div>

@@ -10,7 +10,6 @@ import { Badge } from '@/components/ui/badge'
 import { useTranslations } from '@/lib/i18n'
 import { getSocket } from '@/lib/socket-client'
 import { LanguageSwitcher } from '@/components/language-switcher'
-import { ThemeToggle } from '@/components/theme-toggle'
 import { OrderCardSkeleton } from '@/components/skeletons'
 import { Skeleton } from '@/components/ui/skeleton'
 
@@ -284,7 +283,6 @@ export default function OrdersPage() {
             {t('common.back')}
           </Button>
           <div className="flex items-center gap-2">
-            <ThemeToggle />
             <LanguageSwitcher />
           </div>
         </div>
@@ -360,7 +358,7 @@ export default function OrdersPage() {
                   <CardContent className="p-3 sm:p-4 pt-0">
                     {/* Order Note (ถ้ามี) */}
                     {order.note && (
-                      <div className="mb-3 p-2.5 bg-muted/50 dark:bg-muted/30 rounded-md border-l-2 border-primary">
+                      <div className="mb-3 p-2.5 bg-muted/50 rounded-md border-l-2 border-primary">
                         <div className="flex items-center gap-1.5 mb-1">
                           <FileText className="w-3.5 h-3.5 text-muted-foreground" />
                           <p className="text-xs font-medium text-muted-foreground">หมายเหตุออเดอร์:</p>

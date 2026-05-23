@@ -10,7 +10,6 @@ import { useTranslations } from '@/lib/i18n'
 import { useStaffLocale } from '@/lib/i18n-staff'
 import { getUser, logout } from '@/lib/auth-helpers'
 import { getSocket } from '@/lib/socket-client'
-import { ThemeToggle } from '@/components/theme-toggle'
 import Swal from 'sweetalert2'
 import { CategorySkeleton } from '@/components/skeletons'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -188,7 +187,6 @@ export default function KitchenMenuPage() {
             <h1 className="text-xl sm:text-2xl font-bold">จัดการเมนู</h1>
           </div>
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <ThemeToggle />
             <Button onClick={logout} variant="outline" className="flex-1 sm:flex-initial text-sm">
               {t('auth.logout')}
             </Button>

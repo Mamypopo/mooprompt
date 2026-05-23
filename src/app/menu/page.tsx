@@ -35,7 +35,6 @@ import {
 import { useTranslations } from '@/lib/i18n'
 import { useCartStore } from '@/store/cart-store'
 import { LanguageSwitcher } from '@/components/language-switcher'
-import { ThemeToggle } from '@/components/theme-toggle'
 import { getSocket } from '@/lib/socket-client'
 import Swal from 'sweetalert2'
 import { CategorySkeleton } from '@/components/skeletons'
@@ -332,7 +331,6 @@ export default function MenuPage() {
                 })}
               </SelectContent>
             </Select>
-            <ThemeToggle />
             <LanguageSwitcher />
             {/* Cart Button - Hidden on mobile (footer handles it), shown on desktop */}
             <Button

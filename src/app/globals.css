@@ -47,48 +47,6 @@
     --warning-foreground: 0 0% 100%;
   }
 
-  .dark {
-    /* Dark Mode Colors - Modern Red Theme (Optimized Palette) */
-    --background: 0 0% 12%; /* #1F1F1F - เทาเข้ม */
-    --foreground: 0 0% 98%;
-    --card: 0 0% 15%; /* Slightly lighter than background */
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 15%;
-    --popover-foreground: 0 0% 98%;
-    
-    /* Primary - สีแดงเข้มขึ้นสำหรับ dark mode */
-    --primary: 0 84% 55%; /* #DC2626 - Red-600 */
-    --primary-foreground: 0 0% 100%;
-    
-    /* Secondary - สีน้ำเงินสดใส */
-    --secondary: 217 91% 60%; /* #3B82F6 - Blue-500 */
-    --secondary-foreground: 0 0% 100%;
-    
-    /* Muted */
-    --muted: 0 0% 20%;
-    --muted-foreground: 0 0% 65%;
-    
-    /* Accent - สีส้ม */
-    --accent: 25 95% 53%; /* #F97316 - Orange-500 */
-    --accent-foreground: 0 0% 100%;
-    
-    /* Destructive - สีแดงเข้มมากสำหรับ dark mode (ต่างจาก primary ชัดเจน) */
-    --destructive: 0 65% 42%; /* #B91C1C - Red-700 เข้มมาก */
-    --destructive-foreground: 0 0% 100%;
-    
-    /* Border & Input */
-    --border: 0 0% 25%;
-    --input: 0 0% 20%;
-    --ring: 0 84% 55%; /* Primary color for focus ring */
-    
-    /* Status Colors */
-    --success: 142 76% 50%; /* #10B981 - Green-500 */
-    --success-foreground: 0 0% 100%;
-    --error: 0 65% 42%; /* #B91C1C - Red-700 (เหมือน destructive) */
-    --error-foreground: 0 0% 100%;
-    --warning: 25 95% 53%; /* #FF8C42 - Orange */
-    --warning-foreground: 0 0% 100%;
-  }
 }
 
 @layer base {
@@ -129,25 +87,6 @@
   @apply bg-primary;
 }
 
-/* Dark mode scrollbar */
-.dark ::-webkit-scrollbar-track {
-  @apply bg-muted/30;
-}
-
-.dark ::-webkit-scrollbar-thumb {
-  @apply bg-primary/50;
-  border: 2px solid transparent;
-  background-clip: padding-box;
-}
-
-.dark ::-webkit-scrollbar-thumb:hover {
-  @apply bg-primary/70;
-  border-color: hsl(var(--primary) / 0.3);
-}
-
-.dark ::-webkit-scrollbar-thumb:active {
-  @apply bg-primary/90;
-}
 
 /* Glass effect */
 .glass {

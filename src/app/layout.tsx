@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import { Inter, Prompt } from 'next/font/google'
 import './globals.css'
-import { ThemeProvider } from '@/components/theme-provider'
 import { SwalInit } from '@/components/swal-init'
 import { CustomerFooter } from '@/components/customer-footer'
 
@@ -29,16 +28,9 @@ export default function RootLayout({
   return (
     <html lang="th" suppressHydrationWarning>
       <body className={`${prompt.variable} ${inter.variable} font-sans`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange={false}
-        >
           <SwalInit />
           {children}
           <CustomerFooter />
-        </ThemeProvider>
       </body>
     </html>
   )

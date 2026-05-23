@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { useTranslations } from '@/lib/i18n'
 import { LanguageSwitcher } from '@/components/language-switcher'
-import { ThemeToggle } from '@/components/theme-toggle'
 import { SessionSkeleton } from '@/components/skeletons'
 import { useCartStore } from '@/store/cart-store'
 import {
@@ -339,7 +338,6 @@ export default function SessionPage() {
             )}
           </div>
           <div className="flex items-center gap-2">
-            <ThemeToggle />
             <LanguageSwitcher />
           </div>
         </div>

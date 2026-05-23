@@ -835,13 +835,13 @@ export default function MenuManagementPage() {
                     </Select>
                   </div>
                   <div className="flex items-end">
-                    <div className="flex items-center space-x-3 bg-muted/30 dark:bg-muted/20 rounded-lg p-4 w-full">
+                    <div className="flex items-center space-x-3 bg-muted/30 rounded-lg p-4 w-full">
                       <input
                         type="checkbox"
                         id="itemIsAvailable"
                         checked={itemIsAvailable}
                         onChange={(e) => setItemIsAvailable(e.target.checked)}
-                        className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 accent-accent cursor-pointer"
+                        className="w-4 h-4 rounded border-gray-300 accent-accent cursor-pointer"
                       />
                       <Label htmlFor="itemIsAvailable" className="cursor-pointer font-medium">
                         พร้อมให้บริการ
@@ -895,14 +895,14 @@ export default function MenuManagementPage() {
                   <div className="space-y-4">
                     <div>
                       <Label className="text-base font-semibold mb-3 block">ประเภทเมนู</Label>
-                      <div className="space-y-3 bg-muted/30 dark:bg-muted/20 rounded-lg p-4">
+                      <div className="space-y-3 bg-muted/30 rounded-lg p-4">
                         <div className="flex items-center space-x-3">
                           <input
                             type="checkbox"
                             id="itemIsBuffetItem"
                             checked={itemIsBuffetItem}
                             onChange={(e) => setItemIsBuffetItem(e.target.checked)}
-                            className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 accent-accent cursor-pointer"
+                            className="w-4 h-4 rounded border-gray-300 accent-accent cursor-pointer"
                           />
                           <Label htmlFor="itemIsBuffetItem" className="cursor-pointer text-sm">
                             เมนูบุฟเฟ่ต์ (ใช้ได้กับบุฟเฟ่ต์)
@@ -914,7 +914,7 @@ export default function MenuManagementPage() {
                             id="itemIsALaCarteItem"
                             checked={itemIsALaCarteItem}
                             onChange={(e) => setItemIsALaCarteItem(e.target.checked)}
-                            className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 accent-accent cursor-pointer"
+                            className="w-4 h-4 rounded border-gray-300 accent-accent cursor-pointer"
                           />
                           <Label htmlFor="itemIsALaCarteItem" className="cursor-pointer text-sm">
                             เมนู à la carte (ใช้ได้กับ à la carte)
@@ -930,14 +930,14 @@ export default function MenuManagementPage() {
                     {itemIsBuffetItem && (
                       <div className="animate-in fade-in slide-in-from-top-2 duration-200">
                         <Label className="text-base font-semibold mb-3 block">การคิดเงินในบุฟเฟ่ต์</Label>
-                        <div className="space-y-3 bg-muted/30 dark:bg-muted/20 rounded-lg p-4 border-l-4 border-primary">
+                        <div className="space-y-3 bg-muted/30 rounded-lg p-4 border-l-4 border-primary">
                           <div className="flex items-center space-x-3">
                             <input
                               type="checkbox"
                               id="itemIsFreeInBuffet"
                               checked={itemIsFreeInBuffet}
                               onChange={(e) => setItemIsFreeInBuffet(e.target.checked)}
-                              className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 accent-accent cursor-pointer"
+                              className="w-4 h-4 rounded border-gray-300 accent-accent cursor-pointer"
                             />
                             <Label htmlFor="itemIsFreeInBuffet" className="cursor-pointer text-sm font-medium">
                               ฟรีในบุฟเฟ่ต์ (รวมในบุฟเฟ่ต์)
@@ -955,14 +955,14 @@ export default function MenuManagementPage() {
                     {/* แสดงข้อความแนะนำเมื่อเลือก "เมนู à la carte" เท่านั้น */}
                     {!itemIsBuffetItem && itemIsALaCarteItem && (
                       <div className="animate-in fade-in slide-in-from-top-2 duration-200">
-                        <div className="bg-blue-50 dark:bg-blue-950/30 rounded-lg p-4 border-l-4 border-blue-500">
+                        <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-500">
                           <div className="flex items-start space-x-2">
-                            <span className="text-blue-600 dark:text-blue-400 text-lg">ℹ️</span>
+                            <span className="text-blue-600 text-lg">ℹ️</span>
                             <div className="flex-1">
-                              <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
+                              <p className="text-sm font-medium text-blue-900 mb-1">
                                 เมนูเพิ่มเติมสำหรับบุฟเฟ่ต์
                               </p>
-                              <p className="text-xs text-blue-700 dark:text-blue-300">
+                              <p className="text-xs text-blue-700">
                                 เมนูนี้จะแสดงในบุฟเฟ่ต์และจะจ่ายเพิ่ม (ไม่รวมในบุฟเฟ่ต์)
                               </p>
                             </div>
@@ -974,14 +974,14 @@ export default function MenuManagementPage() {
 
                   <div className="space-y-3">
                     <Label className="text-base font-semibold">การแสดงผล</Label>
-                    <div className="space-y-3 bg-muted/30 dark:bg-muted/20 rounded-lg p-4">
+                    <div className="space-y-3 bg-muted/30 rounded-lg p-4">
                       <div className="flex items-center space-x-3">
                         <input
                           type="checkbox"
                           id="itemIsFeatured"
                           checked={itemIsFeatured}
                           onChange={(e) => setItemIsFeatured(e.target.checked)}
-                          className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 accent-accent cursor-pointer"
+                          className="w-4 h-4 rounded border-gray-300 accent-accent cursor-pointer"
                         />
                         <Label htmlFor="itemIsFeatured" className="cursor-pointer text-sm">
                           เมนูแนะนำ (แสดงใน Hero Banner)
@@ -993,7 +993,7 @@ export default function MenuManagementPage() {
                           id="itemIsPopular"
                           checked={itemIsPopular}
                           onChange={(e) => setItemIsPopular(e.target.checked)}
-                          className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 accent-accent cursor-pointer"
+                          className="w-4 h-4 rounded border-gray-300 accent-accent cursor-pointer"
                         />
                         <Label htmlFor="itemIsPopular" className="cursor-pointer text-sm">
                           เมนูยอดนิยม (แสดงในส่วนเมนูยอดนิยม)

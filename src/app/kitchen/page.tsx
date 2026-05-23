@@ -9,7 +9,6 @@ import { useTranslations } from '@/lib/i18n'
 import { useStaffLocale } from '@/lib/i18n-staff'
 import { getUser, logout } from '@/lib/auth-helpers'
 import { getSocket } from '@/lib/socket-client'
-import { ThemeToggle } from '@/components/theme-toggle'
 import Swal from 'sweetalert2'
 import { OrderCardSkeleton } from '@/components/skeletons'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -279,7 +278,6 @@ export default function KitchenPage() {
               <Settings className="w-4 h-4 mr-2" />
               จัดการเมนู
             </Button>
-            <ThemeToggle />
             <Button onClick={logout} variant="outline" className="flex-1 sm:flex-initial text-sm">
               {t('auth.logout')}
             </Button>
@@ -299,7 +297,7 @@ export default function KitchenPage() {
                 key={order.id} 
                 className={`border-l-4 border-l-primary transition-all duration-300 ${
                   newOrderIds.has(order.id)
-                    ? 'ring-2 ring-primary bg-primary/5 dark:bg-primary/10 shadow-lg scale-[1.02] animate-in fade-in slide-in-from-top-2'
+                    ? 'ring-2 ring-primary bg-primary/5 shadow-lg scale-[1.02] animate-in fade-in slide-in-from-top-2'
                     : ''
                 }`}
               >
@@ -349,8 +347,8 @@ export default function KitchenPage() {
                             </div>
                           </div>
                           {item.note && (
-                            <div className="mt-2 p-2 bg-warning/10 dark:bg-warning/5 border border-warning/20 dark:border-warning/10 rounded-md">
-                              <p className="text-xs sm:text-sm font-medium text-warning-foreground dark:text-warning flex items-start gap-1.5">
+                            <div className="mt-2 p-2 bg-warning/10 border border-warning/20 rounded-md">
+                              <p className="text-xs sm:text-sm font-medium text-warning-foreground flex items-start gap-1.5">
                                 <StickyNote className="w-3 h-3 sm:w-4 sm:h-4 mt-0.5 flex-shrink-0" />
                                 <span>
                                   <span className="font-semibold">หมายเหตุ:</span> {item.note}

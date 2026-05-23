@@ -550,7 +550,7 @@ export default function CloseTablePage() {
                           {session.table.name}
                         </CardTitle>
                         {canCancelSession(session) && (
-                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-warning/90 dark:bg-warning/10 text-warning-foreground dark:text-warning border border-warning dark:border-warning/20 shrink-0">
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-warning/90 text-warning-foreground border border-warning shrink-0">
                             <AlertCircle className="w-3 h-3" />
                             ยังไม่มีออเดอร์
                           </span>
@@ -581,13 +581,13 @@ export default function CloseTablePage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="h-7 px-2 text-xs border-warning dark:border-warning/60 bg-warning/90 dark:bg-warning/10 text-warning-foreground dark:text-warning font-medium hover:bg-warning dark:hover:bg-warning/20 hover:border-warning dark:hover:border-warning/80"
+                          className="h-7 px-2 text-xs border-warning bg-warning/90 text-warning-foreground font-medium hover:bg-warning hover:border-warning"
                           onClick={(e) => handleCancelSession(session, e)}
                           disabled={cancelling === session.id}
                         >
                           {cancelling === session.id ? (
                             <>
-                              <div className="animate-spin rounded-full h-2.5 w-2.5 border-b-2 border-warning-foreground dark:border-warning/80 mr-1"></div>
+                              <div className="animate-spin rounded-full h-2.5 w-2.5 border-b-2 border-warning-foreground mr-1"></div>
                               <span className="hidden sm:inline">ยกเลิก</span>
                             </>
                           ) : (
@@ -700,8 +700,8 @@ export default function CloseTablePage() {
                           key={extraCharge.id}
                           className={`flex items-center gap-2 p-2 rounded cursor-pointer transition-colors ${
                             isSelected 
-                              ? 'bg-accent/10 dark:bg-accent/20 border border-accent dark:border-accent/50' 
-                              : 'hover:bg-muted/50 dark:hover:bg-muted/30'
+                              ? 'bg-accent/10 border border-accent'
+                              : 'hover:bg-muted/50'
                           }`}
                           onClick={() => {
                             if (isSelected) {
