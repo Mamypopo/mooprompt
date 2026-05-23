@@ -6,30 +6,30 @@ export async function GET() {
     const orders = await prisma.order.findMany({
       where: {
         status: 'OPEN',
-        items: {
-          some: {
-            status: 'DONE',
-          },
-        },
+        items: { some: { status: 'DONE' } },
       },
-      include: {
+      select: {
+        id: true,
+        createdAt: true,
+        status: true,
         session: {
-          include: {
-            table: true,
+          select: {
+            table: { select: { id: true, name: true } },
           },
         },
         items: {
-          where: {
-            status: 'DONE',
-          },
-          include: {
-            menuItem: true,
+          where: { status: 'DONE' },
+          select: {
+            id: true,
+            qty: true,
+            status: true,
+            menuItem: {
+              select: { id: true, name: true },
+            },
           },
         },
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
+      orderBy: { createdAt: 'desc' },
     })
 
     return NextResponse.json({ orders })
@@ -41,4 +41,3 @@ export async function GET() {
     )
   }
 }
-

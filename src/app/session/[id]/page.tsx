@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import Image from 'next/image'
 import { useParams, useRouter } from 'next/navigation'
 import { determineItemType } from '@/lib/menu-item-type'
 import { ShoppingCart, Menu as MenuIcon, Receipt, Star, ChevronLeft, ChevronRight, Plus, Minus, Clock, AlertCircle } from 'lucide-react'
@@ -386,10 +387,12 @@ export default function SessionPage() {
                     onClick={() => handleItemClick(item)}
                   >
                     {item.imageUrl ? (
-                      <img
+                      <Image
                         src={item.imageUrl}
                         alt={item.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        fill
+                        sizes="100vw"
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     ) : (
                       <div className="w-full h-full bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center">
@@ -491,10 +494,12 @@ export default function SessionPage() {
                   >
                     {item.imageUrl ? (
                       <div className="relative h-32 sm:h-40 overflow-hidden">
-                        <img
+                        <Image
                           src={item.imageUrl}
                           alt={item.name}
-                          className="w-full h-full object-cover"
+                          fill
+                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
+                          className="object-cover"
                         />
                         {!item.isAvailable && (
                           <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
@@ -547,11 +552,13 @@ export default function SessionPage() {
               </SheetHeader>
               <div className="mt-6 space-y-6">
                 {selectedItem.imageUrl && (
-                  <div className="w-full h-48 rounded-lg overflow-hidden bg-muted">
-                    <img
+                  <div className="relative w-full h-48 rounded-lg overflow-hidden bg-muted">
+                    <Image
                       src={selectedItem.imageUrl}
                       alt={selectedItem.name}
-                      className="w-full h-full object-cover"
+                      fill
+                      sizes="90vw"
+                      className="object-cover"
                     />
                   </div>
                 )}
@@ -624,10 +631,12 @@ export default function SessionPage() {
               </DialogHeader>
               {selectedItem.imageUrl && (
                 <div className="relative w-full h-48 sm:h-64 rounded-lg overflow-hidden">
-                  <img
+                  <Image
                     src={selectedItem.imageUrl}
                     alt={selectedItem.name}
-                    className="w-full h-full object-cover"
+                    fill
+                    sizes="448px"
+                    className="object-cover"
                   />
                 </div>
               )}

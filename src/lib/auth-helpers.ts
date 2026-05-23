@@ -13,11 +13,6 @@ export function getUser() {
   }
 }
 
-export function getToken() {
-  if (typeof window === 'undefined') return null
-  return localStorage.getItem('token')
-}
-
 export async function logout() {
   if (typeof window === 'undefined') return
 
@@ -33,11 +28,10 @@ export async function logout() {
 
   if (!result.isConfirmed) return
 
+  // Clear httpOnly cookie via API + clear local user info
+  await fetch('/api/auth/logout', { method: 'POST' })
   localStorage.removeItem('user')
-  localStorage.removeItem('token')
-  // Clear theme preference
-  localStorage.removeItem('theme')
-  
+
   Swal.fire({
     icon: 'success',
     title: 'ออกจากระบบสำเร็จ',
@@ -54,4 +48,3 @@ export async function logout() {
 export function hasRole(userRole: string, requiredRoles: string[]): boolean {
   return requiredRoles.includes(userRole)
 }
-

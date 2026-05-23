@@ -34,9 +34,8 @@ export default function LoginPage() {
         throw new Error(data.error || 'Login failed')
       }
 
-      // Store user data in localStorage
+      // Store non-sensitive user info (role, name) in localStorage — JWT token is in httpOnly cookie
       localStorage.setItem('user', JSON.stringify(data.user))
-      localStorage.setItem('token', data.token || 'dummy-token')
 
       Swal.fire({
         icon: 'success',

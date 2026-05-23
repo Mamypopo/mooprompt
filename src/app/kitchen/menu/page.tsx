@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { ChefHat, ArrowLeft, CheckCircle, XCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -218,12 +219,14 @@ export default function KitchenMenuPage() {
                             : 'border-destructive/20 opacity-60'
                         }`}
                       >
-                        <div className="relative w-full h-32 sm:h-40 bg-muted">
+                        <div className="relative w-full h-32 sm:h-40 bg-muted overflow-hidden">
                           {item.imageUrl ? (
-                            <img
+                            <Image
                               src={item.imageUrl}
                               alt={item.name}
-                              className="w-full h-full object-cover"
+                              fill
+                              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                              className="object-cover"
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs sm:text-sm">

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback, useRef } from 'react'
+import Image from 'next/image'
 import { determineItemType } from '@/lib/menu-item-type'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Plus, Minus, ShoppingCart, CheckCircle2, Filter, ArrowLeft } from 'lucide-react'
@@ -405,11 +406,13 @@ export default function MenuPage() {
                           <div className="flex gap-3 sm:gap-4">
                             {/* รูปภาพด้านซ้าย */}
                             {item.imageUrl ? (
-                              <div className="w-24 h-24 sm:w-28 sm:h-28 flex-shrink-0 rounded-lg overflow-hidden bg-muted shadow-sm">
-                                <img
+                              <div className="relative w-24 h-24 sm:w-28 sm:h-28 flex-shrink-0 rounded-lg overflow-hidden bg-muted shadow-sm">
+                                <Image
                                   src={item.imageUrl}
                                   alt={item.name}
-                                  className="w-full h-full object-cover transition-transform duration-200 hover:scale-110"
+                                  fill
+                                  sizes="(max-width: 640px) 96px, 112px"
+                                  className="object-cover transition-transform duration-200 hover:scale-110"
                                 />
                               </div>
                             ) : (
@@ -471,11 +474,13 @@ export default function MenuPage() {
               </SheetHeader>
               <div className="mt-6 space-y-6">
                 {selectedItem.imageUrl && (
-                  <div className="w-full h-48 rounded-lg overflow-hidden bg-muted">
-                    <img
+                  <div className="relative w-full h-48 rounded-lg overflow-hidden bg-muted">
+                    <Image
                       src={selectedItem.imageUrl}
                       alt={selectedItem.name}
-                      className="w-full h-full object-cover"
+                      fill
+                      sizes="90vw"
+                      className="object-cover"
                     />
                   </div>
                 )}
@@ -544,11 +549,13 @@ export default function MenuPage() {
               </DialogHeader>
               <div className="mt-4 space-y-4">
                 {selectedItem.imageUrl && (
-                  <div className="w-full h-64 rounded-lg overflow-hidden bg-muted">
-                    <img
+                  <div className="relative w-full h-64 rounded-lg overflow-hidden bg-muted">
+                    <Image
                       src={selectedItem.imageUrl}
                       alt={selectedItem.name}
-                      className="w-full h-full object-cover"
+                      fill
+                      sizes="448px"
+                      className="object-cover"
                     />
                   </div>
                 )}

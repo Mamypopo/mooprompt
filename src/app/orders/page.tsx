@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback, useRef } from 'react'
+import Image from 'next/image'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { ArrowLeft, Clock, CheckCircle, ChefHat, Utensils, FileText, StickyNote } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -382,11 +383,15 @@ export default function OrdersPage() {
                               <div className="flex items-center gap-2 flex-1 min-w-0">
                                 {/* รูปภาพเมนู (ถ้ามี) */}
                                 {item.menuItem.imageUrl ? (
-                                  <img
-                                    src={item.menuItem.imageUrl}
-                                    alt={item.menuItem.name}
-                                    className="w-10 h-10 rounded-md object-cover flex-shrink-0"
-                                  />
+                                  <div className="relative w-10 h-10 rounded-md overflow-hidden flex-shrink-0">
+                                    <Image
+                                      src={item.menuItem.imageUrl}
+                                      alt={item.menuItem.name}
+                                      fill
+                                      sizes="40px"
+                                      className="object-cover"
+                                    />
+                                  </div>
                                 ) : (
                                   <div className="w-10 h-10 rounded-md bg-muted flex items-center justify-center flex-shrink-0">
                                     <ItemIcon className={`w-5 h-5 ${itemStatusConfig.color}`} />

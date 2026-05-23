@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { Plus, Edit, Trash2, Image as ImageIcon, X, ChevronDown } from 'lucide-react'
+import { Plus, Edit, Trash2, Image as ImageIcon, X, ChevronDown, Filter } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -82,6 +82,8 @@ export default function MenuManagementPage() {
   // Pagination state: เก็บจำนวนรายการที่แสดงในแต่ละหมวดหมู่
   const [itemsPerCategory, setItemsPerCategory] = useState<Record<number, number>>({})
   const ITEMS_PER_PAGE = 12 // แสดง 12 รายการต่อครั้ง (3 columns x 4 rows)
+
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('all')
 
   // Debounce search term
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
@@ -593,10 +595,10 @@ export default function MenuManagementPage() {
     }
   }
 
-  // Reset pagination when search changes
+  // Reset pagination when search or category filter changes
   useEffect(() => {
     setItemsPerCategory({})
-  }, [debouncedSearchTerm])
+  }, [debouncedSearchTerm, selectedCategoryFilter])
 
   // Function to load more items for a category
   const loadMoreItems = (categoryId: number, currentCount: number) => {
@@ -606,11 +608,9 @@ export default function MenuManagementPage() {
     }))
   }
 
-  // Categories are already filtered by server, no need for client-side filtering
-  // But we still need to filter out empty categories when searching
-  const filteredCategories = debouncedSearchTerm
-    ? categories.filter((cat) => cat.items.length > 0)
-    : categories
+  const filteredCategories = categories
+    .filter((cat) => selectedCategoryFilter === 'all' || cat.id.toString() === selectedCategoryFilter)
+    .filter((cat) => !debouncedSearchTerm || cat.items.length > 0)
 
   // Skeleton component for menu items
   const MenuItemSkeleton = () => (
@@ -1027,7 +1027,7 @@ export default function MenuManagementPage() {
         </div>
       </div>
 
-      <div className="mb-4">
+      <div className="mb-4 flex flex-col sm:flex-row gap-2">
         <Input
           placeholder="ค้นหาเมนู..."
           value={searchTerm}
@@ -1035,6 +1035,25 @@ export default function MenuManagementPage() {
           className="w-full sm:max-w-sm"
           autoFocus
         />
+        <Select
+          value={selectedCategoryFilter}
+          onValueChange={(val) => {
+            setSelectedCategoryFilter(val)
+          }}
+        >
+          <SelectTrigger className="w-full sm:w-[200px]">
+            <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
+            <SelectValue placeholder="กรองหมวดหมู่" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">ทุกหมวดหมู่</SelectItem>
+            {categories.map((cat) => (
+              <SelectItem key={cat.id} value={cat.id.toString()}>
+                {cat.name} ({cat.items.length})
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="space-y-4 sm:space-y-6">

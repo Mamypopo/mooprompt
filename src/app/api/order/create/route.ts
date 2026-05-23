@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { logAction } from '@/lib/logger'
+import { checkRateLimit } from '@/lib/rate-limit'
 import { z } from 'zod'
 import { emitSocketEvent } from '@/lib/socket'
 import { determineItemType } from '@/lib/menu-item-type'
@@ -20,6 +21,15 @@ const createOrderSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    const ip = request.headers.get('x-forwarded-for') ?? request.headers.get('x-real-ip') ?? 'unknown'
+    const { allowed } = checkRateLimit(`order:${ip}`, 30, 60 * 1000)
+    if (!allowed) {
+      return NextResponse.json(
+        { error: 'สั่งอาหารบ่อยเกินไป กรุณารอสักครู่' },
+        { status: 429 }
+      )
+    }
+
     const body = await request.json()
     const data = createOrderSchema.parse(body)
 

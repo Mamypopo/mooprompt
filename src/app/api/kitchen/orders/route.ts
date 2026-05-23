@@ -7,33 +7,34 @@ export async function GET() {
       where: {
         status: 'OPEN',
         items: {
-          some: {
-            status: {
-              in: ['WAITING', 'COOKING', 'DONE'],
-            },
-          },
+          some: { status: { in: ['WAITING', 'COOKING', 'DONE'] } },
         },
       },
-      include: {
+      select: {
+        id: true,
+        createdAt: true,
+        note: true,
+        status: true,
         session: {
-          include: {
-            table: true,
+          select: {
+            table: { select: { id: true, name: true } },
           },
         },
         items: {
-          where: {
-            status: {
-              in: ['WAITING', 'COOKING', 'DONE'],
+          where: { status: { in: ['WAITING', 'COOKING', 'DONE'] } },
+          select: {
+            id: true,
+            qty: true,
+            note: true,
+            status: true,
+            itemType: true,
+            menuItem: {
+              select: { id: true, name: true, isAvailable: true },
             },
-          },
-          include: {
-            menuItem: true,
           },
         },
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
+      orderBy: { createdAt: 'desc' },
     })
 
     return NextResponse.json({ orders })
@@ -45,4 +46,3 @@ export async function GET() {
     )
   }
 }
-
