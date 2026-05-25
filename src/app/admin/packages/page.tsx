@@ -14,7 +14,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { useStaffLocale } from '@/lib/i18n-staff'
 import Swal from 'sweetalert2'
 
 interface Package {
@@ -25,7 +24,6 @@ interface Package {
 }
 
 export default function PackagesPage() {
-  useStaffLocale()
   const [packages, setPackages] = useState<Package[]>([])
   const [loading, setLoading] = useState(true)
   const [isDialogOpen, setIsDialogOpen] = useState(false)

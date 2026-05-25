@@ -7,9 +7,7 @@ import { ArrowLeft, Clock, CheckCircle, ChefHat, Utensils, FileText, StickyNote 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { useTranslations } from '@/lib/i18n'
 import { getSocket } from '@/lib/socket-client'
-import { LanguageSwitcher } from '@/components/language-switcher'
 import { OrderCardSkeleton } from '@/components/skeletons'
 import { Skeleton } from '@/components/ui/skeleton'
 
@@ -36,10 +34,16 @@ interface Order {
   items: OrderItem[]
 }
 
+const STATUS_TEXT: Record<string, string> = {
+  WAITING: 'รอทำ',
+  COOKING: 'กำลังทำ',
+  DONE: 'พร้อมเสิร์ฟ',
+  SERVED: 'เสิร์ฟแล้ว',
+}
+
 export default function OrdersPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const t = useTranslations()
   const sessionId = searchParams.get('session')
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
@@ -201,7 +205,7 @@ export default function OrdersPage() {
   }
 
   const getStatusText = (status: string) => {
-    return t(`order.status.${status.toLowerCase()}`)
+    return STATUS_TEXT[status] ?? status
   }
 
   const getOrderTotal = (order: Order) => {
@@ -280,26 +284,22 @@ export default function OrdersPage() {
             className="text-sm sm:text-base"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            {t('common.back')}
+            กลับ
           </Button>
-          <div className="flex items-center gap-2">
-            <LanguageSwitcher />
-          </div>
         </div>
 
-        <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">{t('order.title')}</h1>
+        <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">ออเดอร์</h1>
 
         {orders.length === 0 ? (
           <Card>
             <CardContent className="text-center py-12">
-              <p className="text-muted-foreground">{t('common.no_data')}</p>
+              <p className="text-muted-foreground">ไม่มีข้อมูล</p>
             </CardContent>
           </Card>
         ) : (
           <div className="space-y-3 sm:space-y-4">
             {orders.map((order) => {
               const orderTotal = getOrderTotal(order)
-              // หา status ที่มากที่สุดใน order (เพื่อแสดง border color)
               const orderStatus = order.items.some(item => item.status === 'SERVED')
                 ? 'SERVED'
                 : order.items.some(item => item.status === 'DONE')
@@ -307,6 +307,10 @@ export default function OrdersPage() {
                 : order.items.some(item => item.status === 'COOKING')
                 ? 'COOKING'
                 : 'WAITING'
+
+              // Progress steps
+              const progressSteps = ['รอทำ', 'กำลังทำ', 'พร้อมเสิร์ฟ', 'เสิร์ฟแล้ว']
+              const stepIndex = { WAITING: 0, COOKING: 1, DONE: 2, SERVED: 3 }[orderStatus] ?? 0
               const statusConfig = getStatusConfig(orderStatus)
               
               return (
@@ -326,7 +330,7 @@ export default function OrdersPage() {
                         <div className="flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
                             <CardTitle className="text-sm sm:text-base font-semibold">
-                              {t('order.order_number', { id: order.id })}
+                              {`ออเดอร์ #${order.id}`}
                             </CardTitle>
                             <Badge variant={statusConfig.badgeVariant} className="text-xs">
                               {getStatusText(orderStatus)}
@@ -356,6 +360,29 @@ export default function OrdersPage() {
                     </div>
                   </CardHeader>
                   <CardContent className="p-3 sm:p-4 pt-0">
+                    {/* Progress timeline */}
+                    <div className="flex items-center mb-4 px-1">
+                      {progressSteps.map((label, i) => (
+                        <div key={i} className="flex items-center flex-1">
+                          <div className="flex flex-col items-center">
+                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
+                              i < stepIndex ? 'bg-primary text-primary-foreground' :
+                              i === stepIndex ? 'bg-primary text-primary-foreground ring-2 ring-primary/30' :
+                              'bg-muted text-muted-foreground'
+                            }`}>
+                              {i < stepIndex ? '✓' : i + 1}
+                            </div>
+                            <span className={`text-[10px] mt-1 text-center whitespace-nowrap ${i === stepIndex ? 'text-primary font-semibold' : 'text-muted-foreground'}`}>
+                              {label}
+                            </span>
+                          </div>
+                          {i < progressSteps.length - 1 && (
+                            <div className={`flex-1 h-0.5 mx-1 mb-4 transition-colors ${i < stepIndex ? 'bg-primary' : 'bg-muted'}`} />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
                     {/* Order Note (ถ้ามี) */}
                     {order.note && (
                       <div className="mb-3 p-2.5 bg-muted/50 rounded-md border-l-2 border-primary">
@@ -411,7 +438,7 @@ export default function OrdersPage() {
                                 <p className="font-semibold text-sm whitespace-nowrap">
                                   {item.itemType === 'BUFFET_INCLUDED' ? (
                                     <span className="text-muted-foreground text-xs">
-                                      {t('menu.buffet_included')}
+                                      รวมในบุฟเฟ่ต์
                                     </span>
                                   ) : (
                                     <span className="text-primary">

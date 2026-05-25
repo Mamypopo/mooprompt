@@ -21,7 +21,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useStaffLocale } from '@/lib/i18n-staff'
 import Swal from 'sweetalert2'
 import { ExtraChargeSkeleton } from '@/components/skeletons'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -35,7 +34,6 @@ interface ExtraCharge {
 }
 
 export default function ExtraChargesPage() {
-  useStaffLocale()
   const [extraCharges, setExtraCharges] = useState<ExtraCharge[]>([])
   const [loading, setLoading] = useState(true)
   const [isDialogOpen, setIsDialogOpen] = useState(false)

@@ -13,8 +13,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useTranslations } from '@/lib/i18n'
-import { useStaffLocale } from '@/lib/i18n-staff'
 import { getSocket } from '@/lib/socket-client'
 import Swal from '@/lib/swal-config'
 import { SessionCardSkeleton, BillingFormSkeleton } from '@/components/skeletons'
@@ -63,8 +61,6 @@ interface Promotion {
 }
 
 export default function CloseTablePage() {
-  useStaffLocale() // Force Thai locale for admin
-  const t = useTranslations()
   const [sessions, setSessions] = useState<ActiveSession[]>([])
   const [extraCharges, setExtraCharges] = useState<ExtraCharge[]>([])
   const [promotions, setPromotions] = useState<Promotion[]>([])
@@ -512,7 +508,7 @@ export default function CloseTablePage() {
   return (
     <div>
       <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">
-        {t('admin.close_table')}
+        ปิดโต๊ะ
       </h1>
 
       {sessions.length === 0 ? (

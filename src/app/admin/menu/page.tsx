@@ -21,7 +21,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useStaffLocale } from '@/lib/i18n-staff'
 import Swal from 'sweetalert2'
 import Image from 'next/image'
 
@@ -51,7 +50,6 @@ interface Category {
 }
 
 export default function MenuManagementPage() {
-  useStaffLocale()
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')

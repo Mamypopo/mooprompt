@@ -6,8 +6,6 @@ import { useRouter } from 'next/navigation'
 import { ChefHat, ArrowLeft, CheckCircle, XCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useTranslations } from '@/lib/i18n'
-import { useStaffLocale } from '@/lib/i18n-staff'
 import { getUser, logout } from '@/lib/auth-helpers'
 import { getSocket } from '@/lib/socket-client'
 import Swal from 'sweetalert2'
@@ -33,9 +31,7 @@ interface Category {
 }
 
 export default function KitchenMenuPage() {
-  useStaffLocale()
   const router = useRouter()
-  const t = useTranslations()
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
   const [updatingItems, setUpdatingItems] = useState<Set<number>>(new Set())
@@ -188,7 +184,7 @@ export default function KitchenMenuPage() {
           </div>
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <Button onClick={logout} variant="outline" className="flex-1 sm:flex-initial text-sm">
-              {t('auth.logout')}
+              ออกจากระบบ
             </Button>
           </div>
         </div>
@@ -196,7 +192,7 @@ export default function KitchenMenuPage() {
         {categories.length === 0 ? (
           <Card>
             <CardContent className="text-center py-12">
-              <p className="text-muted-foreground">{t('common.no_data')}</p>
+              <p className="text-muted-foreground">ไม่มีข้อมูล</p>
             </CardContent>
           </Card>
         ) : (

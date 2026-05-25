@@ -21,7 +21,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useStaffLocale } from '@/lib/i18n-staff'
 import Swal from 'sweetalert2'
 import { Badge } from '@/components/ui/badge'
 
@@ -48,7 +47,6 @@ type SortField = 'name' | 'username' | 'role' | 'createdAt'
 type SortDirection = 'asc' | 'desc'
 
 export default function UsersPage() {
-  useStaffLocale()
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [isDialogOpen, setIsDialogOpen] = useState(false)

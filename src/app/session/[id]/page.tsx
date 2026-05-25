@@ -4,11 +4,9 @@ import { useEffect, useState, useCallback } from 'react'
 import Image from 'next/image'
 import { useParams, useRouter } from 'next/navigation'
 import { determineItemType } from '@/lib/menu-item-type'
-import { ShoppingCart, Menu as MenuIcon, Receipt, Star, ChevronLeft, ChevronRight, Plus, Minus, Clock, AlertCircle } from 'lucide-react'
+import { ShoppingCart, Menu as MenuIcon, Receipt, Star, ChevronLeft, ChevronRight, Plus, Minus, Clock, AlertCircle, BellRing } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { useTranslations } from '@/lib/i18n'
-import { LanguageSwitcher } from '@/components/language-switcher'
 import { SessionSkeleton } from '@/components/skeletons'
 import { useCartStore } from '@/store/cart-store'
 import {
@@ -48,7 +46,6 @@ interface MenuItem {
 export default function SessionPage() {
   const params = useParams()
   const router = useRouter()
-  const t = useTranslations()
   const sessionId = params.id as string
   const [session, setSession] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -64,6 +61,8 @@ export default function SessionPage() {
   const [sessionType, setSessionType] = useState<'buffet' | 'a_la_carte'>('a_la_carte')
   const [timeRemaining, setTimeRemaining] = useState<string>('')
   const [isExpired, setIsExpired] = useState(false)
+  const [isCalling, setIsCalling] = useState(false)
+  const [callCooldownSec, setCallCooldownSec] = useState(0)
 
   useEffect(() => {
     const fetchSession = async () => {
@@ -282,7 +281,7 @@ export default function SessionPage() {
 
     Swal.fire({
       icon: 'success',
-      title: t('menu.items_added', { qty }),
+      title: `เพิ่ม ${qty} รายการลงตะกร้าแล้ว`,
       toast: true,
       position: 'top-end',
       showConfirmButton: false,
@@ -295,27 +294,91 @@ export default function SessionPage() {
     setItemQuantity(1)
   }
 
+  const handleCallStaff = async () => {
+    if (isCalling || callCooldownSec > 0) return
+    setIsCalling(true)
+    try {
+      await fetch('/api/staff/call', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId }),
+      })
+      Swal.fire({ icon: 'success', title: 'เรียกพนักงานแล้ว', text: 'พนักงานกำลังมาหาคุณ', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, timerProgressBar: true })
+      // 60s cooldown
+      setCallCooldownSec(60)
+      const tick = setInterval(() => {
+        setCallCooldownSec((prev) => {
+          if (prev <= 1) { clearInterval(tick); return 0 }
+          return prev - 1
+        })
+      }, 1000)
+    } catch {
+      Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, timerProgressBar: true })
+    } finally {
+      setIsCalling(false)
+    }
+  }
+
   if (loading) {
     return <SessionSkeleton />
   }
 
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-0">
+      {/* Session expired overlay */}
+      {isExpired && (
+        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center px-4">
+          <div className="bg-card rounded-2xl p-6 w-full max-w-sm text-center shadow-xl space-y-4">
+            <div className="flex justify-center">
+              <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center">
+                <AlertCircle className="w-9 h-9 text-destructive" />
+              </div>
+            </div>
+            <h2 className="text-xl font-bold">หมดเวลาบุฟเฟ่ต์แล้ว</h2>
+            <p className="text-sm text-muted-foreground">เวลาบุฟเฟ่ต์ของคุณหมดแล้ว ไม่สามารถสั่งอาหารเพิ่มได้ กรุณาติดต่อพนักงานเพื่อดำเนินการต่อ</p>
+            <div className="flex flex-col gap-2">
+              <Button onClick={() => router.push(`/orders?session=${sessionId}`)} className="w-full">ดูออเดอร์ทั้งหมด</Button>
+              <Button
+                onClick={handleCallStaff}
+                variant="outline"
+                className="w-full"
+                disabled={isCalling || callCooldownSec > 0}
+              >
+                <BellRing className="w-4 h-4 mr-2" />
+                {callCooldownSec > 0 ? `เรียกแล้ว (${callCooldownSec}s)` : 'เรียกพนักงาน'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
         <div className="flex justify-between items-start mb-4 sm:mb-6 gap-2">
           <div className="flex-1 min-w-0">
             <h1 className="text-xl sm:text-2xl font-bold">
-              {t('table.table_number')} {session?.table?.tableNumber}
+              โต๊ะที่ {session?.table?.tableNumber}
             </h1>
             <p className="text-sm sm:text-base text-muted-foreground">
-              {t('table.people_count_label', { count: session?.peopleCount })}
+              {`จำนวนคน: ${session?.peopleCount} คน`}
             </p>
             {session?.package && (
               <p className="text-sm text-muted-foreground">
-                {t('table.package_label', { name: session.package.name })}
+                {`แพ็กเกจ: ${session.package.name}`}
               </p>
             )}
-            {session?.expireTime && (
+            {/* Call staff button */}
+          <Button
+            onClick={handleCallStaff}
+            variant="outline"
+            size="sm"
+            disabled={isCalling || callCooldownSec > 0}
+            className="mt-2 text-xs h-8"
+          >
+            <BellRing className="w-3.5 h-3.5 mr-1.5" />
+            {callCooldownSec > 0 ? `เรียกแล้ว (${callCooldownSec}s)` : 'เรียกพนักงาน'}
+          </Button>
+
+          {session?.expireTime && (
               <div className={`flex items-center gap-1.5 mt-2 text-xs ${
                 timeRemaining === 'หมดอายุแล้ว' 
                   ? 'text-destructive font-semibold' 
@@ -337,9 +400,6 @@ export default function SessionPage() {
               </div>
             )}
           </div>
-          <div className="flex items-center gap-2">
-            <LanguageSwitcher />
-          </div>
         </div>
 
         {/* Navigation Buttons - Hidden on mobile (footer handles it), shown on desktop */}
@@ -350,7 +410,7 @@ export default function SessionPage() {
             variant="outline"
           >
             <MenuIcon className="w-5 h-5 sm:w-6 sm:h-6 mb-1 sm:mb-2" />
-            <span className="text-xs sm:text-sm">{t('table.menu')}</span>
+            <span className="text-xs sm:text-sm">เมนู</span>
           </Button>
           <Button
             onClick={() => router.push(`/cart?session=${sessionId}`)}
@@ -358,7 +418,7 @@ export default function SessionPage() {
             variant="outline"
           >
             <ShoppingCart className="w-5 h-5 sm:w-6 sm:h-6 mb-1 sm:mb-2" />
-            <span className="text-xs sm:text-sm">{t('table.cart')}</span>
+            <span className="text-xs sm:text-sm">ตะกร้า</span>
           </Button>
           <Button
             onClick={() => router.push(`/orders?session=${sessionId}`)}
@@ -366,7 +426,7 @@ export default function SessionPage() {
             variant="outline"
           >
             <Receipt className="w-5 h-5 sm:w-6 sm:h-6 mb-1 sm:mb-2" />
-            <span className="text-xs sm:text-sm">{t('table.orders')}</span>
+            <span className="text-xs sm:text-sm">ออเดอร์</span>
           </Button>
         </div>
 
@@ -398,7 +458,7 @@ export default function SessionPage() {
                           <h3 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">{item.name}</h3>
                           <p className="text-lg sm:text-xl text-primary font-semibold">
                             {sessionType === 'buffet' && item.isBuffetItem && !item.isALaCarteItem
-                              ? t('menu.buffet_included')
+                              ? 'รวมในบุฟเฟ่ต์'
                               : `฿${item.price.toLocaleString()}`}
                           </p>
                         </div>
@@ -414,7 +474,7 @@ export default function SessionPage() {
                         )}
                         <p className="text-sm sm:text-base text-white/90">
                           {sessionType === 'buffet' && item.isBuffetItem && !item.isALaCarteItem
-                            ? t('menu.buffet_included')
+                            ? 'รวมในบุฟเฟ่ต์'
                             : `฿${item.price.toLocaleString()}`}
                         </p>
                       </div>
@@ -477,7 +537,7 @@ export default function SessionPage() {
           <div className="mb-6 sm:mb-8">
             <div className="flex items-center gap-2 mb-4">
               <Star className="w-5 h-5 text-primary fill-primary" />
-              <h2 className="text-lg sm:text-xl font-bold text-primary">{t('menu.popular')}</h2>
+              <h2 className="text-lg sm:text-xl font-bold text-primary">เมนูยอดนิยม</h2>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
               {popularItems.map((item) => {
@@ -502,7 +562,7 @@ export default function SessionPage() {
                         {!item.isAvailable && (
                           <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                             <span className="text-xs font-semibold text-white bg-destructive/90 px-2 py-1 rounded">
-                              {t('menu.out_of_stock')}
+                              หมด
                             </span>
                           </div>
                         )}
@@ -521,7 +581,7 @@ export default function SessionPage() {
                       )}
                       <p className="text-primary font-bold text-sm">
                         {isBuffetItem ? (
-                          <span className="text-muted-foreground text-xs">{t('menu.buffet_included')}</span>
+                          <span className="text-muted-foreground text-xs">รวมในบุฟเฟ่ต์</span>
                         ) : (
                           `฿${item.price.toLocaleString()}`
                         )}
@@ -544,7 +604,7 @@ export default function SessionPage() {
                 <SheetTitle className="text-xl">{selectedItem.name}</SheetTitle>
                 <SheetDescription>
                   {sessionType === 'buffet' && selectedItem.isBuffetItem && !selectedItem.isALaCarteItem
-                    ? t('menu.buffet_included')
+                    ? 'รวมในบุฟเฟ่ต์'
                     : `฿${selectedItem.price.toLocaleString()}`}
                 </SheetDescription>
               </SheetHeader>
@@ -588,10 +648,10 @@ export default function SessionPage() {
                   </Button>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="item-note" className="text-sm">{t('menu.note_optional')}</Label>
+                  <Label htmlFor="item-note" className="text-sm">หมายเหตุ (ไม่บังคับ)</Label>
                   <Input
                     id="item-note"
-                    placeholder={t('menu.note_placeholder')}
+                    placeholder="เช่น ไม่เผ็ด, เพิ่มไข่, ไม่ใส่ผัก"
                     value={itemNote}
                     onChange={(e) => setItemNote(e.target.value)}
                     className="text-sm"
@@ -606,7 +666,7 @@ export default function SessionPage() {
                   disabled={!selectedItem.isAvailable}
                 >
                   <Plus className="w-5 h-5 mr-2" />
-                  {t('menu.add_to_cart')}
+                  เพิ่มลงตะกร้า
                 </Button>
               </SheetFooter>
             </>
@@ -623,7 +683,7 @@ export default function SessionPage() {
                 <DialogTitle className="text-xl sm:text-2xl">{selectedItem.name}</DialogTitle>
                 <DialogDescription className="text-lg">
                   {sessionType === 'buffet' && selectedItem.isBuffetItem && !selectedItem.isALaCarteItem
-                    ? t('menu.buffet_included')
+                    ? 'รวมในบุฟเฟ่ต์'
                     : `฿${selectedItem.price.toLocaleString()}`}
                 </DialogDescription>
               </DialogHeader>
@@ -667,10 +727,10 @@ export default function SessionPage() {
                   </Button>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="item-note-desktop" className="text-sm">{t('menu.note_optional')}</Label>
+                  <Label htmlFor="item-note-desktop" className="text-sm">หมายเหตุ (ไม่บังคับ)</Label>
                   <Input
                     id="item-note-desktop"
-                    placeholder={t('menu.note_placeholder')}
+                    placeholder="เช่น ไม่เผ็ด, เพิ่มไข่, ไม่ใส่ผัก"
                     value={itemNote}
                     onChange={(e) => setItemNote(e.target.value)}
                     className="text-sm"
@@ -685,7 +745,7 @@ export default function SessionPage() {
                   disabled={!selectedItem.isAvailable}
                 >
                   <Plus className="w-5 h-5 mr-2" />
-                  {t('menu.add_to_cart')}
+                  เพิ่มลงตะกร้า
                 </Button>
               </DialogFooter>
             </>

@@ -5,14 +5,12 @@ import { Home, Menu as MenuIcon, ShoppingCart, Receipt } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useCartStore } from '@/store/cart-store'
-import { useTranslations } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 
 export function CustomerFooter() {
   const pathname = usePathname()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const t = useTranslations()
   const { items } = useCartStore()
   const sessionId = searchParams.get('session') || pathname.split('/')[2] // Get sessionId from URL or params
 
@@ -22,26 +20,26 @@ export function CustomerFooter() {
     {
       href: `/session/${sessionId}`,
       icon: Home,
-      label: t('table.home'),
+      label: 'หน้าหลัก',
       isActive: pathname.startsWith('/session/') && pathname !== '/menu',
     },
     {
       href: `/menu?session=${sessionId}`,
       icon: MenuIcon,
-      label: t('table.menu'),
+      label: 'เมนู',
       isActive: pathname === '/menu',
     },
     {
       href: `/cart?session=${sessionId}`,
       icon: ShoppingCart,
-      label: t('table.cart'),
+      label: 'ตะกร้า',
       isActive: pathname === '/cart',
       badge: totalCartItems > 0 ? totalCartItems : undefined,
     },
     {
       href: `/orders?session=${sessionId}`,
       icon: Receipt,
-      label: t('table.orders'),
+      label: 'ออเดอร์',
       isActive: pathname === '/orders',
     },
   ]

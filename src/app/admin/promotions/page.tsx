@@ -21,7 +21,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useStaffLocale } from '@/lib/i18n-staff'
 import Swal from 'sweetalert2'
 import { Badge } from '@/components/ui/badge'
 
@@ -35,7 +34,6 @@ interface Promotion {
 }
 
 export default function PromotionsPage() {
-  useStaffLocale()
   const [promotions, setPromotions] = useState<Promotion[]>([])
   const [loading, setLoading] = useState(true)
   const [isDialogOpen, setIsDialogOpen] = useState(false)

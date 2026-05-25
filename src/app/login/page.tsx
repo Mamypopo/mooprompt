@@ -5,14 +5,10 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { useTranslations } from '@/lib/i18n'
-import { useStaffLocale } from '@/lib/i18n-staff'
 import Swal from 'sweetalert2'
 
 export default function LoginPage() {
-  useStaffLocale() // Force Thai locale for staff
   const router = useRouter()
-  const t = useTranslations()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -63,7 +59,7 @@ export default function LoginPage() {
       Swal.fire({
         icon: 'error',
         title: 'เข้าสู่ระบบไม่สำเร็จ',
-        text: error.message || t('auth.invalid_credentials'),
+        text: error.message || 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง',
         toast: true,
         position: 'top-end',
         showConfirmButton: false,
@@ -80,7 +76,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-md mx-auto">
         <CardHeader>
           <CardTitle className="text-2xl text-center">
-            {t('auth.login')}
+            เข้าสู่ระบบ
           </CardTitle>
           <CardDescription className="text-center">
             ระบบจัดการร้านอาหาร
@@ -90,7 +86,7 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">
-                {t('auth.username')}
+                ชื่อผู้ใช้
               </label>
               <Input
                 type="text"
@@ -102,7 +98,7 @@ export default function LoginPage() {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">
-                {t('auth.password')}
+                รหัสผ่าน
               </label>
               <Input
                 type="password"
@@ -117,7 +113,7 @@ export default function LoginPage() {
               className="w-full"
               disabled={loading}
             >
-              {loading ? t('common.loading') : t('auth.login')}
+              {loading ? 'กำลังโหลด...' : 'เข้าสู่ระบบ'}
             </Button>
           </form>
         </CardContent>

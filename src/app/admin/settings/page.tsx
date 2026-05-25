@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useStaffLocale } from '@/lib/i18n-staff'
 import Swal from 'sweetalert2'
 import Image from 'next/image'
 import { X, Upload } from 'lucide-react'
@@ -23,7 +22,6 @@ interface RestaurantInfo {
 }
 
 export default function SettingsPage() {
-  useStaffLocale()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [info, setInfo] = useState<RestaurantInfo | null>(null)
