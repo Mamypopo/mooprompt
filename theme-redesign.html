@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MooPrompt — ธีมบุฟเฟ่ต์หมูกระทะ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ตัวแปรเดียวกับ src/app/globals.css */
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --primary: 0 84% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 217 91% 60%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 25 95% 53%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 0 84% 60%;
+    --success: 142 76% 50%;
+    --success-foreground: 0 0% 100%;
+    --warning: 25 95% 53%;
+    --warning-foreground: 0 0% 100%;
+    --radius: 0.75rem;
+
+    /* alias ใน preview (ชี้ไป globals) */
+    --cream: hsl(var(--background));
+    --cream-2: hsl(var(--muted));
+    --cream-3: hsl(var(--primary) / 0.08);
+    --ink: hsl(var(--foreground));
+    --ink-soft: hsl(var(--foreground) / 0.88);
+    --ink-muted: hsl(var(--muted-foreground));
+    --coral: hsl(var(--primary));
+    --coral-deep: hsl(var(--destructive));
+    --coral-glow: hsl(var(--primary) / 0.28);
+    --gold: hsl(var(--accent));
+    --gold-soft: hsl(var(--accent) / 0.14);
+    --sage: hsl(var(--success));
+    --sage-soft: hsl(var(--success) / 0.12);
+    --warn: hsl(var(--warning));
+    --warn-soft: hsl(var(--warning) / 0.14);
+    --danger-soft: hsl(var(--destructive) / 0.1);
+    --blue: hsl(var(--secondary));
+    --shadow-sm: 0 1px 2px hsl(var(--foreground) / 0.04), 0 4px 12px hsl(var(--foreground) / 0.06);
+    --shadow-md: 0 4px 6px hsl(var(--foreground) / 0.04), 0 12px 28px hsl(var(--foreground) / 0.1);
+    --shadow-lg: 0 20px 50px hsl(var(--foreground) / 0.22);
+    --radius-lg: calc(var(--radius) + 6px);
+    --radius-sm: var(--radius);
+    --radius-xs: calc(var(--radius) - 4px);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Sarabun', sans-serif;
+    background: hsl(var(--foreground));
+    color: hsl(var(--background));
+    min-height: 100vh;
+  }
+
+  /* ── preview chrome ── */
+  .tabs {
+    display: flex; gap: 4px; padding: 10px 16px 0;
+    background: rgba(20, 16, 14, 0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    position: sticky; top: 0; z-index: 100; overflow-x: auto;
+  }
+  .tab {
+    padding: 10px 16px 12px; cursor: pointer; border-radius: 10px 10px 0 0;
+    color: rgba(255, 240, 230, 0.45); font-size: 13px; font-weight: 600;
+    white-space: nowrap; transition: background 0.15s, color 0.15s;
+    border: 1px solid transparent; border-bottom: none;
+  }
+  .tab:hover { color: rgba(255, 240, 230, 0.8); background: rgba(255, 255, 255, 0.04); }
+  .tab.active {
+    color: hsl(var(--background));
+    background: hsl(var(--primary) / 0.15);
+    border-color: hsl(var(--primary) / 0.25);
+  }
+
+  .theme-panel { display: none; padding: 28px 24px 48px; }
+  .theme-panel.active { display: block; }
+  .panel-head { max-width: 1080px; margin-bottom: 22px; }
+  .label-banner {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 11px; font-weight: 600; color: rgba(255, 240, 230, 0.5);
+    background: rgba(255, 255, 255, 0.05); padding: 6px 12px;
+    border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.08);
+    margin-bottom: 10px;
+  }
+  .label-banner b { color: #fff0e8; }
+  .role-pill {
+    font-size: 10px; padding: 2px 8px; border-radius: 999px;
+    background: hsl(var(--primary) / 0.2); color: hsl(var(--primary) / 0.9);
+    filter: brightness(1.4);
+  }
+  .theme-description {
+    font-size: 14px; line-height: 1.7; color: rgba(255, 240, 230, 0.55);
+    max-width: 42em;
+  }
+  .grid2 {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 24px; max-width: 1080px;
+  }
+  @media (max-width: 860px) { .grid2 { grid-template-columns: 1fr; } }
+  .section-label {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--ink-muted); margin: 18px 0 10px;
+  }
+  .demo-caption {
+    font-size: 12px; color: rgba(255, 240, 230, 0.4); margin-bottom: 12px;
+  }
+
+  /* ═══════════════════════════════════════
+     A · แอดมิน
+  ═══════════════════════════════════════ */
+  .a-shell {
+    background: var(--cream);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    color: var(--ink);
+    border: 1px solid hsl(var(--border));
+  }
+  .a-layout { display: grid; grid-template-columns: 200px 1fr; min-height: 420px; }
+  @media (max-width: 560px) { .a-layout { grid-template-columns: 1fr; } }
+
+  .a-side {
+    background: hsl(var(--foreground));
+    padding: 20px 14px;
+    color: hsl(var(--background));
+  }
+  .a-brand-mark {
+    width: 40px; height: 40px; border-radius: var(--radius-sm);
+    background: hsl(var(--primary));
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Noto Serif Thai', serif; font-size: 18px; font-weight: 700;
+    color: hsl(var(--primary-foreground));
+    box-shadow: 0 2px 8px hsl(var(--primary) / 0.35); margin-bottom: 10px;
+  }
+  .a-brand-name {
+    font-family: 'Noto Serif Thai', serif; font-size: 16px; font-weight: 700;
+    line-height: 1.25;
+  }
+  .a-brand-sub { font-size: 11px; opacity: 0.55; margin-top: 4px; }
+  .a-side-nav { margin-top: 22px; display: flex; flex-direction: column; gap: 4px; }
+  .a-side-link {
+    padding: 10px 12px; border-radius: var(--radius-xs); font-size: 13px;
+    color: rgba(255, 248, 244, 0.55); cursor: pointer; transition: all 0.15s;
+  }
+  .a-side-link:hover { background: hsl(var(--background) / 0.08); color: hsl(var(--background)); }
+  .a-side-link.active {
+    background: hsl(var(--background) / 0.14); color: hsl(var(--background)); font-weight: 600;
+  }
+
+  .a-main { padding: 20px; background: hsl(var(--muted)); }
+  .a-topbar {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 18px;
+  }
+  .a-topbar h2 { font-size: 18px; font-weight: 700; color: var(--ink); }
+  .a-topbar span { font-size: 12px; color: var(--ink-muted); }
+
+  .a-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 18px; }
+  .a-stat {
+    background: hsl(var(--card)); padding: 14px 16px; border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-sm); border: 1px solid hsl(var(--border));
+  }
+  .a-stat-label { font-size: 12px; color: var(--ink-muted); font-weight: 500; }
+  .a-stat-val {
+    font-size: 24px; font-weight: 700; margin-top: 4px;
+    font-variant-numeric: tabular-nums; color: var(--ink);
+  }
+  .a-stat-val.hot { color: var(--coral-deep); }
+
+  .a-table-card {
+    display: flex; align-items: center; gap: 14px;
+    background: hsl(var(--card)); padding: 14px 16px; border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-sm); margin-bottom: 8px;
+    border: 1px solid hsl(var(--border));
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .a-table-card:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+  .a-table-card.warn { border-color: hsl(var(--warning) / 0.45); background: var(--warn-soft); }
+  .a-table-avatar {
+    width: 44px; height: 44px; border-radius: var(--radius-sm);
+    background: hsl(var(--primary) / 0.12);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 15px; color: var(--coral);
+    flex-shrink: 0;
+  }
+  .a-table-card.warn .a-table-avatar {
+    background: hsl(var(--warning) / 0.18);
+    color: hsl(var(--warning));
+  }
+  .a-table-body { flex: 1; min-width: 0; }
+  .a-table-title { font-weight: 700; font-size: 15px; }
+  .a-table-sub { font-size: 12px; color: var(--ink-muted); margin-top: 2px; }
+  .a-table-right { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+
+  .chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 600;
+  }
+  .chip-pkg { background: var(--cream-3); color: var(--coral-deep); }
+  .chip-ok { background: var(--sage-soft); color: var(--sage); }
+  .chip-warn { background: var(--warn-soft); color: hsl(var(--warning)); }
+  .chip-alert { background: var(--danger-soft); color: var(--coral-deep); }
+
+  .a-open-panel {
+    background: hsl(var(--card)); border-radius: var(--radius-lg);
+    padding: 20px; box-shadow: var(--shadow-sm);
+    border: 1px solid hsl(var(--border));
+  }
+  .a-open-panel h3 { font-size: 15px; font-weight: 700; margin-bottom: 14px; }
+  .a-pkg-grid { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+  .a-pkg {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 16px; border-radius: var(--radius-sm);
+    border: 2px solid transparent; background: var(--cream);
+    cursor: pointer; transition: border-color 0.15s, background 0.15s;
+  }
+  .a-pkg:hover { border-color: hsl(var(--primary) / 0.35); }
+  .a-pkg.selected {
+    border-color: var(--coral); background: hsl(var(--card));
+    box-shadow: 0 0 0 4px var(--coral-glow);
+  }
+  .a-pkg strong { font-size: 14px; display: block; }
+  .a-pkg small { font-size: 12px; color: var(--ink-muted); margin-top: 2px; display: block; }
+  .a-pkg-price { font-size: 15px; font-weight: 700; color: var(--coral-deep); }
+
+  .a-form { display: grid; grid-template-columns: 1fr 88px; gap: 10px; margin-bottom: 14px; }
+  .a-field label { display: block; font-size: 12px; font-weight: 600; color: var(--ink-soft); margin-bottom: 6px; }
+  .a-field input {
+    width: 100%; padding: 11px 14px; border: 1px solid hsl(var(--input));
+    border-radius: var(--radius-xs); font-size: 14px; font-family: inherit;
+    background: hsl(var(--background)); transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .a-field input:focus {
+    outline: none; border-color: hsl(var(--ring));
+    box-shadow: 0 0 0 3px hsl(var(--ring) / 0.2); background: hsl(var(--card));
+  }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 11px 20px; border-radius: var(--radius-xs); font-size: 14px;
+    font-weight: 600; font-family: inherit; cursor: pointer; border: none;
+    transition: transform 0.1s, box-shadow 0.15s;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary {
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    box-shadow: 0 2px 8px hsl(var(--primary) / 0.35);
+  }
+  .btn-primary:hover { background: hsl(var(--destructive)); box-shadow: 0 2px 10px hsl(var(--destructive) / 0.3); }
+  .btn-secondary {
+    background: hsl(var(--card)); color: var(--ink-soft);
+    border: 1px solid hsl(var(--border));
+  }
+  .btn-soft { background: var(--cream-3); color: var(--ink-soft); }
+  .btn-row { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  /* ═══════════════════════════════════════
+     B · ลูกค้า QR
+  ═══════════════════════════════════════ */
+  .phone-wrap { display: flex; justify-content: center; padding: 8px 0 24px; }
+  .phone {
+    width: 100%; max-width: 360px;
+    background: var(--cream);
+    border-radius: 36px;
+    overflow: hidden;
+    box-shadow: var(--shadow-lg), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  }
+  .phone-notch {
+    height: 28px; background: hsl(var(--foreground));
+    display: flex; align-items: flex-end; justify-content: center; padding-bottom: 6px;
+  }
+  .phone-notch span {
+    width: 72px; height: 5px; background: rgba(255, 255, 255, 0.15); border-radius: 99px;
+  }
+  .b-hero {
+    padding: 22px 20px 24px;
+    color: hsl(var(--primary-foreground));
+    background: hsl(var(--primary));
+  }
+  .b-table-badge {
+    display: inline-block; font-size: 11px; font-weight: 600;
+    background: rgba(255, 255, 255, 0.15); padding: 4px 10px;
+    border-radius: 999px; margin-bottom: 8px; backdrop-filter: blur(8px);
+  }
+  .b-hero h1 {
+    font-family: 'Noto Serif Thai', serif; font-size: 22px; font-weight: 700;
+  }
+  .b-hero p { font-size: 13px; opacity: 0.85; margin-top: 4px; }
+
+  .b-timer-card {
+    display: flex; align-items: center; gap: 16px; margin-top: 18px;
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 16px; padding: 14px 16px;
+  }
+  .timer-ring { position: relative; width: 72px; height: 72px; flex-shrink: 0; }
+  .timer-ring svg { transform: rotate(-90deg); width: 72px; height: 72px; }
+  .timer-ring-bg { fill: none; stroke: rgba(255, 255, 255, 0.2); stroke-width: 5; }
+  .timer-ring-fg { fill: none; stroke: var(--gold); stroke-width: 5; stroke-linecap: round; }
+  .timer-center {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+  }
+  .timer-mins { font-size: 24px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+  .timer-label { font-size: 10px; opacity: 0.75; font-weight: 600; }
+  .b-timer-copy strong { display: block; font-size: 15px; font-weight: 700; }
+  .b-timer-copy span { font-size: 12px; opacity: 0.8; margin-top: 2px; display: block; }
+
+  .b-scroll { padding: 16px 16px 80px; background: var(--cream-2); }
+  .b-cat {
+    font-size: 13px; font-weight: 700; color: var(--ink);
+    margin: 16px 0 10px; display: flex; align-items: center; gap: 8px;
+  }
+  .b-cat:first-child { margin-top: 0; }
+  .b-cat::after { content: ''; flex: 1; height: 1px; background: hsl(var(--border)); }
+
+  .b-item {
+    display: flex; gap: 14px; padding: 12px;
+    background: hsl(var(--card)); border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-sm); margin-bottom: 10px;
+    border: 1px solid hsl(var(--border));
+  }
+  .b-thumb {
+    width: 72px; height: 72px; border-radius: 12px; flex-shrink: 0;
+    background-size: cover; background-position: center;
+  }
+  .b-thumb.pork { background: hsl(var(--primary) / 0.2); }
+  .b-thumb.shrimp { background: hsl(var(--accent) / 0.25); }
+  .b-item-info { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .b-item-name { font-size: 15px; font-weight: 700; color: var(--ink); }
+  .b-item-desc { font-size: 12px; color: var(--ink-muted); margin-top: 3px; flex: 1; }
+  .b-item-foot {
+    display: flex; justify-content: space-between; align-items: center; margin-top: 8px;
+  }
+  .tag-included {
+    font-size: 11px; font-weight: 600; color: var(--sage);
+    background: var(--sage-soft); padding: 4px 10px; border-radius: 999px;
+  }
+  .tag-extra { font-size: 14px; font-weight: 700; color: var(--coral-deep); }
+  .b-add {
+    width: 40px; height: 40px; border-radius: var(--radius-sm); border: none;
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground)); font-size: 22px; line-height: 1; cursor: pointer;
+    box-shadow: 0 2px 8px hsl(var(--primary) / 0.3);
+  }
+  .b-add:hover { background: hsl(var(--destructive)); }
+
+  .b-cart-float {
+    position: relative; margin: -64px 16px 0; z-index: 2;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 18px; border-radius: var(--radius-lg);
+    background: hsl(var(--foreground)); color: hsl(var(--background));
+    box-shadow: var(--shadow-lg);
+  }
+  .b-cart-float span:last-child { opacity: 0.7; font-size: 13px; }
+
+  .b-alert-bar {
+    background: hsl(var(--destructive));
+    color: hsl(var(--destructive-foreground)); text-align: center; padding: 11px 16px;
+    font-size: 12px; font-weight: 600;
+  }
+  .phone.warn .timer-ring-fg { stroke: hsl(var(--warning)); }
+  .phone.warn .b-scroll { opacity: 0.5; pointer-events: none; }
+
+  /* ═══════════════════════════════════════
+     C · ครัว
+  ═══════════════════════════════════════ */
+  .c-shell {
+    background: hsl(var(--foreground));
+    border-radius: var(--radius-lg); padding: 18px;
+    border: 1px solid hsl(var(--border) / 0.15);
+    box-shadow: var(--shadow-md);
+  }
+  .c-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 16px; padding-bottom: 14px;
+    border-bottom: 1px solid rgba(255, 200, 150, 0.1);
+  }
+  .c-header h2 { font-size: 15px; color: hsl(var(--muted-foreground)); font-weight: 500; filter: brightness(2); }
+  .c-header h2 em {
+    font-style: normal; font-family: 'Noto Serif Thai', serif;
+    font-size: 20px; color: hsl(var(--background)); font-weight: 700;
+  }
+  .c-count {
+    width: 48px; height: 48px; border-radius: var(--radius-sm);
+    background: hsl(var(--accent));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; font-weight: 800; color: hsl(var(--accent-foreground));
+    box-shadow: 0 2px 8px hsl(var(--accent) / 0.35);
+  }
+
+  .c-ticket {
+    background: hsl(var(--foreground) / 0.85); border-radius: var(--radius-sm);
+    padding: 16px; margin-bottom: 12px;
+    border: 1px solid hsl(var(--border) / 0.2);
+  }
+  .c-ticket.urgent {
+    border-color: hsl(var(--primary) / 0.5);
+    box-shadow: inset 4px 0 0 hsl(var(--primary));
+  }
+  .c-ticket-top {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 12px;
+  }
+  .c-table-num { font-size: 32px; font-weight: 800; color: hsl(var(--background)); letter-spacing: -0.02em; }
+  .c-meta { font-size: 12px; color: hsl(var(--muted-foreground)); filter: brightness(1.8); margin-top: 2px; }
+  .c-priority {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.06em; padding: 5px 10px; border-radius: var(--radius-xs);
+    background: hsl(var(--primary) / 0.25); color: hsl(var(--primary) / 0.95);
+    filter: brightness(1.3);
+  }
+
+  .c-line {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 0; border-top: 1px solid hsl(var(--border) / 0.15);
+    font-size: 15px; color: hsl(var(--background) / 0.9);
+  }
+  .c-line:first-of-type { border-top: none; padding-top: 0; }
+  .c-qty {
+    min-width: 40px; height: 40px; border-radius: var(--radius-xs);
+    background: hsl(var(--accent));
+    color: hsl(var(--accent-foreground)); font-size: 18px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .c-line-tag { font-size: 10px; color: hsl(var(--success)); margin-right: 6px; filter: brightness(1.2); }
+  .c-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; }
+  .c-btn {
+    padding: 13px; border-radius: var(--radius-xs); font-size: 14px;
+    font-weight: 700; border: none; cursor: pointer; font-family: inherit;
+  }
+  .c-btn-cook { background: hsl(var(--accent)); color: hsl(var(--accent-foreground)); }
+  .c-btn-cook:hover { background: hsl(var(--warning)); }
+  .c-btn-done { background: hsl(var(--success) / 0.35); color: hsl(var(--success-foreground)); border: 1px solid hsl(var(--success) / 0.4); }
+
+  .c-note-box {
+    background: hsl(var(--muted) / 0.08); border-radius: var(--radius-sm);
+    padding: 16px; font-size: 13px; color: hsl(var(--muted-foreground)); line-height: 1.7;
+    filter: brightness(1.6);
+  }
+  .c-note-box li { margin-left: 18px; margin-bottom: 6px; }
+
+  /* ═══════════════════════════════════════
+     D · ปิดบิล
+  ═══════════════════════════════════════ */
+  .d-wrap { display: flex; justify-content: center; }
+  .d-bill {
+    width: 100%; max-width: 340px;
+    background: hsl(var(--card)); border-radius: var(--radius-lg);
+    padding: 24px 22px 22px;
+    box-shadow: var(--shadow-md);
+    color: var(--ink);
+    border: 1px solid hsl(var(--border));
+  }
+  .d-logo-circle {
+    width: 52px; height: 52px; margin: 0 auto 12px;
+    border-radius: var(--radius-lg);
+    background: hsl(var(--primary));
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Noto Serif Thai', serif; font-size: 22px; font-weight: 700;
+    color: hsl(var(--primary-foreground));
+    box-shadow: 0 2px 10px hsl(var(--primary) / 0.3);
+  }
+  .d-bill h2 {
+    font-family: 'Noto Serif Thai', serif; text-align: center;
+    font-size: 18px; color: var(--ink);
+  }
+  .d-bill .meta { text-align: center; font-size: 12px; color: var(--ink-muted); margin-top: 6px; line-height: 1.5; }
+
+  .d-package-box {
+    margin: 18px 0; padding: 14px 16px;
+    background: hsl(var(--muted));
+    border-radius: var(--radius-sm); border: 1px solid hsl(var(--primary) / 0.2);
+  }
+  .d-package-box .row1 {
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .d-package-box strong { font-size: 14px; color: var(--coral-deep); }
+  .d-time-chip {
+    font-size: 11px; font-weight: 700; color: hsl(var(--warning));
+    background: var(--warn-soft); padding: 4px 10px; border-radius: 999px;
+  }
+  .d-package-box .calc { font-size: 13px; color: var(--ink-soft); margin-top: 8px; font-weight: 600; }
+
+  .d-section { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-muted); margin: 14px 0 8px; }
+  .d-line { display: flex; justify-content: space-between; font-size: 13px; padding: 5px 0; gap: 12px; }
+  .d-line .amt { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+  .d-line.dim { color: var(--ink-muted); }
+  .d-line.dim .amt { color: var(--sage); font-weight: 500; font-size: 12px; }
+  .d-divider { height: 1px; background: hsl(var(--border)); margin: 12px 0; }
+  .d-total {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding-top: 14px; margin-top: 4px;
+  }
+  .d-total span:first-child { font-size: 14px; font-weight: 600; }
+  .d-total span:last-child {
+    font-size: 26px; font-weight: 800; color: var(--coral-deep);
+    font-variant-numeric: tabular-nums;
+  }
+  .d-footnote { font-size: 11px; color: var(--ink-muted); text-align: center; margin-top: 14px; line-height: 1.55; }
+
+  .d-side-panel {
+    background: var(--cream); border-radius: 20px; padding: 20px;
+    box-shadow: var(--shadow-sm); border: 1px solid hsl(var(--border));
+    color: var(--ink);
+  }
+  .d-floor { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+  .d-seat {
+    aspect-ratio: 1.1; border-radius: var(--radius-sm);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: hsl(var(--card)); border: 1px solid hsl(var(--border));
+    font-weight: 800; font-size: 15px; color: var(--ink-muted);
+    box-shadow: var(--shadow-sm);
+  }
+  .d-seat.on {
+    background: hsl(var(--primary) / 0.08);
+    border-color: hsl(var(--primary) / 0.35); color: var(--coral);
+  }
+  .d-seat.on .t { font-size: 10px; font-weight: 600; color: hsl(var(--warning)); margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<div class="tabs">
+  <div class="tab active" onclick="show('a',this)">แอดมิน</div>
+  <div class="tab" onclick="show('b',this)">ลูกค้า QR</div>
+  <div class="tab" onclick="show('c',this)">ครัว</div>
+  <div class="tab" onclick="show('d',this)">ปิดบิล</div>
+</div>
+
+<!-- A -->
+<div id="panel-a" class="theme-panel active">
+  <div class="panel-head">
+    <div class="label-banner"><b>แอดมิน</b> <span class="role-pill">เปิดโต๊ะ · ดูเวลา</span></div>
+    <p class="theme-description">สีทึบจาก <code style="font-size:12px;opacity:.8">globals.css</code> — ไม่มี gradient</p>
+  </div>
+  <div class="grid2">
+    <div class="a-shell">
+      <div class="a-layout">
+        <aside class="a-side">
+          <div class="a-brand-mark">ห</div>
+          <div class="a-brand-name">หมูพรอมต์</div>
+          <div class="a-brand-sub">บุฟเฟ่ต์หมูกระทะ</div>
+          <nav class="a-side-nav">
+            <div class="a-side-link active">ภาพรวม</div>
+            <div class="a-side-link">เปิดโต๊ะ</div>
+            <div class="a-side-link">ปิดโต๊ะ</div>
+            <div class="a-side-link">แพ็กเกจ</div>
+            <div class="a-side-link">ประวัติ</div>
+          </nav>
+        </aside>
+        <main class="a-main">
+          <div class="a-topbar">
+            <div><h2>โต๊ะวันนี้</h2><span>อัปเดต 14:32 น.</span></div>
+            <span class="chip chip-ok">8 โต๊ะเปิด</span>
+          </div>
+          <div class="a-stats">
+            <div class="a-stat"><div class="a-stat-label">บุฟเีวันนี้</div><div class="a-stat-val">18</div></div>
+            <div class="a-stat"><div class="a-stat-label">ใกล้หมดเวลา</div><div class="a-stat-val hot">3</div></div>
+            <div class="a-stat"><div class="a-stat-label">ยอดรวม</div><div class="a-stat-val">฿24.8k</div></div>
+          </div>
+          <div class="section-label">กำลังทานบุฟเี</div>
+          <div class="a-table-card">
+            <div class="a-table-avatar">A1</div>
+            <div class="a-table-body">
+              <div class="a-table-title">โต๊ะ A1</div>
+              <div class="a-table-sub">4 ท่าน · แพ็ก 299 · เปิด 14:05</div>
+            </div>
+            <div class="a-table-right">
+              <span class="chip chip-pkg">บุฟเี 299</span>
+              <span class="chip chip-warn">18 นาที</span>
+            </div>
+          </div>
+          <div class="a-table-card warn">
+            <div class="a-table-avatar">B2</div>
+            <div class="a-table-body">
+              <div class="a-table-title">โต๊ะ B2</div>
+              <div class="a-table-sub">6 ท่าน · สั่งเพิ่ม ฿340</div>
+            </div>
+            <div class="a-table-right">
+              <span class="chip chip-pkg">บุฟเี 399</span>
+              <span class="chip chip-alert">8 นาที</span>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+    <div class="a-open-panel">
+      <h3>เปิดโต๊ะบุฟเี</h3>
+      <div class="a-pkg-grid">
+        <div class="a-pkg selected">
+          <div><strong>มาตรฐาน</strong><small>90 นาที · เนื้อ+ผัก+น้ำซุป</small></div>
+          <span class="a-pkg-price">฿299</span>
+        </div>
+        <div class="a-pkg">
+          <div><strong>พรีเมียม</strong><small>120 นาที · กุ้ง+ซีฟู้ด</small></div>
+          <span class="a-pkg-price">฿399</span>
+        </div>
+        <div class="a-pkg">
+          <div><strong>เด็ก</strong><small>สูงไม่เกิน 120 ซม.</small></div>
+          <span class="a-pkg-price">฿179</span>
+        </div>
+      </div>
+      <div class="a-form">
+        <div class="a-field"><label>โต๊ะ</label><input value="A3" /></div>
+        <div class="a-field"><label>จำนวนคน</label><input type="number" value="4" /></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary">เปิดโต๊ะ + เริ่มนาฬิกา</button>
+        <button class="btn btn-secondary">ยกเลิก</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- B -->
+<div id="panel-b" class="theme-panel">
+  <div class="panel-head">
+    <div class="label-banner"><b>ลูกค้า</b> <span class="role-pill">สแกน QR สั่งอาหาร</span></div>
+    <p class="theme-description">หัวจอโชว์เวลาชัด เมนูการ์ดสวย แยก “รวมแพ็ก” กับ “สั่งเพิ่ม” — รู้สึกแอปร้านอาหาร ไม่ใช่ฟอร์ม</p>
+  </div>
+  <div class="grid2">
+    <div>
+      <p class="demo-caption">ปกติ — ยังสั่งได้</p>
+      <div class="phone-wrap">
+        <div class="phone">
+          <div class="phone-notch"><span></span></div>
+          <div class="b-hero">
+            <span class="b-table-badge">โต๊ะ A1</span>
+            <h1>บุฟเีมาตรฐาน</h1>
+            <p>4 ท่าน · สั่งได้จนหมดเวลา</p>
+            <div class="b-timer-card">
+              <div class="timer-ring">
+                <svg viewBox="0 0 72 72"><circle class="timer-ring-bg" cx="36" cy="36" r="30"/><circle class="timer-ring-fg" cx="36" cy="36" r="30" stroke-dasharray="188" stroke-dashoffset="48"/></svg>
+                <div class="timer-center"><span class="timer-mins">23</span><span class="timer-label">นาที</span></div>
+              </div>
+              <div class="b-timer-copy"><strong>ยังสั่งอาหารได้</strong><span>หมดเวลา 15:35 น.</span></div>
+            </div>
+          </div>
+          <div class="b-scroll">
+            <div class="b-cat">รวมในแพ็ก</div>
+            <div class="b-item">
+              <div class="b-thumb pork"></div>
+              <div class="b-item-info">
+                <div class="b-item-name">หมูสไลด์พรีเมียม</div>
+                <div class="b-item-desc">เสิร์ฟต่อเนื่อง · ไม่จำกัดจาน</div>
+                <div class="b-item-foot"><span class="tag-included">รวมในแพ็ก</span><button class="b-add">+</button></div>
+              </div>
+            </div>
+            <div class="b-cat">สั่งเพิ่ม</div>
+            <div class="b-item">
+              <div class="b-thumb shrimp"></div>
+              <div class="b-item-info">
+                <div class="b-item-name">กุ้งแม่น้ำ (5 ตัว)</div>
+                <div class="b-item-desc">นอกแพ็กมาตรฐาน</div>
+                <div class="b-item-foot"><span class="tag-extra">+฿89</span><button class="b-add">+</button></div>
+              </div>
+            </div>
+          </div>
+          <div class="b-cart-float"><span>ตะกร้า · 3 รายการ</span><span>ดู →</span></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <p class="demo-caption">ใกล้หมดเวลา</p>
+      <div class="phone-wrap">
+        <div class="phone warn">
+          <div class="phone-notch"><span></span></div>
+          <div class="b-alert-bar">หมดเวลาบุฟเีแล้ว — ติดต่อพนักงานเพื่อสั่งเพิ่ม</div>
+          <div class="b-hero" style="padding-top:16px">
+            <span class="b-table-badge">โต๊ะ B2</span>
+            <h1>บุฟเีพรีเมียม</h1>
+            <p>6 ท่าน</p>
+            <div class="b-timer-card">
+              <div class="timer-ring">
+                <svg viewBox="0 0 72 72"><circle class="timer-ring-bg" cx="36" cy="36" r="30"/><circle class="timer-ring-fg" cx="36" cy="36" r="30" stroke-dasharray="188" stroke-dashoffset="165"/></svg>
+                <div class="timer-center"><span class="timer-mins">4</span><span class="timer-label">นาที</span></div>
+              </div>
+              <div class="b-timer-copy"><strong>ใกล้หมดเวลา</strong><span>รีบสั่งรอบสุดท้าย</span></div>
+            </div>
+          </div>
+          <div class="b-scroll">
+            <div class="b-item"><div class="b-thumb pork"></div><div class="b-item-info"><div class="b-item-name">หมูสไลด์</div><div class="b-item-foot"><span class="tag-included">รวมในแพ็ก</span></div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- C -->
+<div id="panel-c" class="theme-panel">
+  <div class="panel-head">
+    <div class="label-banner"><b>ครัว</b> <span class="role-pill">คิวรายการ</span></div>
+    <p class="theme-description">โทนมืดอุ่น ตัวเลขโต๊ะใหญ่ — อ่านได้ในร้านที่ร้อน ไม่ใช่ dark mode เทาๆ</p>
+  </div>
+  <div class="grid2">
+    <div class="c-shell">
+      <div class="c-header">
+        <h2>คิวครัว · <em>หมูกระทะ</em></h2>
+        <div class="c-count">5</div>
+      </div>
+      <div class="c-ticket urgent">
+        <div class="c-ticket-top">
+          <div><div class="c-table-num">A1</div><div class="c-meta">บุฟเี 299 · รอ 16 นาที</div></div>
+          <span class="c-priority">ด่วน</span>
+        </div>
+        <div class="c-line"><span><span class="c-line-tag">แพ็ก</span>หมูสไลด์</span><span class="c-qty">3</span></div>
+        <div class="c-line"><span><span class="c-line-tag">แพ็ก</span>คอหมู</span><span class="c-qty">2</span></div>
+        <div class="c-line"><span>กุ้งแม่น้ำ</span><span class="c-qty">1</span></div>
+        <div class="c-actions">
+          <button class="c-btn c-btn-cook">รับแล้ว</button>
+          <button class="c-btn c-btn-done">พร้อมเสิร์ฟ</button>
+        </div>
+      </div>
+      <div class="c-ticket">
+        <div class="c-ticket-top">
+          <div><div class="c-table-num">B2</div><div class="c-meta">บุฟเี 399 · รอ 4 นาที</div></div>
+        </div>
+        <div class="c-line"><span><span class="c-line-tag">แพ็ก</span>ซุปใส</span><span class="c-qty">1</span></div>
+        <div class="c-line"><span><span class="c-line-tag">แพ็ก</span>ผักรวม</span><span class="c-qty">2</span></div>
+        <div class="c-actions">
+          <button class="c-btn c-btn-cook">รับแล้ว</button>
+          <button class="c-btn c-btn-done">พร้อมเสิร์ฟ</button>
+        </div>
+      </div>
+    </div>
+    <div class="c-note-box">
+      <p style="margin-bottom:10px;color:rgba(255,235,220,.65)">จุดออกแบบครัว</p>
+      <ul>
+        <li>โต๊ะตัวใหญ่ — มองจากไกลได้</li>
+        <li>ป้าย <b style="color:hsl(var(--success))">แพ็ก</b> vs รายการสั่งเพิ่ม</li>
+        <li>ขอบ <b style="color:hsl(var(--primary))">primary</b> = โต๊ะใกล้หมดเวลา</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- D -->
+<div id="panel-d" class="theme-panel">
+  <div class="panel-head">
+    <div class="label-banner"><b>ปิดบิล</b> <span class="role-pill">เคาน์เตอร์</span></div>
+    <p class="theme-description">ใบสรุปอ่านง่าย แยกค่าบุฟเีต่อหัวกับสั่งเพิ่ม — ยอดรวมเด่นชัด</p>
+  </div>
+  <div class="grid2">
+    <div class="d-wrap">
+      <div class="d-bill">
+        <div class="d-logo-circle">ห</div>
+        <h2>หมูพรอมต์</h2>
+        <p class="meta">โต๊ะ B2 · 6 ท่าน<br>25 พ.ค. 2569 · 13:20</p>
+        <div class="d-package-box">
+          <div class="row1"><strong>บุฟเีพรีเมียม · 120 นาที</strong><span class="d-time-chip">เหลือ 42 น.</span></div>
+          <div class="calc">฿399 × 6 ท่าน = ฿2,394</div>
+        </div>
+        <div class="d-section">รวมในแพ็ก</div>
+        <div class="d-line dim"><span>หมูสไลด์ ×12</span><span class="amt">รวมแพ็ก</span></div>
+        <div class="d-line dim"><span>คอหมู ×8</span><span class="amt">รวมแพ็ก</span></div>
+        <div class="d-section">สั่งเพิ่ม</div>
+        <div class="d-line"><span>กุ้งแม่น้ำ ×2</span><span class="amt">฿178</span></div>
+        <div class="d-line"><span>น้ำส้มคั้น ×3</span><span class="amt">฿105</span></div>
+        <div class="d-divider"></div>
+        <div class="d-line"><span>สั่งเพิ่มรวม</span><span class="amt">฿340</span></div>
+        <div class="d-total"><span>ยอดชำระ</span><span>฿2,734</span></div>
+        <p class="d-footnote">ค่าบุฟเีคิดต่อท่าน · รายการในแพ็กไม่แยกราคา</p>
+        <button class="btn btn-primary" style="width:100%;margin-top:16px">รับเงิน · ปิดโต๊ะ</button>
+      </div>
+    </div>
+    <div class="d-side-panel">
+      <div class="section-label" style="margin-top:0">แผนผังโต๊ะ (แอดมิน)</div>
+      <div class="d-floor">
+        <div class="d-seat on">A1<span class="t">18 น.</span></div>
+        <div class="d-seat">A2</div>
+        <div class="d-seat on">A3<span class="t">55 น.</span></div>
+        <div class="d-seat on">B1<span class="t">8 น.</span></div>
+        <div class="d-seat on">B2<span class="t">42 น.</span></div>
+        <div class="d-seat">B3</div>
+      </div>
+      <div class="palette-strip" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:14px">
+        <span style="display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--ink-muted)"><i style="width:14px;height:14px;border-radius:4px;background:hsl(var(--primary));display:inline-block"></i>primary</span>
+        <span style="display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--ink-muted)"><i style="width:14px;height:14px;border-radius:4px;background:hsl(var(--secondary));display:inline-block"></i>secondary</span>
+        <span style="display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--ink-muted)"><i style="width:14px;height:14px;border-radius:4px;background:hsl(var(--accent));display:inline-block"></i>accent</span>
+        <span style="display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--ink-muted)"><i style="width:14px;height:14px;border-radius:4px;background:hsl(var(--success));display:inline-block"></i>success</span>
+        <span style="display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--ink-muted)"><i style="width:14px;height:14px;border-radius:4px;background:hsl(var(--muted));display:inline-block"></i>muted</span>
+      </div>
+      <p style="font-size:12px;color:var(--ink-muted);margin-top:10px;line-height:1.6">ค่า HSL ตรงกับ <code>src/app/globals.css</code> — ย้ายเข้าแอปแล้วสีจะตรง preview นี้</p>
+    </div>
+  </div>
+</div>
+
+<script>
+function show(id, el) {
+  document.querySelectorAll('.theme-panel').forEach(p => p.classList.remove('active'))
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'))
+  document.getElementById('panel-' + id).classList.add('active')
+  el.classList.add('active')
+}
+</script>
+</body>
+</html>

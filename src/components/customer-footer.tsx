@@ -2,8 +2,6 @@
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { Home, Menu as MenuIcon, ShoppingCart, Receipt } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { useCartStore } from '@/store/cart-store'
 import { cn } from '@/lib/utils'
 
@@ -12,16 +10,16 @@ export function CustomerFooter() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { items } = useCartStore()
-  const sessionId = searchParams.get('session') || pathname.split('/')[2] // Get sessionId from URL or params
+  const sessionId = searchParams.get('session') || pathname.split('/')[2]
 
   const totalCartItems = items.reduce((sum, item) => sum + item.qty, 0)
 
-  const menuItems = [
+  const navItems = [
     {
       href: `/session/${sessionId}`,
       icon: Home,
       label: 'หน้าหลัก',
-      isActive: pathname.startsWith('/session/') && pathname !== '/menu',
+      isActive: pathname.startsWith('/session/'),
     },
     {
       href: `/menu?session=${sessionId}`,
@@ -44,50 +42,46 @@ export function CustomerFooter() {
     },
   ]
 
-  // Don't show footer on home page or if no sessionId
-  if (pathname === '/' || !sessionId) {
-    return null
-  }
+  if (pathname === '/' || !sessionId) return null
 
-  // Only show on customer pages
   const customerPages = ['/menu', '/cart', '/orders', '/session']
-  const isCustomerPage = customerPages.some((page) => pathname.startsWith(page))
-  if (!isCustomerPage) {
-    return null
-  }
+  if (!customerPages.some(p => pathname.startsWith(p))) return null
 
   return (
     <footer className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t shadow-lg md:hidden pb-safe">
-      <div className="grid grid-cols-4 h-16">
-        {menuItems.map((item) => {
+      <div className="grid grid-cols-4 h-[72px]">
+        {navItems.map(item => {
           const Icon = item.icon
           return (
-            <Button
+            <button
               key={item.href}
               onClick={() => router.push(item.href)}
-              variant="ghost"
               className={cn(
-                'h-full flex-col gap-1 rounded-none',
-                item.isActive && 'bg-primary/10 text-primary'
+                'relative flex flex-col items-center justify-center gap-1 transition-colors',
+                item.isActive ? 'text-primary' : 'text-muted-foreground'
               )}
             >
+              {/* Active indicator bar */}
+              {item.isActive && (
+                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-primary" />
+              )}
+
               <div className="relative">
-                <Icon className="w-5 h-5" />
-                {item.badge && (
-                  <Badge
-                    variant="destructive"
-                    className="absolute -top-2 -right-2 min-w-[18px] h-[18px] px-1 flex items-center justify-center text-[10px] font-bold leading-none rounded-full"
-                  >
+                <Icon className={cn('w-6 h-6 transition-transform', item.isActive && 'scale-110')} />
+                {item.badge !== undefined && (
+                  <span className="absolute -top-2 -right-2.5 min-w-[18px] h-[18px] bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center px-1 leading-none">
                     {item.badge > 99 ? '99+' : item.badge}
-                  </Badge>
+                  </span>
                 )}
               </div>
-              <span className="text-xs">{item.label}</span>
-            </Button>
+
+              <span className={cn('text-[11px] font-medium', item.isActive && 'font-bold')}>
+                {item.label}
+              </span>
+            </button>
           )
         })}
       </div>
     </footer>
   )
 }
-

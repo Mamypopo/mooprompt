@@ -507,9 +507,10 @@ export default function CloseTablePage() {
 
   return (
     <div>
-      <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">
-        ปิดโต๊ะ
-      </h1>
+      <div className="mb-4 sm:mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold">ปิดโต๊ะ</h1>
+        <p className="text-sm text-muted-foreground mt-0.5">เลือกโต๊ะ กำหนดส่วนลด และสร้างบิล</p>
+      </div>
 
       {sessions.length === 0 ? (
         <Card>

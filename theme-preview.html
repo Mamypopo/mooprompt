@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Theme Preview — Mooprompt</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', sans-serif; background: #111; }
+
+  .page { padding: 24px; }
+  .title { color: #fff; font-size: 22px; font-weight: 700; margin-bottom: 8px; text-align: center; }
+  .subtitle { color: #aaa; font-size: 13px; text-align: center; margin-bottom: 32px; }
+
+  .tabs { display: flex; gap: 8px; justify-content: center; margin-bottom: 32px; flex-wrap: wrap; }
+  .tab { padding: 10px 24px; border-radius: 999px; border: 2px solid #444; color: #aaa; cursor: pointer; font-size: 14px; font-weight: 600; transition: all .2s; }
+  .tab.active { border-color: #fff; color: #fff; background: #333; }
+
+  .theme { display: none; }
+  .theme.active { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1000px; margin: 0 auto; }
+
+  @media (max-width: 700px) {
+    .theme.active { grid-template-columns: 1fr; }
+  }
+
+  /* ===================== THEME A — Warm Amber ===================== */
+  .themeA { --bg: #FAFAF9; --card: #FFFFFF; --primary: #F97316; --primary-fg: #fff;
+    --border: #E7E5E4; --text: #1C1917; --muted: #78716C; --muted-bg: #F5F5F4;
+    --success: #16A34A; --red: #DC2626; --shadow: 0 1px 3px rgba(0,0,0,.08), 0 4px 12px rgba(0,0,0,.06); }
+
+  /* ===================== THEME B — Dark Premium ===================== */
+  .themeB { --bg: #0C0A09; --card: #1C1917; --primary: #F59E0B; --primary-fg: #1C1917;
+    --border: #292524; --text: #FAFAF9; --muted: #A8A29E; --muted-bg: #292524;
+    --success: #4ADE80; --red: #F87171; --shadow: 0 1px 3px rgba(0,0,0,.4), 0 4px 12px rgba(0,0,0,.3); }
+
+  /* ===================== THEME C — Refined Rose ===================== */
+  .themeC { --bg: #FFF1F2; --card: #FFFFFF; --primary: #E11D48; --primary-fg: #fff;
+    --border: #FFE4E6; --text: #1C1917; --muted: #9F1239; --muted-bg: #FFF0F1;
+    --success: #15803D; --red: #BE123C; --shadow: 0 1px 3px rgba(225,29,72,.06), 0 4px 12px rgba(225,29,72,.08); }
+
+  /* ===================== COMPONENTS ===================== */
+  .demo-wrap {
+    background: var(--bg);
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .demo-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: #888;
+    margin-bottom: 4px;
+  }
+
+  /* Card */
+  .c-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: var(--shadow);
+    color: var(--text);
+  }
+  .c-card-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .c-card-sub { font-size: 12px; color: var(--muted); }
+  .c-card-price { font-size: 20px; font-weight: 800; color: var(--primary); margin-top: 8px; }
+
+  /* Buttons */
+  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn {
+    padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: none;
+    transition: opacity .15s;
+  }
+  .btn:hover { opacity: .85; }
+  .btn-primary { background: var(--primary); color: var(--primary-fg); }
+  .btn-outline { background: transparent; color: var(--text); border: 1.5px solid var(--border); }
+  .btn-ghost { background: var(--muted-bg); color: var(--text); }
+  .btn-danger { background: var(--red); color: #fff; }
+
+  /* Input */
+  .c-input {
+    width: 100%; padding: 9px 12px; border-radius: 8px; font-size: 14px;
+    background: var(--card); border: 1.5px solid var(--border); color: var(--text); outline: none;
+  }
+  .c-input:focus { border-color: var(--primary); }
+  .c-label { font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 4px; display: block; }
+
+  /* Badge */
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+  .badge-primary { background: var(--primary); color: var(--primary-fg); }
+  .badge-success { background: var(--success); color: #fff; }
+  .badge-muted { background: var(--muted-bg); color: var(--muted); }
+  .badge-row { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  /* Nav bar */
+  .c-nav {
+    background: var(--card); border-bottom: 1px solid var(--border);
+    padding: 14px 16px; border-radius: 10px;
+    display: flex; justify-content: space-between; align-items: center;
+    box-shadow: var(--shadow);
+  }
+  .c-nav-title { font-size: 15px; font-weight: 700; color: var(--text); }
+  .c-nav-badge { font-size: 10px; background: var(--primary); color: var(--primary-fg); border-radius: 999px; padding: 2px 8px; font-weight: 700; }
+
+  /* Order card */
+  .c-order {
+    background: var(--card); border: 1px solid var(--border);
+    border-left: 4px solid var(--primary); border-radius: 10px;
+    padding: 14px; box-shadow: var(--shadow);
+  }
+  .c-order-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .c-order-title { font-size: 14px; font-weight: 700; color: var(--text); }
+  .c-order-time { font-size: 11px; color: var(--muted); }
+  .c-order-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: var(--muted-bg); border-radius: 6px; margin-top: 6px; }
+  .c-order-item-name { font-size: 13px; color: var(--text); }
+  .c-order-item-price { font-size: 13px; font-weight: 700; color: var(--primary); }
+
+  /* Progress */
+  .progress-row { display: flex; align-items: center; gap: 0; }
+  .progress-step { display: flex; flex-direction: column; align-items: center; flex: 1; }
+  .progress-dot {
+    width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700; color: #fff;
+  }
+  .progress-dot.done { background: var(--primary); }
+  .progress-dot.active { background: var(--primary); box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 25%, transparent); }
+  .progress-dot.inactive { background: var(--muted-bg); color: var(--muted); }
+  .progress-line { flex: 1; height: 2px; background: var(--border); margin-bottom: 16px; }
+  .progress-line.done { background: var(--primary); }
+  .progress-label { font-size: 9px; color: var(--muted); margin-top: 4px; white-space: nowrap; }
+  .progress-label.active { color: var(--primary); font-weight: 700; }
+
+  /* Floor plan */
+  .floor-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .floor-table {
+    border-radius: 10px; border: 2px solid; padding: 10px 6px; text-align: center;
+    font-size: 12px; font-weight: 700;
+  }
+  .floor-table.occupied { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 12%, transparent); color: var(--text); }
+  .floor-table.free { border-color: var(--success); background: color-mix(in srgb, var(--success) 10%, transparent); color: var(--text); }
+  .floor-table-status { font-size: 10px; font-weight: 400; opacity: .7; margin-top: 2px; }
+
+  /* Stat card */
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .stat-card { background: var(--muted-bg); border-radius: 10px; padding: 12px; border: 1px solid var(--border); }
+  .stat-value { font-size: 22px; font-weight: 800; color: var(--primary); }
+  .stat-label { font-size: 11px; color: var(--muted); margin-top: 2px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="title">🎨 Mooprompt — Theme Preview</div>
+  <div class="subtitle">คลิกดูแต่ละ theme แล้วเลือกที่ชอบ</div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('A', this)">A · Warm Amber 🍊</div>
+    <div class="tab" onclick="switchTab('B', this)">B · Dark Premium 🖤</div>
+    <div class="tab" onclick="switchTab('C', this)">C · Refined Rose 🌸</div>
+  </div>
+
+  <!-- THEME A -->
+  <div class="theme themeA active" id="themeA">
+    <div class="demo-wrap themeA">
+      <div class="demo-label">Navigation + Cards</div>
+      <div class="c-nav themeA">
+        <span class="c-nav-title">🍖 Mooprompt</span>
+        <span class="c-nav-badge">3 ออเดอร์</span>
+      </div>
+      <div class="c-card themeA">
+        <div class="c-card-title">เนื้อวากิวพรีเมียม</div>
+        <div class="c-card-sub">เนื้อออสเตรเลีย ระดับ A5</div>
+        <div class="c-card-price">฿349</div>
+      </div>
+      <div class="c-card themeA">
+        <div class="c-card-title">Dashboard วันนี้</div>
+        <div class="stat-grid themeA" style="margin-top:10px">
+          <div class="stat-card themeA"><div class="stat-value themeA">12</div><div class="stat-label themeA">โต๊ะที่เปิด</div></div>
+          <div class="stat-card themeA"><div class="stat-value themeA">฿8,420</div><div class="stat-label themeA">ยอดขายวันนี้</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="demo-wrap themeA">
+      <div class="demo-label">Buttons + Inputs + Badges</div>
+      <div class="btn-row themeA">
+        <button class="btn btn-primary themeA">สั่งอาหาร</button>
+        <button class="btn btn-outline themeA">ยกเลิก</button>
+        <button class="btn btn-danger themeA">ลบ</button>
+      </div>
+      <div style="margin-top:4px">
+        <label class="c-label themeA">ชื่อโต๊ะ</label>
+        <input class="c-input themeA" placeholder="เช่น โต๊ะ 1, VIP A">
+      </div>
+      <div class="badge-row themeA">
+        <span class="badge badge-primary themeA">กำลังทำ</span>
+        <span class="badge badge-success themeA">พร้อมเสิร์ฟ</span>
+        <span class="badge badge-muted themeA">รอทำ</span>
+      </div>
+      <div class="demo-label" style="margin-top:8px">Order Progress</div>
+      <div class="progress-row themeA">
+        <div class="progress-step"><div class="progress-dot done themeA">✓</div><div class="progress-label themeA">รอทำ</div></div>
+        <div class="progress-line done themeA"></div>
+        <div class="progress-step"><div class="progress-dot active themeA">2</div><div class="progress-label active themeA">กำลังทำ</div></div>
+        <div class="progress-line themeA"></div>
+        <div class="progress-step"><div class="progress-dot inactive themeA">3</div><div class="progress-label themeA">เสิร์ฟ</div></div>
+      </div>
+      <div class="demo-label" style="margin-top:8px">Floor Plan</div>
+      <div class="floor-grid themeA">
+        <div class="floor-table occupied themeA">โต๊ะ 1<div class="floor-table-status themeA">4 คน</div></div>
+        <div class="floor-table free themeA">โต๊ะ 2<div class="floor-table-status themeA">ว่าง</div></div>
+        <div class="floor-table occupied themeA">VIP 1<div class="floor-table-status themeA">6 คน</div></div>
+        <div class="floor-table free themeA">VIP 2<div class="floor-table-status themeA">ว่าง</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- THEME B -->
+  <div class="theme themeB" id="themeB">
+    <div class="demo-wrap themeB">
+      <div class="demo-label" style="color:#666">Navigation + Cards</div>
+      <div class="c-nav themeB">
+        <span class="c-nav-title themeB">🍖 Mooprompt</span>
+        <span class="c-nav-badge themeB">3 ออเดอร์</span>
+      </div>
+      <div class="c-card themeB">
+        <div class="c-card-title themeB">เนื้อวากิวพรีเมียม</div>
+        <div class="c-card-sub themeB">เนื้อออสเตรเลีย ระดับ A5</div>
+        <div class="c-card-price themeB">฿349</div>
+      </div>
+      <div class="c-card themeB">
+        <div class="c-card-title themeB">Dashboard วันนี้</div>
+        <div class="stat-grid themeB" style="margin-top:10px">
+          <div class="stat-card themeB"><div class="stat-value themeB">12</div><div class="stat-label themeB">โต๊ะที่เปิด</div></div>
+          <div class="stat-card themeB"><div class="stat-value themeB">฿8,420</div><div class="stat-label themeB">ยอดขายวันนี้</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="demo-wrap themeB">
+      <div class="demo-label" style="color:#666">Buttons + Inputs + Badges</div>
+      <div class="btn-row themeB">
+        <button class="btn btn-primary themeB">สั่งอาหาร</button>
+        <button class="btn btn-outline themeB">ยกเลิก</button>
+        <button class="btn btn-danger themeB">ลบ</button>
+      </div>
+      <div style="margin-top:4px">
+        <label class="c-label themeB">ชื่อโต๊ะ</label>
+        <input class="c-input themeB" placeholder="เช่น โต๊ะ 1, VIP A" style="background:#1C1917;color:#FAFAF9;border-color:#292524">
+      </div>
+      <div class="badge-row themeB">
+        <span class="badge badge-primary themeB">กำลังทำ</span>
+        <span class="badge badge-success themeB">พร้อมเสิร์ฟ</span>
+        <span class="badge badge-muted themeB">รอทำ</span>
+      </div>
+      <div class="demo-label" style="margin-top:8px;color:#666">Order Progress</div>
+      <div class="progress-row themeB">
+        <div class="progress-step"><div class="progress-dot done themeB" style="color:#1C1917">✓</div><div class="progress-label themeB">รอทำ</div></div>
+        <div class="progress-line done themeB"></div>
+        <div class="progress-step"><div class="progress-dot active themeB" style="color:#1C1917">2</div><div class="progress-label active themeB">กำลังทำ</div></div>
+        <div class="progress-line themeB"></div>
+        <div class="progress-step"><div class="progress-dot inactive themeB">3</div><div class="progress-label themeB">เสิร์ฟ</div></div>
+      </div>
+      <div class="demo-label" style="margin-top:8px;color:#666">Floor Plan</div>
+      <div class="floor-grid themeB">
+        <div class="floor-table occupied themeB" style="color:#FAFAF9">โต๊ะ 1<div class="floor-table-status">4 คน</div></div>
+        <div class="floor-table free themeB" style="color:#FAFAF9">โต๊ะ 2<div class="floor-table-status">ว่าง</div></div>
+        <div class="floor-table occupied themeB" style="color:#FAFAF9">VIP 1<div class="floor-table-status">6 คน</div></div>
+        <div class="floor-table free themeB" style="color:#FAFAF9">VIP 2<div class="floor-table-status">ว่าง</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- THEME C -->
+  <div class="theme themeC" id="themeC">
+    <div class="demo-wrap themeC">
+      <div class="demo-label">Navigation + Cards</div>
+      <div class="c-nav themeC">
+        <span class="c-nav-title themeC">🍖 Mooprompt</span>
+        <span class="c-nav-badge themeC">3 ออเดอร์</span>
+      </div>
+      <div class="c-card themeC">
+        <div class="c-card-title themeC">เนื้อวากิวพรีเมียม</div>
+        <div class="c-card-sub themeC">เนื้อออสเตรเลีย ระดับ A5</div>
+        <div class="c-card-price themeC">฿349</div>
+      </div>
+      <div class="c-card themeC">
+        <div class="c-card-title themeC">Dashboard วันนี้</div>
+        <div class="stat-grid themeC" style="margin-top:10px">
+          <div class="stat-card themeC"><div class="stat-value themeC">12</div><div class="stat-label themeC">โต๊ะที่เปิด</div></div>
+          <div class="stat-card themeC"><div class="stat-value themeC">฿8,420</div><div class="stat-label themeC">ยอดขายวันนี้</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="demo-wrap themeC">
+      <div class="demo-label">Buttons + Inputs + Badges</div>
+      <div class="btn-row themeC">
+        <button class="btn btn-primary themeC">สั่งอาหาร</button>
+        <button class="btn btn-outline themeC">ยกเลิก</button>
+        <button class="btn btn-danger themeC">ลบ</button>
+      </div>
+      <div style="margin-top:4px">
+        <label class="c-label themeC">ชื่อโต๊ะ</label>
+        <input class="c-input themeC" placeholder="เช่น โต๊ะ 1, VIP A">
+      </div>
+      <div class="badge-row themeC">
+        <span class="badge badge-primary themeC">กำลังทำ</span>
+        <span class="badge badge-success themeC">พร้อมเสิร์ฟ</span>
+        <span class="badge badge-muted themeC">รอทำ</span>
+      </div>
+      <div class="demo-label" style="margin-top:8px">Order Progress</div>
+      <div class="progress-row themeC">
+        <div class="progress-step"><div class="progress-dot done themeC">✓</div><div class="progress-label themeC">รอทำ</div></div>
+        <div class="progress-line done themeC"></div>
+        <div class="progress-step"><div class="progress-dot active themeC">2</div><div class="progress-label active themeC">กำลังทำ</div></div>
+        <div class="progress-line themeC"></div>
+        <div class="progress-step"><div class="progress-dot inactive themeC">3</div><div class="progress-label themeC">เสิร์ฟ</div></div>
+      </div>
+      <div class="demo-label" style="margin-top:8px">Floor Plan</div>
+      <div class="floor-grid themeC">
+        <div class="floor-table occupied themeC">โต๊ะ 1<div class="floor-table-status themeC">4 คน</div></div>
+        <div class="floor-table free themeC">โต๊ะ 2<div class="floor-table-status themeC">ว่าง</div></div>
+        <div class="floor-table occupied themeC">VIP 1<div class="floor-table-status themeC">6 คน</div></div>
+        <div class="floor-table free themeC">VIP 2<div class="floor-table-status themeC">ว่าง</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Compare note -->
+  <div style="text-align:center;margin-top:32px;color:#555;font-size:13px;max-width:600px;margin-left:auto;margin-right:auto;">
+    <p style="margin-bottom:8px">ทั้ง 3 แบบใช้ font เดิม, layout เดิม — เปลี่ยนแค่ palette</p>
+    <p>
+      <strong style="color:#F97316">A (Orange)</strong> = warm, food-first, เหมาะกับลูกค้าทุกวัย &nbsp;|&nbsp;
+      <strong style="color:#F59E0B">B (Dark)</strong> = premium, upscale, nighttime vibe &nbsp;|&nbsp;
+      <strong style="color:#E11D48">C (Rose)</strong> = ใกล้เคียงเดิมที่สุด แต่ softer
+    </p>
+  </div>
+</div>
+
+<script>
+  function switchTab(id, el) {
+    document.querySelectorAll('.theme').forEach(t => t.classList.remove('active'))
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'))
+    document.getElementById('theme' + id).classList.add('active')
+    el.classList.add('active')
+  }
+</script>
+</body>
+</html>

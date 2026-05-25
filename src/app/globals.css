@@ -26,7 +26,7 @@
     
     /* Accent - สีส้ม สำหรับเน้นพิเศษ */
     --accent: 25 95% 53%; /* #F97316 - Orange-500 */
-    --accent-foreground: 0 0% 100%;
+    --accent-foreground: 20 14.3% 4.1%; /* dark text on orange — WCAG AA contrast ~11:1 */
     
     /* Destructive - สีแดงเข้มสำหรับปุ่มลบ (ต่างจาก primary ชัดเจน) */
     --destructive: 0 72% 50%; /* #DC2626 - Red-600 เข้มกว่า primary */
@@ -43,8 +43,8 @@
     --success-foreground: 0 0% 100%;
     --error: 0 72% 50%; /* #DC2626 - Red-600 (เหมือน destructive) */
     --error-foreground: 0 0% 100%;
-    --warning: 25 95% 53%; /* #FF8C42 - Orange */
-    --warning-foreground: 0 0% 100%;
+    --warning: 25 95% 53%; /* #F97316 - Orange */
+    --warning-foreground: 20 14.3% 4.1%; /* dark text on orange — WCAG AA */
   }
 
 }
@@ -382,9 +382,15 @@ html {
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom);
   }
-  
+
   .pt-safe {
     padding-top: env(safe-area-inset-top);
   }
+}
+
+/* Hide scrollbar — used for horizontal category tab strip */
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 }
 

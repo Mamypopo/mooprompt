@@ -13,9 +13,10 @@ import {
   X,
   LayoutDashboard,
   History,
+  ChefHat,
 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+
 const menuItems = [
   { href: '/admin/dashboard', icon: LayoutDashboard, label: 'ภาพรวม' },
   { href: '/admin/open-table', icon: QrCode, label: 'เปิดโต๊ะ' },
@@ -35,31 +36,40 @@ export function Sidebar() {
   const router = useRouter()
 
   return (
-    <aside className="hidden lg:block w-64 bg-card border-r min-h-screen p-4">
-      <div className="mb-6">
-        <h2 className="text-xl font-bold">Admin Panel</h2>
+    <aside className="hidden lg:flex flex-col w-64 bg-gray-900 min-h-screen">
+      {/* Brand */}
+      <div className="flex items-center gap-3 px-6 py-5 border-b border-white/10">
+        <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center flex-shrink-0">
+          <ChefHat className="w-5 h-5 text-white" />
+        </div>
+        <div>
+          <p className="text-white font-bold text-base leading-none">Mooprompt</p>
+          <p className="text-gray-400 text-xs mt-0.5">Admin Panel</p>
+        </div>
       </div>
-      <nav className="space-y-1">
+
+      {/* Nav */}
+      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
         {menuItems.map((item) => {
           const Icon = item.icon
           const isActive = pathname === item.href
           return (
-            <Button
+            <button
               key={item.href}
               onClick={() => router.push(item.href)}
-              variant={isActive ? 'default' : 'ghost'}
               className={cn(
-                'w-full justify-start',
-                isActive && 'bg-primary text-primary-foreground'
+                'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all',
+                isActive
+                  ? 'bg-primary/20 text-primary border border-primary/30'
+                  : 'text-gray-400 hover:text-white hover:bg-white/10'
               )}
             >
-              <Icon className="w-4 h-4 mr-2" />
+              <Icon className={cn('w-4 h-4 flex-shrink-0', isActive ? 'text-primary' : '')} />
               {item.label}
-            </Button>
+            </button>
           )
         })}
       </nav>
     </aside>
   )
 }
-

@@ -278,8 +278,11 @@ export default function PackagesPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-xl sm:text-2xl font-bold">จัดการแพ็กเกจ</h1>
+      <div className="flex justify-between items-start sm:items-center mb-6 gap-4">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold">จัดการแพ็กเกจ</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">แพ็กเกจบุฟเฟ่ต์สำหรับเปิดโต๊ะ</p>
+        </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={() => handleOpenDialog()}>
@@ -368,22 +371,23 @@ export default function PackagesPage() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {packages.map((pkg) => (
-            <Card key={pkg.id}>
-              <CardHeader>
-                <CardTitle className="text-lg">{pkg.name}</CardTitle>
+            <Card key={pkg.id} className="overflow-hidden">
+              <div className="h-1 bg-gradient-to-r from-primary to-secondary" />
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">{pkg.name}</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2">
-                <div>
-                  <p className="text-sm text-muted-foreground">ราคาต่อคน</p>
-                  <p className="text-xl font-semibold">
-                    {pkg.pricePerPerson.toLocaleString()} บาท
+              <CardContent className="space-y-3">
+                <div className="bg-primary/5 rounded-lg p-3">
+                  <p className="text-xs text-muted-foreground">ราคาต่อคน</p>
+                  <p className="text-2xl font-bold text-primary">
+                    ฿{pkg.pricePerPerson.toLocaleString()}
                   </p>
                 </div>
                 {pkg.durationMinutes && (
                   <div>
-                    <p className="text-sm text-muted-foreground">ระยะเวลา</p>
-                    <p className="text-lg">
-                      {pkg.durationMinutes} นาที ({Math.round(pkg.durationMinutes / 60 * 10) / 10} ชั่วโมง)
+                    <p className="text-xs text-muted-foreground">ระยะเวลา</p>
+                    <p className="text-sm font-medium">
+                      {pkg.durationMinutes} นาที ({Math.round(pkg.durationMinutes / 60 * 10) / 10} ชม.)
                     </p>
                   </div>
                 )}

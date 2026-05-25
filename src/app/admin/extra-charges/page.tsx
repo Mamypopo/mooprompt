@@ -251,8 +251,11 @@ export default function ExtraChargesPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-xl sm:text-2xl font-bold">จัดการค่าบริการเพิ่มเติม</h1>
+      <div className="flex justify-between items-start sm:items-center mb-6 gap-4">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold">ค่าบริการเพิ่มเติม</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">ค่าบริการที่เพิ่มในใบเสร็จ เช่น น้ำรีฟิล</p>
+        </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={() => handleOpenDialog()}>
@@ -358,27 +361,28 @@ export default function ExtraChargesPage() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {extraCharges.map((extraCharge) => (
-            <Card key={extraCharge.id} className={!extraCharge.active ? 'opacity-60' : ''}>
-              <CardHeader>
+            <Card key={extraCharge.id} className={`overflow-hidden ${!extraCharge.active ? 'opacity-60' : ''}`}>
+              <div className={`h-1 ${extraCharge.active ? 'bg-primary' : 'bg-muted'}`} />
+              <CardHeader className="pb-2">
                 <div className="flex justify-between items-start">
-                  <CardTitle className="text-lg">{extraCharge.name}</CardTitle>
+                  <CardTitle className="text-base">{extraCharge.name}</CardTitle>
                   {!extraCharge.active && (
-                    <span className="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded">
+                    <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
                       ปิดใช้งาน
                     </span>
                   )}
                 </div>
               </CardHeader>
-              <CardContent className="space-y-2">
-                <div>
-                  <p className="text-sm text-muted-foreground">ราคา</p>
-                  <p className="text-xl font-semibold">
-                    {extraCharge.price.toLocaleString()} บาท
+              <CardContent className="space-y-3">
+                <div className="bg-primary/5 rounded-lg p-3">
+                  <p className="text-xs text-muted-foreground">ราคา</p>
+                  <p className="text-2xl font-bold text-primary">
+                    ฿{extraCharge.price.toLocaleString()}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">ประเภท</p>
-                  <p className="text-lg">
+                  <p className="text-xs text-muted-foreground">ประเภทการคิด</p>
+                  <p className="text-sm font-medium">
                     {extraCharge.chargeType === 'PER_SESSION' ? 'ต่อเซสชัน' : 'ต่อคน'}
                   </p>
                 </div>

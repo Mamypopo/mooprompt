@@ -4,9 +4,8 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 import Image from 'next/image'
 import { determineItemType } from '@/lib/menu-item-type'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { Plus, Minus, ShoppingCart, CheckCircle2, Filter, ArrowLeft } from 'lucide-react'
+import { Plus, Minus, ShoppingCart, ArrowLeft, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -25,17 +24,10 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { useCartStore } from '@/store/cart-store'
 import { getSocket } from '@/lib/socket-client'
 import Swal from 'sweetalert2'
-import { CategorySkeleton } from '@/components/skeletons'
+import { cn } from '@/lib/utils'
 import { Skeleton } from '@/components/ui/skeleton'
 
 interface MenuItem {
@@ -65,7 +57,7 @@ export default function MenuPage() {
   const [categories, setCategories] = useState<Category[]>([])
   const [sessionType, setSessionType] = useState<'buffet' | 'a_la_carte'>('a_la_carte')
   const [loading, setLoading] = useState(true)
-  const { addItem, items, getTotal } = useCartStore()
+  const { addItem, items } = useCartStore()
   const [itemQuantities, setItemQuantities] = useState<Record<number, number>>({})
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null)
@@ -73,389 +65,303 @@ export default function MenuPage() {
   const [isMobile, setIsMobile] = useState(false)
   const [itemNote, setItemNote] = useState<string>('')
   const [isExpired, setIsExpired] = useState(false)
-  const hasLoadedRef = useRef(false) // ติดตามว่าโหลดครั้งแรกเสร็จแล้วหรือยัง
-  const fetchingRef = useRef(false) // ป้องกันการเรียก fetchMenu พร้อมกันหลายครั้ง
-  const lastSessionIdRef = useRef<string | null>(null) // ติดตาม sessionId ที่ fetch แล้ว
-  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null) // สำหรับ debounce socket event
+  const hasLoadedRef = useRef(false)
+  const fetchingRef = useRef(false)
+  const lastSessionIdRef = useRef<string | null>(null)
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const fetchMenu = useCallback(async (silent = false) => {
-    // ป้องกันการเรียกซ้ำถ้ากำลัง fetch อยู่แล้ว
-    if (fetchingRef.current) {
-      return
-    }
-
+    if (fetchingRef.current) return
     try {
       fetchingRef.current = true
-      if (!silent) {
-        setLoading(true)
-      }
+      if (!silent) setLoading(true)
       const sessionIdNum = sessionId ? parseInt(sessionId, 10) : null
-      const url = sessionIdNum
-        ? `/api/menu?sessionId=${sessionIdNum}`
-        : '/api/menu'
-      
+      const url = sessionIdNum ? `/api/menu?sessionId=${sessionIdNum}` : '/api/menu'
       const response = await fetch(url)
-      if (!response.ok) {
-        throw new Error('Failed to fetch menu')
-      }
+      if (!response.ok) throw new Error('Failed to fetch menu')
       const data = await response.json()
       setCategories(data.categories || [])
       setSessionType(data.sessionType || 'a_la_carte')
-      // Check if session is expired
-      if (data.isExpired) {
-        setIsExpired(true)
-      } else {
-        setIsExpired(false)
-      }
+      setIsExpired(!!data.isExpired)
       if (!silent) {
-        hasLoadedRef.current = true // บันทึกว่าโหลดครั้งแรกเสร็จแล้ว
-        lastSessionIdRef.current = sessionId // บันทึก sessionId ที่ fetch แล้ว
+        hasLoadedRef.current = true
+        lastSessionIdRef.current = sessionId
       }
     } catch (error) {
       console.error('Error fetching menu:', error)
-      // Could add error state here if needed
     } finally {
       fetchingRef.current = false
-      if (!silent) {
-        setLoading(false)
-      }
+      if (!silent) setLoading(false)
     }
   }, [sessionId])
 
   useEffect(() => {
-    if (!sessionId) {
-      router.push('/')
-      return
-    }
-
-    // เรียก fetchMenu เฉพาะเมื่อ sessionId เปลี่ยน (ไม่ใช่แค่ re-render)
-    const shouldFetch = lastSessionIdRef.current !== sessionId
-    if (shouldFetch) {
-      hasLoadedRef.current = false // รีเซ็ต flag เมื่อ sessionId เปลี่ยน
-      lastSessionIdRef.current = sessionId // อัพเดท sessionId ที่จะ fetch
+    if (!sessionId) { router.push('/'); return }
+    if (lastSessionIdRef.current !== sessionId) {
+      hasLoadedRef.current = false
+      lastSessionIdRef.current = sessionId
       fetchMenu()
     }
-
-    // Setup socket listener for real-time updates
     const socket = getSocket()
     const handleMenuUnavailable = () => {
-      // Silently update menu when availability changes (no loading spinner)
-      // ใช้ debounce เพื่อป้องกันการ update หลายครั้งติดกัน
-      if (debounceTimeoutRef.current) {
-        clearTimeout(debounceTimeoutRef.current)
-      }
-      debounceTimeoutRef.current = setTimeout(() => {
-        fetchMenu(true)
-      }, 200)
+      if (debounceTimeoutRef.current) clearTimeout(debounceTimeoutRef.current)
+      debounceTimeoutRef.current = setTimeout(() => fetchMenu(true), 200)
     }
     socket.on('menu:unavailable', handleMenuUnavailable)
-
-    // Setup mobile detection
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
+    const checkMobile = () => setIsMobile(window.innerWidth < 768)
     checkMobile()
     window.addEventListener('resize', checkMobile)
-
-    // Cleanup
     return () => {
-      if (debounceTimeoutRef.current) {
-        clearTimeout(debounceTimeoutRef.current)
-        debounceTimeoutRef.current = null
-      }
+      if (debounceTimeoutRef.current) { clearTimeout(debounceTimeoutRef.current); debounceTimeoutRef.current = null }
       socket.off('menu:unavailable', handleMenuUnavailable)
       window.removeEventListener('resize', checkMobile)
     }
   }, [sessionId, fetchMenu, router])
 
-  // Get quantity to add (from local state only, default to 1)
-  // ไม่ sync กับ cart เพื่อให้ผู้ใช้เลือกจำนวนใหม่ได้เสมอ
-  const getQuantity = (menuItemId: number) => {
-    return itemQuantities[menuItemId] || 1
-  }
+  const getQuantity = (id: number) => itemQuantities[id] || 1
+  const getCartQuantity = (id: number) => items.find(i => i.menuItemId === id)?.qty ?? 0
+  const totalCartItems = items.reduce((t, i) => t + i.qty, 0)
 
-  // Get quantity in cart for an item
-  const getCartQuantity = (menuItemId: number) => {
-    const cartItem = items.find(i => i.menuItemId === menuItemId)
-    return cartItem ? cartItem.qty : 0
-  }
-
-  // Get total items in cart
-  const getTotalCartItems = () => {
-    return items.reduce((total, item) => total + item.qty, 0)
-  }
-
-  const updateQuantity = (menuItemId: number, delta: number) => {
-    const currentQty = getQuantity(menuItemId)
-    const newQty = Math.max(1, currentQty + delta)
-    setItemQuantities(prev => ({ ...prev, [menuItemId]: newQty }))
-  }
-
-  const setQuantity = (menuItemId: number, qty: number) => {
-    const newQty = Math.max(1, qty)
-    setItemQuantities(prev => ({ ...prev, [menuItemId]: newQty }))
-  }
+  const updateQuantity = (id: number, delta: number) =>
+    setItemQuantities(prev => ({ ...prev, [id]: Math.max(1, (prev[id] || 1) + delta) }))
 
   const handleItemClick = (item: MenuItem) => {
-    if (!item.isAvailable) return
+    if (!item.isAvailable || isExpired) return
     setSelectedItem(item)
     setIsDetailOpen(true)
-    // Set initial quantity to 1 if not set
-    if (!itemQuantities[item.id]) {
-      setItemQuantities(prev => ({ ...prev, [item.id]: 1 }))
-    }
-    // Reset note when opening new item
+    if (!itemQuantities[item.id]) setItemQuantities(prev => ({ ...prev, [item.id]: 1 }))
     setItemNote('')
   }
 
-  const handleAddToCart = (item: MenuItem) => {
-    if (!item.isAvailable) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'สินค้าไม่พร้อมให้บริการ',
-        toast: true,
-        position: 'top-end',
-        showConfirmButton: false,
-        timer: 3000,
-        timerProgressBar: true,
-      })
-      return
-    }
-
-    // Block if session is expired
+  // One-tap add — no sheet, no confirmation dialog
+  const quickAdd = (item: MenuItem, e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (!item.isAvailable) return
     if (isExpired) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Session หมดอายุแล้ว',
-        text: 'ไม่สามารถสั่งอาหารได้ กรุณาติดต่อพนักงาน',
-        toast: true,
-        position: 'top-end',
-        showConfirmButton: false,
-        timer: 3000,
-        timerProgressBar: true,
-      })
+      Swal.fire({ icon: 'warning', title: 'หมดเวลาบุฟเฟ่ต์', toast: true, position: 'top', showConfirmButton: false, timer: 2000 })
       return
     }
-
-    const qty = getQuantity(item.id)
-
-    // กำหนด itemType ตาม session type และ item properties
     const itemType = determineItemType(sessionType, item)
+    addItem({ menuItemId: item.id, name: item.name, price: itemType === 'BUFFET_INCLUDED' ? 0 : item.price, qty: 1, itemType })
+    Swal.fire({ icon: 'success', title: `เพิ่ม ${item.name}`, toast: true, position: 'top', showConfirmButton: false, timer: 1200, timerProgressBar: true })
+  }
 
-    addItem({
-      menuItemId: item.id,
-      name: item.name,
-      price: itemType === 'BUFFET_INCLUDED' ? 0 : item.price, // ฟรีถ้าเป็น BUFFET_INCLUDED
-      qty,
-      itemType,
-      note: itemNote.trim() || undefined,
-    })
-
-    // Reset quantity to 1 after adding (ไม่ใช้จำนวนจาก cart)
+  const handleAddToCart = (item: MenuItem) => {
+    if (!item.isAvailable) return
+    if (isExpired) {
+      Swal.fire({ icon: 'warning', title: 'Session หมดอายุแล้ว', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, timerProgressBar: true })
+      return
+    }
+    const qty = getQuantity(item.id)
+    const itemType = determineItemType(sessionType, item)
+    addItem({ menuItemId: item.id, name: item.name, price: itemType === 'BUFFET_INCLUDED' ? 0 : item.price, qty, itemType, note: itemNote.trim() || undefined })
     setItemQuantities(prev => ({ ...prev, [item.id]: 1 }))
-
-    Swal.fire({
-      icon: 'success',
-      title: `เพิ่ม ${qty} รายการลงตะกร้าแล้ว`,
-      toast: true,
-      position: 'top-end',
-      showConfirmButton: false,
-      timer: 3000,
-      timerProgressBar: true,
-    })
-
-    // Close detail view after adding
+    Swal.fire({ icon: 'success', title: `เพิ่ม ${qty} รายการ`, toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, timerProgressBar: true })
     setIsDetailOpen(false)
     setSelectedItem(null)
     setItemNote('')
   }
 
+  // Categories visible in the tab strip
+  const visibleCategories = categories.filter(cat => {
+    const items = sessionType === 'buffet'
+      ? cat.items.filter(i => i.isBuffetItem || i.isALaCarteItem)
+      : cat.items.filter(i => i.isALaCarteItem)
+    return items.length > 0
+  })
 
+  // Categories + items shown in the grid
+  const displayCategories = categories
+    .filter(cat => selectedCategory === 'all' || cat.id.toString() === selectedCategory)
+    .map(cat => ({
+      ...cat,
+      items: sessionType === 'buffet'
+        ? cat.items.filter(i => i.isBuffetItem || i.isALaCarteItem)
+        : cat.items.filter(i => i.isALaCarteItem),
+    }))
+    .filter(cat => cat.items.length > 0)
+
+  /* ── Loading skeleton ── */
   if (loading) {
     return (
-      <div className="min-h-screen bg-background pb-20 sm:pb-24">
-        <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
-          <div className="flex justify-between items-center mb-4 sm:mb-6 gap-2">
-            <Skeleton className="h-7 w-32" />
-            <div className="flex items-center gap-2">
-              <Skeleton className="h-9 w-9 rounded" />
-              <Skeleton className="h-9 w-9 rounded" />
-            </div>
+      <div className="min-h-screen bg-background">
+        <div className="sticky top-0 z-40 bg-background border-b">
+          <div className="flex items-center gap-2 px-4 h-14">
+            <Skeleton className="w-10 h-10 rounded-full" />
+            <Skeleton className="h-6 w-28 flex-1" />
+            <Skeleton className="w-11 h-11 rounded-full" />
           </div>
-          {[...Array(3)].map((_, i) => (
-            <CategorySkeleton key={i} />
-          ))}
+          <div className="flex gap-2 px-4 pb-3 pt-1 overflow-hidden">
+            {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-9 w-20 rounded-full flex-shrink-0" />)}
+          </div>
+        </div>
+        <div className="px-3 pt-4">
+          <Skeleton className="h-5 w-20 mb-3" />
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <div key={i}>
+                <Skeleton className="aspect-square rounded-2xl mb-2" />
+                <Skeleton className="h-4 w-3/4 mb-1" />
+                <Skeleton className="h-5 w-1/2" />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     )
   }
 
-  const totalCartItems = getTotalCartItems()
-
   return (
-    <div className="min-h-screen bg-background pb-20 md:pb-24">
-      <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3">
-          <div className="flex items-center gap-2 flex-1 min-w-0">
-            <Button
-              onClick={() => router.push(`/session/${sessionId}`)}
-              variant="ghost"
-              className="flex-shrink-0 text-sm sm:text-base"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              <span className="hidden sm:inline">กลับ</span>
-            </Button>
-            <h1 className="text-xl sm:text-2xl font-bold truncate">เมนู</h1>
-          </div>
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-full sm:w-[180px]">
-                <Filter className="w-4 h-4 mr-2" />
-                <SelectValue placeholder="กรองหมวดหมู่" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">ทุกหมวดหมู่</SelectItem>
-                {categories.map((category) => {
-                  const hasItems = sessionType === 'buffet'
-                    ? category.items.some(item => item.isBuffetItem || (item.isALaCarteItem && !item.isBuffetItem))
-                    : category.items.some(item => item.isALaCarteItem)
-                  if (!hasItems) return null
-                  return (
-                    <SelectItem key={category.id} value={category.id.toString()}>
-                      {category.name}
-                    </SelectItem>
-                  )
-                })}
-              </SelectContent>
-            </Select>
-            {/* Cart Button - Hidden on mobile (footer handles it), shown on desktop */}
-            <Button
-              onClick={() => router.push(`/cart?session=${sessionId}`)}
-              variant="outline"
-              size="icon"
-              className="relative flex-shrink-0 hidden md:flex"
-            >
-              <ShoppingCart className="w-5 h-5" />
-              {totalCartItems > 0 && (
-                <span className="absolute -top-2 -right-2 inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs font-bold">
-                  {totalCartItems > 99 ? '99+' : totalCartItems}
-                </span>
-              )}
-            </Button>
-          </div>
+    <div className="min-h-screen bg-background pb-24">
+
+      {/* ── Sticky header + tabs ── */}
+      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b">
+        {/* Top bar */}
+        <div className="flex items-center gap-2 px-4 h-14">
+          <button
+            onClick={() => router.push(`/session/${sessionId}`)}
+            className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-muted transition-colors"
+            aria-label="กลับ"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <h1 className="flex-1 text-lg font-bold">เมนูทั้งหมด</h1>
+          <button
+            onClick={() => router.push(`/cart?session=${sessionId}`)}
+            className="relative w-11 h-11 flex items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm"
+            aria-label="ตะกร้า"
+          >
+            <ShoppingCart className="w-5 h-5" />
+            {totalCartItems > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[20px] h-5 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full flex items-center justify-center px-1">
+                {totalCartItems > 99 ? '99+' : totalCartItems}
+              </span>
+            )}
+          </button>
         </div>
 
-        {/* All Categories */}
-        {categories
-          .filter((category) => {
-            // กรองตามหมวดหมู่ที่เลือก
-            if (selectedCategory !== 'all') {
-              return category.id.toString() === selectedCategory
-            }
-            return true
-          })
-          .map((category) => {
-            // กรอง items ตาม session type
-            const filteredItems = sessionType === 'buffet'
-              ? category.items.filter(item => item.isBuffetItem || item.isALaCarteItem)
-              : category.items.filter(item => item.isALaCarteItem)
-
-            // ถ้าไม่มี items ในหมวดนี้ ให้ข้าม
-            if (filteredItems.length === 0) {
-              return null
-            }
-
-            return (
-              <div key={category.id} className={`mb-6 sm:mb-8 ${hasLoadedRef.current ? '' : 'animate-fade-in-up'}`}>
-                <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-primary">{category.name}</h2>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                  {filteredItems.map((item, itemIndex) => {
-                    // ตรวจสอบว่าเป็นเมนูบุฟเฟ่ต์หรือไม่ (สำหรับแสดงราคา)
-                    const isBuffetItem = sessionType === 'buffet' && item.isBuffetItem && !item.isALaCarteItem
-                    
-                    return (
-                      <Card
-                        key={item.id}
-                        onClick={() => handleItemClick(item)}
-                        className={`overflow-hidden transition-all duration-300 relative ${
-                          hasLoadedRef.current ? '' : 'animate-fade-in-up'
-                        } ${
-                          !item.isAvailable 
-                            ? 'opacity-60 cursor-not-allowed' 
-                            : 'hover:shadow-lg hover:scale-[1.02] hover:border-primary/50 cursor-pointer hover-lift active-scale'
-                        }`}
-                        style={hasLoadedRef.current ? undefined : {
-                          animationDelay: `${itemIndex * 0.03}s`
-                        }}
-                      >
-                        {!item.isAvailable && (
-                          <div className="absolute top-2 right-2 z-10">
-                            <span className="inline-flex items-center px-2 py-1 rounded-md bg-destructive/90 text-destructive-foreground text-xs font-semibold shadow-sm">
-                              หมด
-                            </span>
-                          </div>
-                        )}
-                        <CardContent className="p-3 sm:p-4">
-                          <div className="flex gap-3 sm:gap-4">
-                            {/* รูปภาพด้านซ้าย */}
-                            {item.imageUrl ? (
-                              <div className="relative w-24 h-24 sm:w-28 sm:h-28 flex-shrink-0 rounded-lg overflow-hidden bg-muted shadow-sm">
-                                <Image
-                                  src={item.imageUrl}
-                                  alt={item.name}
-                                  fill
-                                  sizes="(max-width: 640px) 96px, 112px"
-                                  className="object-cover transition-transform duration-200 hover:scale-110"
-                                />
-                              </div>
-                            ) : (
-                              <div className="w-24 h-24 sm:w-28 sm:h-28 flex-shrink-0 rounded-lg bg-muted/50 flex items-center justify-center">
-                                <span className="text-muted-foreground text-xs">ไม่มีรูป</span>
-                              </div>
-                            )}
-                            
-                            {/* เนื้อหาด้านขวา */}
-                            <div className="flex-1 min-w-0 flex flex-col justify-between">
-                              <div className="flex-1">
-                                <div className="flex items-start justify-between gap-2 mb-1.5">
-                                  <h3 className="font-semibold text-sm sm:text-base line-clamp-2 flex-1 leading-tight">{item.name}</h3>
-                                  {getCartQuantity(item.id) > 0 && (
-                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-semibold flex-shrink-0 animate-in fade-in slide-in-from-top-1">
-                                      <CheckCircle2 className="w-3 h-3" />
-                                      {getCartQuantity(item.id)}
-                                    </span>
-                                  )}
-                                </div>
-                                {item.description && (
-                                  <p className="text-xs text-muted-foreground line-clamp-2 mb-1.5 leading-relaxed">
-                                    {item.description}
-                                  </p>
-                                )}
-                                <p className="text-sm sm:text-base mb-2 sm:mb-3">
-                                  {isBuffetItem ? (
-                                    <span className="text-muted-foreground text-xs sm:text-sm">รวมในบุฟเฟ่ต์</span>
-                                  ) : (
-                                    <span className="text-primary font-bold text-base sm:text-lg">฿{item.price.toLocaleString()}</span>
-                                  )}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )
-                  })}
-                </div>
-              </div>
-            )
-          })}
+        {/* Category tab pills */}
+        <div className="flex gap-2 overflow-x-auto no-scrollbar px-4 pb-3 pt-1">
+          <button
+            onClick={() => setSelectedCategory('all')}
+            className={cn(
+              'flex-shrink-0 px-4 h-9 rounded-full text-sm font-semibold transition-colors',
+              selectedCategory === 'all'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-muted text-muted-foreground hover:bg-muted/70'
+            )}
+          >
+            ทั้งหมด
+          </button>
+          {visibleCategories.map(cat => (
+            <button
+              key={cat.id}
+              onClick={() => setSelectedCategory(cat.id.toString())}
+              className={cn(
+                'flex-shrink-0 px-4 h-9 rounded-full text-sm font-semibold transition-colors whitespace-nowrap',
+                selectedCategory === cat.id.toString()
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted text-muted-foreground hover:bg-muted/70'
+              )}
+            >
+              {cat.name}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Menu Detail Sheet (Mobile) / Dialog (Desktop) */}
+      {/* ── Content ── */}
+      <div className="px-3 pt-4">
+
+        {/* Expired banner */}
+        {isExpired && (
+          <div className="mb-4 px-4 py-3 rounded-xl bg-destructive/10 border border-destructive/20 flex items-center gap-3">
+            <AlertCircle className="w-4 h-4 text-destructive flex-shrink-0" />
+            <p className="text-sm text-destructive font-semibold">หมดเวลาบุฟเฟ่ต์ — ไม่สามารถสั่งเพิ่มได้</p>
+          </div>
+        )}
+
+        {displayCategories.map(category => (
+          <div key={category.id} className="mb-8">
+            {/* Category heading */}
+            <h2 className="text-base font-bold px-1 mb-3 flex items-center gap-2">
+              <span className="w-1 h-5 rounded-full bg-primary inline-block" />
+              {category.name}
+            </h2>
+
+            {/* 2-col mobile, 3-col tablet, 4-col desktop */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              {category.items.map(item => {
+                const isBuffetItem = sessionType === 'buffet' && item.isBuffetItem && !item.isALaCarteItem
+                const inCart = getCartQuantity(item.id)
+                const tappable = item.isAvailable && !isExpired
+                return (
+                  <div
+                    key={item.id}
+                    onClick={() => tappable && handleItemClick(item)}
+                    className={cn(
+                      'bg-card rounded-2xl overflow-hidden shadow-sm border border-border/40 transition-transform',
+                      tappable ? 'cursor-pointer active:scale-[0.97]' : 'opacity-60 cursor-not-allowed'
+                    )}
+                  >
+                    {/* Square image */}
+                    <div className="relative aspect-square bg-muted">
+                      {item.imageUrl ? (
+                        <Image
+                          src={item.imageUrl}
+                          alt={item.name}
+                          fill
+                          sizes="(max-width:640px) 50vw, (max-width:1024px) 33vw, 25vw"
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-5xl select-none">🍽️</div>
+                      )}
+
+                      {!item.isAvailable ? (
+                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                          <span className="bg-destructive text-destructive-foreground text-xs font-bold px-3 py-1.5 rounded-lg">หมด</span>
+                        </div>
+                      ) : (
+                        <>
+                          {/* In-cart quantity badge */}
+                          {inCart > 0 && (
+                            <div className="absolute top-2 left-2 min-w-[24px] h-6 bg-primary rounded-full flex items-center justify-center px-1.5 shadow">
+                              <span className="text-[11px] font-bold text-primary-foreground">{inCart}</span>
+                            </div>
+                          )}
+                          {/* One-tap add button — 44px minimum touch target */}
+                          {!isExpired && (
+                            <button
+                              onClick={e => quickAdd(item, e)}
+                              className="absolute bottom-2 right-2 w-11 h-11 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md active:scale-90 transition-transform"
+                              aria-label={`เพิ่ม ${item.name}`}
+                            >
+                              <Plus className="w-5 h-5" />
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </div>
+
+                    {/* Text body */}
+                    <div className="p-2.5">
+                      <h3 className="font-semibold text-sm leading-tight line-clamp-2 mb-1">{item.name}</h3>
+                      <p className={cn('font-bold', isBuffetItem ? 'text-xs text-muted-foreground' : 'text-base text-primary')}>
+                        {isBuffetItem ? 'รวมบุฟเฟ่ต์' : `฿${item.price.toLocaleString()}`}
+                      </p>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Item detail — bottom sheet (mobile) ── */}
       {selectedItem && (
         <>
-          {/* Mobile: Bottom Sheet */}
           <Sheet open={isDetailOpen && isMobile} onOpenChange={setIsDetailOpen}>
             <SheetContent side="bottom" className="h-[85vh] rounded-t-2xl">
               <SheetHeader>
@@ -466,71 +372,46 @@ export default function MenuPage() {
                     : `฿${selectedItem.price.toLocaleString()}`}
                 </SheetDescription>
               </SheetHeader>
-              <div className="mt-6 space-y-6">
+              <div className="mt-4 space-y-5">
                 {selectedItem.imageUrl && (
-                  <div className="relative w-full h-48 rounded-lg overflow-hidden bg-muted">
-                    <Image
-                      src={selectedItem.imageUrl}
-                      alt={selectedItem.name}
-                      fill
-                      sizes="90vw"
-                      className="object-cover"
-                    />
+                  <div className="relative w-full h-48 rounded-xl overflow-hidden bg-muted">
+                    <Image src={selectedItem.imageUrl} alt={selectedItem.name} fill sizes="90vw" className="object-cover" />
                   </div>
                 )}
                 {selectedItem.description && (
-                  <div className="text-sm text-muted-foreground leading-relaxed">
-                    {selectedItem.description}
-                  </div>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{selectedItem.description}</p>
                 )}
                 <div className="flex items-center justify-center gap-4">
-                  <Button
-                    onClick={() => updateQuantity(selectedItem.id, -1)}
-                    variant="outline"
-                    size="icon"
-                    className="h-12 w-12"
-                    disabled={getQuantity(selectedItem.id) <= 1}
-                  >
+                  <Button variant="outline" size="icon" onClick={() => updateQuantity(selectedItem.id, -1)} className="h-12 w-12 rounded-full" disabled={getQuantity(selectedItem.id) <= 1}>
                     <Minus className="w-5 h-5" />
                   </Button>
-                  <span className="text-3xl font-bold w-16 text-center">
-                    {getQuantity(selectedItem.id)}
-                  </span>
-                  <Button
-                    onClick={() => updateQuantity(selectedItem.id, 1)}
-                    variant="outline"
-                    size="icon"
-                    className="h-12 w-12"
-                  >
+                  <span className="text-3xl font-bold w-14 text-center tabular-nums">{getQuantity(selectedItem.id)}</span>
+                  <Button variant="outline" size="icon" onClick={() => updateQuantity(selectedItem.id, 1)} className="h-12 w-12 rounded-full">
                     <Plus className="w-5 h-5" />
                   </Button>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="item-note" className="text-sm">หมายเหตุ (ไม่บังคับ)</Label>
-                  <Input
-                    id="item-note"
-                    placeholder="เช่น ไม่เผ็ด, เพิ่มไข่, ไม่ใส่ผัก"
-                    value={itemNote}
-                    onChange={(e) => setItemNote(e.target.value)}
-                    className="text-sm"
-                  />
+                  <Label htmlFor="item-note" className="text-sm font-semibold">หมายเหตุ (ไม่บังคับ)</Label>
+                  <Input id="item-note" placeholder="เช่น ไม่เผ็ด, ไม่ใส่ผัก" value={itemNote} onChange={e => setItemNote(e.target.value)} className="h-11" />
                 </div>
               </div>
-              <SheetFooter className="mt-auto pt-4">
+              <SheetFooter className="pt-4">
                 <Button
                   onClick={() => handleAddToCart(selectedItem)}
-                  className="w-full h-12 text-lg"
-                  size="lg"
+                  className="w-full h-14 text-base font-bold rounded-xl"
                   disabled={!selectedItem.isAvailable}
                 >
                   <Plus className="w-5 h-5 mr-2" />
                   เพิ่มลงตะกร้า
+                  {!(sessionType === 'buffet' && selectedItem.isBuffetItem && !selectedItem.isALaCarteItem) && (
+                    <span className="ml-1 opacity-90">— ฿{(selectedItem.price * getQuantity(selectedItem.id)).toLocaleString()}</span>
+                  )}
                 </Button>
               </SheetFooter>
             </SheetContent>
           </Sheet>
 
-          {/* Desktop: Dialog */}
+          {/* Item detail — dialog (desktop) */}
           <Dialog open={isDetailOpen && !isMobile} onOpenChange={setIsDetailOpen}>
             <DialogContent className="max-w-md">
               <DialogHeader>
@@ -541,63 +422,29 @@ export default function MenuPage() {
                     : `฿${selectedItem.price.toLocaleString()}`}
                 </DialogDescription>
               </DialogHeader>
-              <div className="mt-4 space-y-4">
-                {selectedItem.imageUrl && (
-                  <div className="relative w-full h-64 rounded-lg overflow-hidden bg-muted">
-                    <Image
-                      src={selectedItem.imageUrl}
-                      alt={selectedItem.name}
-                      fill
-                      sizes="448px"
-                      className="object-cover"
-                    />
-                  </div>
-                )}
-                {selectedItem.description && (
-                  <div className="text-sm text-muted-foreground leading-relaxed">
-                    {selectedItem.description}
-                  </div>
-                )}
-                <div className="flex items-center justify-center gap-4">
-                  <Button
-                    onClick={() => updateQuantity(selectedItem.id, -1)}
-                    variant="outline"
-                    size="icon"
-                    className="h-12 w-12"
-                    disabled={getQuantity(selectedItem.id) <= 1}
-                  >
-                    <Minus className="w-5 h-5" />
-                  </Button>
-                  <span className="text-3xl font-bold w-16 text-center">
-                    {getQuantity(selectedItem.id)}
-                  </span>
-                  <Button
-                    onClick={() => updateQuantity(selectedItem.id, 1)}
-                    variant="outline"
-                    size="icon"
-                    className="h-12 w-12"
-                  >
-                    <Plus className="w-5 h-5" />
-                  </Button>
+              {selectedItem.imageUrl && (
+                <div className="relative w-full h-64 rounded-xl overflow-hidden">
+                  <Image src={selectedItem.imageUrl} alt={selectedItem.name} fill sizes="448px" className="object-cover" />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="item-note-desktop" className="text-sm">หมายเหตุ (ไม่บังคับ)</Label>
-                  <Input
-                    id="item-note-desktop"
-                    placeholder="เช่น ไม่เผ็ด, เพิ่มไข่, ไม่ใส่ผัก"
-                    value={itemNote}
-                    onChange={(e) => setItemNote(e.target.value)}
-                    className="text-sm"
-                  />
-                </div>
+              )}
+              {selectedItem.description && (
+                <p className="text-sm text-muted-foreground leading-relaxed">{selectedItem.description}</p>
+              )}
+              <div className="flex items-center justify-center gap-4">
+                <Button variant="outline" size="icon" onClick={() => updateQuantity(selectedItem.id, -1)} className="h-12 w-12 rounded-full" disabled={getQuantity(selectedItem.id) <= 1}>
+                  <Minus className="w-5 h-5" />
+                </Button>
+                <span className="text-3xl font-bold w-14 text-center tabular-nums">{getQuantity(selectedItem.id)}</span>
+                <Button variant="outline" size="icon" onClick={() => updateQuantity(selectedItem.id, 1)} className="h-12 w-12 rounded-full">
+                  <Plus className="w-5 h-5" />
+                </Button>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="item-note-desktop" className="text-sm font-semibold">หมายเหตุ (ไม่บังคับ)</Label>
+                <Input id="item-note-desktop" placeholder="เช่น ไม่เผ็ด, ไม่ใส่ผัก" value={itemNote} onChange={e => setItemNote(e.target.value)} className="h-11" />
               </div>
               <DialogFooter>
-                <Button
-                  onClick={() => handleAddToCart(selectedItem)}
-                  className="w-full h-12 text-lg"
-                  size="lg"
-                  disabled={!selectedItem.isAvailable}
-                >
+                <Button onClick={() => handleAddToCart(selectedItem)} className="w-full h-12 text-base font-bold" disabled={!selectedItem.isAvailable}>
                   <Plus className="w-5 h-5 mr-2" />
                   เพิ่มลงตะกร้า
                 </Button>
@@ -609,4 +456,3 @@ export default function MenuPage() {
     </div>
   )
 }
-

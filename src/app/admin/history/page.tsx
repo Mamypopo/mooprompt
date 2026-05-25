@@ -74,9 +74,9 @@ export default function HistoryPage() {
 
   return (
     <div>
-      <div className="flex items-center gap-2 mb-6">
-        <History className="w-6 h-6 text-primary" />
+      <div className="mb-6">
         <h1 className="text-xl sm:text-2xl font-bold">ประวัติการขาย</h1>
+        <p className="text-sm text-muted-foreground mt-0.5">รายการโต๊ะที่ปิดแล้วแยกตามวัน</p>
       </div>
 
       {/* Date filter */}
@@ -100,22 +100,29 @@ export default function HistoryPage() {
 
       {/* Summary card */}
       {!loading && sessions.length > 0 && (
-        <Card className="mb-4 bg-green-500/5 border-green-500/30">
-          <CardContent className="p-4 flex flex-wrap gap-6">
-            <div>
+        <div className="grid grid-cols-3 gap-3 mb-4">
+          <Card className="overflow-hidden">
+            <div className="h-1 bg-emerald-500" />
+            <CardContent className="p-3 sm:p-4">
               <p className="text-xs text-muted-foreground">ยอดขายรวม</p>
-              <p className="text-2xl font-bold text-green-600">฿{dayRevenue.toLocaleString()}</p>
-            </div>
-            <div>
+              <p className="text-xl sm:text-2xl font-bold text-emerald-600">฿{dayRevenue.toLocaleString()}</p>
+            </CardContent>
+          </Card>
+          <Card className="overflow-hidden">
+            <div className="h-1 bg-blue-500" />
+            <CardContent className="p-3 sm:p-4">
               <p className="text-xs text-muted-foreground">จำนวนโต๊ะ</p>
-              <p className="text-2xl font-bold">{totalCount}</p>
-            </div>
-            <div>
+              <p className="text-xl sm:text-2xl font-bold text-blue-600">{totalCount}</p>
+            </CardContent>
+          </Card>
+          <Card className="overflow-hidden">
+            <div className="h-1 bg-muted" />
+            <CardContent className="p-3 sm:p-4">
               <p className="text-xs text-muted-foreground">วันที่</p>
-              <p className="text-base font-semibold">{formatDate(date + 'T00:00:00')}</p>
-            </div>
-          </CardContent>
-        </Card>
+              <p className="text-sm font-semibold">{formatDate(date + 'T00:00:00')}</p>
+            </CardContent>
+          </Card>
+        </div>
       )}
 
       {loading ? (

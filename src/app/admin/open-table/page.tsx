@@ -158,13 +158,17 @@ export default function OpenTablePage() {
   if (createdSession && qrCodeUrl) {
     return (
       <div>
-        <h1 className="text-xl sm:text-2xl font-bold mb-6">เปิดโต๊ะ</h1>
+        <div className="mb-6">
+          <h1 className="text-xl sm:text-2xl font-bold">เปิดโต๊ะ</h1>
+        </div>
         <div className="max-w-sm mx-auto">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <QrCode className="w-5 h-5" />QR Code สำหรับโต๊ะ
-              </CardTitle>
+          <Card className="overflow-hidden">
+            <div className="h-1.5 bg-gradient-to-r from-primary to-secondary" />
+            <CardHeader className="text-center pb-2">
+              <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-2">
+                <Check className="w-6 h-6 text-emerald-500" />
+              </div>
+              <CardTitle className="text-lg">เปิดโต๊ะสำเร็จ!</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 text-center">
               <div className="space-y-1">
@@ -199,7 +203,10 @@ export default function OpenTablePage() {
 
   return (
     <div>
-      <h1 className="text-xl sm:text-2xl font-bold mb-6">เปิดโต๊ะ</h1>
+      <div className="mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold">เปิดโต๊ะ</h1>
+        <p className="text-sm text-muted-foreground mt-0.5">เลือกโต๊ะ กำหนดประเภท และรับ QR Code</p>
+      </div>
 
       {/* Step indicator */}
       <div className="flex items-center gap-0 mb-8 max-w-lg">

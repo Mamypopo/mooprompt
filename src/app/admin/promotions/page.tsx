@@ -405,8 +405,11 @@ export default function PromotionsPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-xl sm:text-2xl font-bold">จัดการโปรโมชั่น</h1>
+      <div className="flex justify-between items-start sm:items-center mb-6 gap-4">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold">โปรโมชั่น</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">ส่วนลดและโปรโมชั่นพิเศษ</p>
+        </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={() => handleOpenDialog()}>
@@ -611,18 +614,19 @@ export default function PromotionsPage() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {promotions.map((promotion) => (
-            <Card key={promotion.id}>
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <CardTitle className="text-lg">{promotion.name}</CardTitle>
-                  <Badge variant={promotion.active ? 'success' : 'outline'}>
-                    {promotion.active ? 'เปิดใช้งาน' : 'ปิดใช้งาน'}
+            <Card key={promotion.id} className="overflow-hidden">
+              <div className={`h-1 ${promotion.active ? 'bg-gradient-to-r from-primary to-accent' : 'bg-muted'}`} />
+              <CardHeader className="pb-2">
+                <div className="flex justify-between items-start gap-2">
+                  <CardTitle className="text-base">{promotion.name}</CardTitle>
+                  <Badge variant={promotion.active ? 'success' : 'outline'} className="flex-shrink-0 text-xs">
+                    {promotion.active ? 'เปิด' : 'ปิด'}
                   </Badge>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-2">
+              <CardContent className="space-y-3">
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">ประเภท</p>
+                  <p className="text-xs text-muted-foreground mb-1">ประเภท</p>
                   <p className="font-medium">
                     {promotion.type === 'PERCENT'
                       ? 'เปอร์เซ็นต์'
@@ -646,12 +650,12 @@ export default function PromotionsPage() {
                     </p>
                   )}
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">ค่า</p>
-                  <p className="font-medium text-lg">
+                <div className="bg-primary/5 rounded-lg p-3">
+                  <p className="text-xs text-muted-foreground">ค่าส่วนลด</p>
+                  <p className="font-bold text-xl text-primary">
                     {promotion.type === 'PERCENT'
                       ? `${promotion.value}%`
-                      : `${promotion.value.toLocaleString()} บาท`}
+                      : `฿${promotion.value.toLocaleString()}`}
                   </p>
                 </div>
                 <div className="flex gap-2 pt-4">

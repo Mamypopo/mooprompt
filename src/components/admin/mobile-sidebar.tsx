@@ -15,13 +15,13 @@ import {
   Menu as MenuIcon,
   LayoutDashboard,
   History,
+  ChefHat,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import {
   Sheet,
   SheetContent,
-  SheetHeader,
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
@@ -52,30 +52,41 @@ export function MobileSidebar() {
           <MenuIcon className="w-5 h-5" />
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-64 p-0">
-        <SheetHeader className="p-4 border-b">
-          <SheetTitle>Admin Panel</SheetTitle>
-        </SheetHeader>
-        <nav className="p-4 space-y-1">
+      <SheetContent side="left" className="w-64 p-0 bg-gray-900 border-r-0">
+        <SheetTitle className="sr-only">เมนูหลัก</SheetTitle>
+        {/* Brand */}
+        <div className="flex items-center gap-3 px-6 py-5 border-b border-white/10">
+          <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center flex-shrink-0">
+            <ChefHat className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <p className="text-white font-bold text-base leading-none">Mooprompt</p>
+            <p className="text-gray-400 text-xs mt-0.5">Admin Panel</p>
+          </div>
+        </div>
+
+        {/* Nav */}
+        <nav className="px-3 py-4 space-y-0.5 overflow-y-auto">
           {menuItems.map((item) => {
             const Icon = item.icon
             const isActive = pathname === item.href
             return (
-              <Button
+              <button
                 key={item.href}
                 onClick={() => {
                   router.push(item.href)
                   setOpen(false)
                 }}
-                variant={isActive ? 'default' : 'ghost'}
                 className={cn(
-                  'w-full justify-start',
-                  isActive && 'bg-primary text-primary-foreground'
+                  'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all',
+                  isActive
+                    ? 'bg-primary/20 text-primary border border-primary/30'
+                    : 'text-gray-400 hover:text-white hover:bg-white/10'
                 )}
               >
-                <Icon className="w-4 h-4 mr-2" />
+                <Icon className={cn('w-4 h-4 flex-shrink-0', isActive ? 'text-primary' : '')} />
                 {item.label}
-              </Button>
+              </button>
             )
           })}
         </nav>
@@ -83,4 +94,3 @@ export function MobileSidebar() {
     </Sheet>
   )
 }
-

@@ -329,7 +329,10 @@ export default function SettingsPage() {
 
   return (
     <div>
-      <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">ตั้งค่าร้าน</h1>
+      <div className="mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold">ตั้งค่าร้าน</h1>
+        <p className="text-sm text-muted-foreground mt-0.5">ข้อมูลร้าน, โลโก้, WiFi และเวลาทำการ</p>
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <Card>

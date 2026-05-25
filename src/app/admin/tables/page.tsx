@@ -256,7 +256,10 @@ export default function TablesPage() {
   return (
     <div>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3">
-        <h1 className="text-xl sm:text-2xl font-bold">จัดการโต๊ะ</h1>
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold">จัดการโต๊ะ</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">เพิ่ม แก้ไข และดูสถานะโต๊ะทั้งหมด</p>
+        </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={() => handleOpenDialog()} className="w-full sm:w-auto">

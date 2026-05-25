@@ -662,7 +662,10 @@ export default function MenuManagementPage() {
   return (
     <div>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3">
-        <h1 className="text-xl sm:text-2xl font-bold">จัดการเมนู</h1>
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold">จัดการเมนู</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">เพิ่ม แก้ไข และจัดการเมนูอาหาร</p>
+        </div>
         <div className="flex gap-2 w-full sm:w-auto">
           <Dialog open={isCategoryModalOpen} onOpenChange={(open) => {
             setIsCategoryModalOpen(open)
