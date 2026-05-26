@@ -8,4 +8,5 @@ export { BillingFormSkeleton } from './billing-form-skeleton'
 export { CategorySkeleton } from './category-skeleton'
 export { CartItemSkeleton } from './cart-item-skeleton'
 export { SessionSkeleton } from './session-skeleton'
+export { CustomerOrderSkeleton } from './customer-order-skeleton'
 

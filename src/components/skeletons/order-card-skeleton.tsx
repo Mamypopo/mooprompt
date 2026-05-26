@@ -3,12 +3,15 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { OrderItemSkeleton } from './order-item-skeleton'
 
 interface OrderCardSkeletonProps {
-  variant?: 'kitchen' | 'runner'
+  variant?: 'kitchen' | 'runner' | 'customer'
   itemCount?: number
 }
 
 export function OrderCardSkeleton({ variant = 'kitchen', itemCount = 3 }: OrderCardSkeletonProps) {
-  const borderColor = variant === 'runner' ? 'border-l-success' : 'border-l-primary'
+  const borderColor =
+    variant === 'runner' ? 'border-l-success' :
+    variant === 'customer' ? 'border-l-muted-foreground/30' :
+    'border-l-primary'
   
   return (
     <Card className={`border-l-4 ${borderColor} animate-pulse`}>

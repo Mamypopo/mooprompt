@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { getSocket } from '@/lib/socket-client'
-import { OrderCardSkeleton } from '@/components/skeletons'
+import { CustomerOrderSkeleton } from '@/components/skeletons'
 import { Skeleton } from '@/components/ui/skeleton'
 
 interface OrderItem {
@@ -208,13 +208,10 @@ export default function OrdersPage() {
     return STATUS_TEXT[status] ?? status
   }
 
+  const effectiveIsBuffet = isBuffet ?? false
+
   const getOrderTotal = (order: Order) => {
-    // ถ้ายังไม่รู้ว่าเป็น buffet หรือไม่ → return 0 (รอให้ state พร้อม)
-    if (isBuffet === null) {
-      return 0
-    }
-    
-    if (isBuffet) {
+    if (effectiveIsBuffet) {
       // สำหรับบุฟเฟ่ต์: คำนวณแค่ A_LA_CARTE items (ยอดเพิ่มเติม)
       // ไม่รวม BUFFET_INCLUDED items (ฟรี)
       return order.items.reduce((total, item) => {
@@ -254,8 +251,7 @@ export default function OrdersPage() {
     }
   }
 
-  // แสดง loading ถ้ายังโหลด orders หรือยังไม่รู้ว่าเป็น buffet หรือไม่
-  if (loading || isBuffetLoading || isBuffet === null) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
@@ -266,7 +262,7 @@ export default function OrdersPage() {
           <Skeleton className="h-7 w-32 mb-4 sm:mb-6" />
           <div className="space-y-3 sm:space-y-4">
             {[...Array(3)].map((_, i) => (
-              <OrderCardSkeleton key={i} itemCount={2} />
+              <CustomerOrderSkeleton key={i} itemCount={2} />
             ))}
           </div>
         </div>
@@ -349,7 +345,7 @@ export default function OrdersPage() {
                       {/* ยอดเพิ่มเติม/ยอดรวม - บน mobile: absolute, บน desktop: flex item */}
                       <div className="absolute top-3 right-3 sm:static sm:top-auto sm:right-auto text-right flex-shrink-0">
                         <p className="text-xs text-foreground font-medium">
-                          {isBuffet ? 'ยอดเพิ่มเติม' : 'ยอดรวม'}
+                          {effectiveIsBuffet ? 'ยอดเพิ่มเติม' : 'ยอดรวม'}
                         </p>
                         <p className="text-lg font-bold text-primary sm:text-xl">
                           {orderTotal > 0 ? `฿${orderTotal.toLocaleString()}` : (
