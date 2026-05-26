@@ -25,20 +25,22 @@ export async function middleware(request: NextRequest) {
     const role = payload.role as string
     const pathname = request.nextUrl.pathname
 
+    console.log('[middleware] path:', pathname, '| role:', role)
+
     for (const { path, roles } of ROLE_ROUTES) {
       if (pathname.startsWith(path) && !roles.includes(role)) {
+        console.log('[middleware] BLOCKED — role', role, 'not allowed on', path)
         return NextResponse.redirect(new URL('/login', request.url))
       }
     }
 
-    // Forward user id/role as headers for server components
     const headers = new Headers(request.headers)
     headers.set('x-user-id', String(payload.id))
     headers.set('x-user-role', role)
-    headers.set('x-user-name', String(payload.name))
 
     return NextResponse.next({ request: { headers } })
-  } catch {
+  } catch (err) {
+    console.error('[middleware] JWT verify failed:', err)
     return NextResponse.redirect(new URL('/login', request.url))
   }
 }
