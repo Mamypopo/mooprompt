@@ -29,7 +29,7 @@ export default function AdminLayout({
   }, [router])
 
   return (
-    <div className="min-h-screen flex bg-background">
+    <div className="min-h-screen flex bg-stone-50 dark:bg-background">
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0">
         <Topbar />
