@@ -36,7 +36,7 @@ export function Sidebar() {
   const router = useRouter()
 
   return (
-    <aside className="hidden lg:flex flex-col w-64 bg-gray-900 min-h-screen">
+    <aside className="hidden lg:flex flex-col w-64 bg-[#1C1C1E] min-h-screen">
       {/* Brand */}
       <div className="flex items-center gap-3 px-6 py-5 border-b border-white/10">
         <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center flex-shrink-0">
